@@ -8,6 +8,8 @@ import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { RATES, DEFAULT_RATE } from "@/lib/rates";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/rates")({
   head: () => ({
@@ -50,9 +52,10 @@ function RatesPage() {
   const rate = type === "mobile" ? base : Math.max(0.01, base * 0.85);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">← Back home</Link>
-      <h1 className="mt-6 text-center text-4xl font-bold tracking-tight">Calculate Your Call Cost</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <main className="mx-auto max-w-5xl px-6 py-16">
+      <h1 className="text-center text-4xl font-bold tracking-tight">Calculate Your Call Cost</h1>
       <p className="mt-3 text-center text-muted-foreground">
         Transparent per-minute pricing for over 200 countries.
       </p>
@@ -174,6 +177,8 @@ function RatesPage() {
           </div>
         </div>
       </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,4 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -12,9 +14,10 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">← Back home</Link>
-      <h1 className="mt-6 text-4xl font-bold tracking-tight">Privacy Policy</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <main className="mx-auto max-w-3xl px-6 py-16">
+      <h1 className="text-4xl font-bold tracking-tight">Privacy Policy</h1>
       <p className="mt-2 text-sm text-muted-foreground">Last updated: {new Date().getFullYear()}</p>
 
       <div className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground">
@@ -81,6 +84,8 @@ function PrivacyPage() {
           </p>
         </section>
       </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 }
