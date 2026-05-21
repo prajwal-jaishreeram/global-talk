@@ -30,6 +30,7 @@ function DashboardLayout() {
 
   useEffect(() => {
     let active = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !active) return;
@@ -41,7 +42,7 @@ function DashboardLayout() {
         .maybeSingle();
       if (active && data) setBalance(Number(data.credit_balance));
 
-      const channel = supabase
+      channel = supabase
         .channel(`profile:${user.id}`)
         .on(
           "postgres_changes",
@@ -52,10 +53,12 @@ function DashboardLayout() {
           },
         )
         .subscribe();
-      return () => { supabase.removeChannel(channel); };
     }
     load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   async function signOut() {
