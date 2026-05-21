@@ -223,7 +223,7 @@ function HeroDialerInner() {
         </div>
 
         {/* Phone mockup */}
-        <div className="relative mx-auto w-full max-w-[440px] py-6">
+        <div className="relative mx-auto w-full max-w-[440px]">
           {/* Soft glow halo behind the phone */}
           <div
             aria-hidden
