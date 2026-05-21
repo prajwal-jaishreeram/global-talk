@@ -17,7 +17,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ringlink — Browser-based international calling" },
+      { title: "Ringlink - Browser-based international calling" },
       {
         name: "description",
         content:
@@ -94,6 +94,7 @@ function HeroDialer() {
   const [muted, setMuted] = useState(false);
   const [country, setCountry] = useState("US");
   const [countryOpen, setCountryOpen] = useState(false);
+  const [alpha, setAlpha] = useState(false);
   const timerRef = useRef<number | null>(null);
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
 
@@ -130,7 +131,7 @@ function HeroDialer() {
     { d: "0", sub: "+" },
     { d: "#" },
   ];
-  const press = (k: string) => setNumber((n) => (n + k).slice(0, 18));
+  const press = (k: string) => setNumber((n) => (n + k).slice(0, 24));
   const back = () => setNumber((n) => n.slice(0, -1));
 
   async function startCall() {
@@ -168,7 +169,7 @@ function HeroDialer() {
             <span className="text-primary">right from your tab.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
-            HD international calls powered by a tier-1 carrier network. Pay only for what you use — no apps, no contracts, no SIM swaps.
+            HD international calls powered by a tier-1 carrier network. Pay only for what you use - no apps, no contracts, no SIM swaps.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/auth/signup">
@@ -268,12 +269,17 @@ function HeroDialer() {
                 {keys.map((k) => (
                   <button
                     key={k.d}
-                    onClick={() => press(k.d)}
+                    onClick={() => press(alpha && k.sub ? k.sub[0] : k.d)}
                     className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
                   >
-                    <span className="text-lg font-semibold leading-none">{k.d}</span>
-                    {k.sub && (
+                    <span className="text-lg font-semibold leading-none">
+                      {alpha && k.sub ? k.sub : k.d}
+                    </span>
+                    {!alpha && k.sub && (
                       <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">{k.sub}</span>
+                    )}
+                    {alpha && k.sub && (
+                      <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">{k.d}</span>
                     )}
                   </button>
                 ))}
@@ -290,8 +296,12 @@ function HeroDialer() {
                     {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </button>
                 ) : (
-                  <button className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted">
-                    123
+                  <button
+                    onClick={() => setAlpha((a) => !a)}
+                    aria-label="Toggle letters"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                  >
+                    {alpha ? "123" : "ABC"}
                   </button>
                 )}
                 {inCall ? (
@@ -331,7 +341,7 @@ function HeroDialer() {
               </div>
             </div>
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">Live preview — sign up to dial for real.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">Live preview - sign up to dial for real.</p>
         </div>
       </div>
     </section>
@@ -341,7 +351,7 @@ function HeroDialer() {
 function HowToCall() {
   const steps = [
     { icon: CreditCard, title: "Create your account", body: "Sign up in 30 seconds and grab $5 in trial credit. No card required." },
-    { icon: Mic, title: "Allow microphone", body: "Your browser asks once. We never record — audio streams peer-to-peer over SRTP." },
+    { icon: Mic, title: "Allow microphone", body: "Your browser asks once. We never record - audio streams peer-to-peer over SRTP." },
     { icon: PhoneCall, title: "Dial & connect", body: "Type any international number, hit call. The phone rings in under a second." },
   ];
   return (
@@ -388,7 +398,7 @@ function ForBusiness() {
             One dialer. Your entire global team.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Replace 5 SIP apps and a stack of physical SIMs with one browser tab. Spin up agents in minutes — no provisioning calls, no IT tickets.
+            Replace 5 SIP apps and a stack of physical SIMs with one browser tab. Spin up agents in minutes - no provisioning calls, no IT tickets.
           </p>
           <ul className="mt-6 space-y-3 text-sm">
             {points.map((p) => (
@@ -437,7 +447,7 @@ function ForBusiness() {
 
 function WhyChooseUs() {
   const items = [
-    { icon: Zap, title: "Sub-second connect", body: "WebRTC over our edge POPs — calls bridge faster than legacy SIP softphones." },
+    { icon: Zap, title: "Sub-second connect", body: "WebRTC over our edge POPs - calls bridge faster than legacy SIP softphones." },
     { icon: Globe, title: "200+ countries", body: "Tier-1 carriers worldwide. Rates from $0.01/min, fully transparent." },
     { icon: ShieldCheck, title: "Private by design", body: "End-to-end TLS + SRTP encryption. We don't record or sell your audio." },
     { icon: CreditCard, title: "Pay as you go", body: "Top up any amount. No subscriptions, no minimums, credits never expire." },
@@ -469,7 +479,7 @@ function FAQ() {
   const qs = [
     { q: "Do I need to install anything?", a: "No. Ringlink runs entirely in your browser using WebRTC. Chrome, Edge, Safari and Firefox are all supported." },
     { q: "How are calls priced?", a: "Pay-as-you-go per minute, billed by the second. Rates start at $0.01/min and are visible before you dial." },
-    { q: "Can I use my own caller ID?", a: "Yes — business accounts can bring their own number or SIP trunk. Personal accounts use a shared verified caller ID." },
+    { q: "Can I use my own caller ID?", a: "Yes - business accounts can bring their own number or SIP trunk. Personal accounts use a shared verified caller ID." },
     { q: "Is my call audio encrypted?", a: "Always. Signalling is TLS 1.3 and media is SRTP. We never write call audio to disk." },
     { q: "Do credits expire?", a: "Never. Your balance stays available until you use it." },
     { q: "Can I get a refund?", a: "Unused credits are refundable within 30 days of purchase. Just email support." },
@@ -538,7 +548,7 @@ function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/terms" className="hover:text-foreground">Terms of Service</Link></li>
               <li><Link to="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
-              <li><a href="mailto:support@ringlink.app" className="hover:text-foreground">Contact</a></li>
+              <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
             </ul>
           </div>
         </div>

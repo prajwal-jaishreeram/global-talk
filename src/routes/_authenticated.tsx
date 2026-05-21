@@ -38,5 +38,5 @@ function AuthGuard() {
   return <Outlet />;
 }
 
-// Silence the unused import — kept for future SSR-safe guard.
+// Silence the unused import - kept for future SSR-safe guard.
 void redirect;

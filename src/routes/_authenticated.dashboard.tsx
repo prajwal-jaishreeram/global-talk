@@ -103,7 +103,7 @@ function DashboardLayout() {
             <Wallet className="h-3.5 w-3.5" /> Balance
           </div>
           <div className="mt-1 text-xl font-semibold">
-            {balance === null ? "—" : `$${balance.toFixed(2)}`}
+            {balance === null ? "-" : `$${balance.toFixed(2)}`}
           </div>
           <Link to="/dashboard/credits">
             <Button size="sm" variant="outline" className="mt-2 w-full">Top up</Button>

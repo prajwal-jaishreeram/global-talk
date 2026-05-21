@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings — Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Settings - Ringlink" }] }),
   component: SettingsPage,
 });
 

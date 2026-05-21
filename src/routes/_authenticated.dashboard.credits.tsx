@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
-  head: () => ({ meta: [{ title: "Buy credits — Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Buy credits - Ringlink" }] }),
   component: CreditsPage,
 });
 
