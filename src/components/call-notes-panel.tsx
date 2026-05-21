@@ -62,10 +62,16 @@ export function CallNotesPanel({
     if (!el) return;
     let raf = 0;
     let last = performance.now();
+    let acc = 0; // accumulate sub-pixel scroll so slow speeds still move
     const step = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
-      el.scrollTop += speed * dt;
+      acc += speed * dt;
+      if (acc >= 1) {
+        const whole = Math.floor(acc);
+        el.scrollTop += whole;
+        acc -= whole;
+      }
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
         setAutoScroll(false);
         return;
@@ -80,20 +86,27 @@ export function CallNotesPanel({
     const text = kind === "script" ? script : notes;
     if (!text) return toast.error(`${kind === "script" ? "Script" : "Notes"} is empty`);
     const title = kind === "script" ? "Call script" : "Call notes";
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text });
+    const payload = { title, text };
+    const canShare =
+      typeof navigator !== "undefined" &&
+      typeof navigator.share === "function" &&
+      (typeof (navigator as any).canShare !== "function" ||
+        (navigator as any).canShare(payload));
+    if (canShare) {
+      try {
+        await navigator.share(payload);
         return;
+      } catch (err: any) {
+        // User cancelled — don't fall back, don't error.
+        if (err?.name === "AbortError") return;
+        // Otherwise (NotAllowedError in iframes, etc.) fall through to clipboard.
       }
-    } catch {
-      /* user cancelled */
-      return;
     }
     try {
       await navigator.clipboard.writeText(text);
       toast.success(`${title} copied to clipboard`);
     } catch {
-      toast.error("Could not share");
+      toast.error("Could not share. Try Export instead.");
     }
   }
 
@@ -114,7 +127,7 @@ export function CallNotesPanel({
   }
 
   return (
-    <aside className="flex w-full flex-col rounded-2xl border border-border bg-card/50 p-3 shadow-sm lg:max-w-[460px] lg:self-stretch">
+    <aside className="flex w-full flex-col rounded-2xl border border-border bg-card/50 p-3 shadow-sm lg:max-w-[340px] lg:self-stretch">
       <Tabs
         value={tab}
         onValueChange={(v) => setTab(v as "script" | "notes")}
