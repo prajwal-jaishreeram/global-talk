@@ -165,10 +165,10 @@ function HeroDialerInner() {
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
-        {/* Traveling background flag marquee */}
+        {/* Diagonal traveling flag marquee */}
         <div
           aria-hidden
-          className="absolute inset-x-0 top-1/2 -translate-y-1/2 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] opacity-30 dark:opacity-20"
+          className="absolute left-1/2 top-1/2 w-[180%] -translate-x-1/2 -translate-y-1/2 rotate-[-12deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] opacity-30 dark:opacity-20"
         >
           <div className="flex w-max items-center gap-12 md:gap-16 lg:gap-20 animate-marquee">
             {[...Array(2)].flatMap((_, dup) =>
@@ -177,7 +177,7 @@ function HeroDialerInner() {
                   key={`${dup}-${i}`}
                   src={src}
                   alt=""
-                  className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-full object-cover shadow-lg"
+                  className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-2xl object-cover shadow-lg"
                 />
               )),
             )}
