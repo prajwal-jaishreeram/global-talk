@@ -155,7 +155,7 @@ function HeroDialer() {
   return (
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
       </div>
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
         <div>
@@ -187,7 +187,7 @@ function HeroDialer() {
 
         {/* Phone mockup */}
         <div className="mx-auto w-full max-w-[300px]">
-          <div className="relative rounded-[2.5rem] border border-border bg-card p-3 shadow-2xl shadow-primary/10">
+          <div className="relative rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
             <div className="rounded-[2rem] bg-background p-4">
               {/* Top bar: balance + status dot */}
