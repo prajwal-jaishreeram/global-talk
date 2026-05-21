@@ -399,6 +399,28 @@ function DialerPage() {
             {callState === "active" && (
               <div className="text-xs text-muted-foreground">{formatCurrency(liveCost)} so far</div>
             )}
+            {telnyxState && (
+              <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                telnyx: {telnyxState}
+              </div>
+            )}
+          </div>
+        )}
+
+        {speakers.length > 0 && (
+          <div className="mt-4 flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={speakerId}
+              onChange={(e) => applySpeaker(e.target.value)}
+              className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+            >
+              {speakers.map((s) => (
+                <option key={s.deviceId} value={s.deviceId}>
+                  {s.label || `Speaker ${s.deviceId.slice(0, 6)}`}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
