@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
-  CreditCard, Mic, PhoneCall, ChevronDown, Sparkles,
+  CreditCard, Mic, PhoneCall, ChevronDown, Sparkles, Plus, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -80,9 +80,22 @@ function SiteHeader() {
 }
 
 function HeroDialer() {
-  const [number, setNumber] = useState("+1 415 ");
-  const keys = ["1","2","3","4","5","6","7","8","9","*","0","#"];
-  const press = (k: string) => setNumber((n) => n + k);
+  const [number, setNumber] = useState("");
+  const keys: { d: string; sub?: string }[] = [
+    { d: "1" },
+    { d: "2", sub: "ABC" },
+    { d: "3", sub: "DEF" },
+    { d: "4", sub: "GHI" },
+    { d: "5", sub: "JKL" },
+    { d: "6", sub: "MNO" },
+    { d: "7", sub: "PQRS" },
+    { d: "8", sub: "TUV" },
+    { d: "9", sub: "WXYZ" },
+    { d: "*" },
+    { d: "0", sub: "+" },
+    { d: "#" },
+  ];
+  const press = (k: string) => setNumber((n) => (n + k).slice(0, 18));
   const back = () => setNumber((n) => n.slice(0, -1));
 
   return (
@@ -119,31 +132,80 @@ function HeroDialer() {
         </div>
 
         {/* Phone mockup */}
-        <div className="mx-auto w-full max-w-[280px]">
+        <div className="mx-auto w-full max-w-[300px]">
           <div className="relative rounded-[2.5rem] border border-border bg-card p-3 shadow-2xl shadow-primary/10">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
             <div className="rounded-[2rem] bg-background p-4">
-              <div className="text-center text-xs uppercase tracking-widest text-muted-foreground">Ringlink dialer</div>
-              <div className="mt-3 flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5">
-                <span className="font-mono text-lg tracking-wider text-foreground">{number || "Enter number"}</span>
+              {/* Top bar: balance + status dot */}
+              <div className="flex items-center justify-between">
+                <Link
+                  to="/dashboard/credits"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/25"
+                >
+                  Balance: $5.00
+                  <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground">
+                    <Plus className="h-3 w-3" />
+                  </span>
+                </Link>
+                <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+              </div>
+
+              {/* Number row */}
+              <div className="mt-5 flex items-center gap-2">
+                <button className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                  us +1 <ChevronDown className="h-3 w-3" />
+                </button>
+                <div className="flex-1 truncate border-b border-border pb-1 text-left font-mono text-base text-foreground">
+                  {number || <span className="text-muted-foreground font-sans">Enter phone number</span>}
+                </div>
                 <button onClick={back} className="text-muted-foreground hover:text-foreground" aria-label="Backspace">
-                  <Delete className="h-5 w-5" />
+                  <Delete className="h-4 w-4" />
                 </button>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2">
+
+              {/* Add contact */}
+              <div className="mt-3 flex justify-center">
+                <button className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10">
+                  <UserPlus className="h-3 w-3" /> Add contact
+                </button>
+              </div>
+
+              {/* Keypad */}
+              <div className="mt-4 grid grid-cols-3 place-items-center gap-y-2">
                 {keys.map((k) => (
                   <button
-                    key={k}
-                    onClick={() => press(k)}
-                    className="h-11 rounded-2xl bg-card text-xl font-semibold transition hover:bg-muted active:scale-95"
+                    key={k.d}
+                    onClick={() => press(k.d)}
+                    className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
                   >
-                    {k}
+                    <span className="text-lg font-semibold leading-none">{k.d}</span>
+                    {k.sub && (
+                      <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">{k.sub}</span>
+                    )}
                   </button>
                 ))}
               </div>
-              <Link to="/auth/signup" className="mt-4 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground font-semibold transition hover:opacity-90 active:scale-95">
-                <PhoneCall className="h-5 w-5" /> Call
-              </Link>
+
+              {/* Bottom action row */}
+              <div className="mt-3 grid grid-cols-3 place-items-center">
+                <button className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted">
+                  123
+                </button>
+                <Link
+                  to="/auth/signup"
+                  aria-label="Call"
+                  className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:opacity-90 active:scale-95"
+                >
+                  <PhoneCall className="h-6 w-6" />
+                </Link>
+                <button
+                  onClick={back}
+                  aria-label="Backspace"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+                >
+                  <Delete className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
           <p className="mt-2 text-center text-xs text-muted-foreground">Live preview — sign up to dial for real.</p>
