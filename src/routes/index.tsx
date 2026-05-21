@@ -44,52 +44,6 @@ function Landing() {
   );
 }
 
-function SiteHeaderOld() {
-  const [open, setOpen] = useState(false);
-  return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Phone className="h-4 w-4" />
-          </span>
-          Ringlink
-        </Link>
-        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#how" className="hover:text-foreground">How it works</a>
-          <Link to="/rates" className="hover:text-foreground">Rates</Link>
-          <a href="#business" className="hover:text-foreground">Business</a>
-          <a href="#why" className="hover:text-foreground">Why us</a>
-          <a href="#faq" className="hover:text-foreground">FAQ</a>
-          <Link to="/contact" className="hover:text-foreground">Contact</Link>
-        </nav>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link to="/auth/login" className="hidden sm:block">
-            <Button variant="ghost" size="sm">Log in</Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button size="sm">Get started</Button>
-          </Link>
-          <button
-            className="md:hidden grid h-9 w-9 place-items-center rounded-md border border-border"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-      {open && (
-        <div className="md:hidden border-t border-border/60 px-6 py-3 flex flex-col gap-3 text-sm">
-          <a href="#how" onClick={() => setOpen(false)}>How it works</a>
-          <Link to="/rates" onClick={() => setOpen(false)}>Rates</Link>
-          <a href="#business" onClick={() => setOpen(false)}>Business</a>
-          <a href="#why" onClick={() => setOpen(false)}>Why us</a>
-          <a href="#faq" onClick={() => setOpen(false)}>FAQ</a>
-          <Link to="/contact" onClick={() => setOpen(false)}>Contact</Link>
-        </div>
-      )}
     </header>
   );
 }
@@ -535,54 +489,3 @@ function FAQ() {
   );
 }
 
-function SiteFooterOld() {
-  return (
-    <footer className="border-t border-border/60 bg-card/50">
-      <div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-10">
-          <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 font-semibold">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-                <Phone className="h-4 w-4" />
-              </span>
-              Ringlink
-            </Link>
-            <p className="mt-3 text-sm text-muted-foreground">Browser-native international calling for individuals and teams.</p>
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Quick links</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><a href="#how" className="hover:text-foreground">How it works</a></li>
-              <li><a href="#business" className="hover:text-foreground">For business</a></li>
-              <li><a href="#why" className="hover:text-foreground">Why Ringlink</a></li>
-              <li><a href="#faq" className="hover:text-foreground">FAQ</a></li>
-            </ul>
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Account</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/auth/login" className="hover:text-foreground">Log in</Link></li>
-              <li><Link to="/auth/signup" className="hover:text-foreground">Sign up</Link></li>
-              <li><Link to="/dashboard" className="hover:text-foreground">Dashboard</Link></li>
-            </ul>
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Legal</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/terms" className="hover:text-foreground">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
-              <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
-          <div>© {new Date().getFullYear()} Ringlink. All rights reserved.</div>
-          <div className="flex gap-4">
-            <Link to="/terms" className="hover:text-foreground">Terms</Link>
-            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
