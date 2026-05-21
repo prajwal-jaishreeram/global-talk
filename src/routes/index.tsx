@@ -90,20 +90,20 @@ function HeroDialer() {
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
       </div>
-      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-2 md:py-28 md:items-center">
+      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" /> Browser-native calling
           </span>
-          <h1 className="mt-6 text-5xl font-bold tracking-tight md:text-6xl">
+          <h1 className="mt-5 text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
             Dial the world,
             <br />
             <span className="text-primary">right from your tab.</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+          <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
             HD international calls powered by a tier-1 carrier network. Pay only for what you use — no apps, no contracts, no SIM swaps.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/auth/signup">
               <Button size="lg" className="text-base">Start with $5 free credit</Button>
             </Link>
@@ -111,7 +111,7 @@ function HeroDialer() {
               <Button size="lg" variant="outline" className="text-base">See how it works</Button>
             </a>
           </div>
-          <div className="mt-8 flex items-center gap-6 text-xs text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-primary" /> 200+ countries</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> TLS + SRTP</div>
             <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Sub-second connect</div>
@@ -119,34 +119,34 @@ function HeroDialer() {
         </div>
 
         {/* Phone mockup */}
-        <div className="mx-auto w-full max-w-[320px]">
+        <div className="mx-auto w-full max-w-[280px]">
           <div className="relative rounded-[2.5rem] border border-border bg-card p-3 shadow-2xl shadow-primary/10">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
-            <div className="rounded-[2rem] bg-background p-5">
+            <div className="rounded-[2rem] bg-background p-4">
               <div className="text-center text-xs uppercase tracking-widest text-muted-foreground">Ringlink dialer</div>
-              <div className="mt-4 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
-                <span className="font-mono text-xl tracking-wider text-foreground">{number || "Enter number"}</span>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5">
+                <span className="font-mono text-lg tracking-wider text-foreground">{number || "Enter number"}</span>
                 <button onClick={back} className="text-muted-foreground hover:text-foreground" aria-label="Backspace">
                   <Delete className="h-5 w-5" />
                 </button>
               </div>
-              <div className="mt-5 grid grid-cols-3 gap-3">
+              <div className="mt-4 grid grid-cols-3 gap-2">
                 {keys.map((k) => (
                   <button
                     key={k}
                     onClick={() => press(k)}
-                    className="h-14 rounded-2xl bg-card text-2xl font-semibold transition hover:bg-muted active:scale-95"
+                    className="h-11 rounded-2xl bg-card text-xl font-semibold transition hover:bg-muted active:scale-95"
                   >
                     {k}
                   </button>
                 ))}
               </div>
-              <Link to="/auth/signup" className="mt-5 flex h-14 items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground font-semibold transition hover:opacity-90 active:scale-95">
+              <Link to="/auth/signup" className="mt-4 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground font-semibold transition hover:opacity-90 active:scale-95">
                 <PhoneCall className="h-5 w-5" /> Call
               </Link>
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-muted-foreground">Live preview — sign up to dial for real.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">Live preview — sign up to dial for real.</p>
         </div>
       </div>
     </section>
