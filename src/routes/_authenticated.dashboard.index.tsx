@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic, ChevronsUpDown, Check } from "lucide-react";
+import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic, ChevronsUpDown, Check, Volume2 } from "lucide-react";
 import { AsYouType, parsePhoneNumberFromString, getCountries, getCountryCallingCode } from "libphonenumber-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,13 +46,18 @@ function DialerPage() {
   const [country, setCountry] = useState("US");
   const [raw, setRaw] = useState("");
   const [callState, setCallState] = useState<CallState>("idle");
+  const [telnyxState, setTelnyxState] = useState<string>("");
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
+  const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
+  const [speakerId, setSpeakerId] = useState<string>("default");
   const clientRef = useRef<any>(null);
   const callRef = useRef<any>(null);
   const callIdRef = useRef<string | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
   const fetchCreds = useServerFn(getWebrtcCredentials);
   const startRecord = useServerFn(startCallRecord);
   const finalizeRecord = useServerFn(finalizeCallRecord);
@@ -100,8 +105,62 @@ function DialerPage() {
       if (timerRef.current) window.clearInterval(timerRef.current);
       try { callRef.current?.hangup?.(); } catch {}
       try { clientRef.current?.disconnect?.(); } catch {}
+      stopRingback();
     };
   }, []);
+
+  async function loadSpeakers() {
+    try {
+      // Request mic permission first so device labels populate
+      await navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop()));
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      setSpeakers(devs.filter(d => d.kind === "audiooutput"));
+    } catch (e) {
+      console.warn("enumerateDevices failed", e);
+    }
+  }
+
+  async function applySpeaker(id: string) {
+    setSpeakerId(id);
+    const el = audioElRef.current as any;
+    if (el?.setSinkId) {
+      try { await el.setSinkId(id); } catch (e) { console.warn("setSinkId failed", e); }
+    }
+  }
+
+  function startRingback() {
+    try {
+      const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+      const ctx = new Ctx();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.15;
+      gain.connect(ctx.destination);
+      let osc: OscillatorNode | null = null;
+      const cycle = () => {
+        osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = 440;
+        const o2 = ctx.createOscillator();
+        o2.type = "sine";
+        o2.frequency.value = 480;
+        osc.connect(gain);
+        o2.connect(gain);
+        osc.start();
+        o2.start();
+        setTimeout(() => { try { osc?.stop(); o2.stop(); } catch {} }, 2000);
+      };
+      cycle();
+      const iv = window.setInterval(cycle, 4000);
+      ringCtxRef.current = {
+        ctx,
+        stop: () => { window.clearInterval(iv); try { ctx.close(); } catch {} },
+      };
+    } catch (e) { console.warn("ringback failed", e); }
+  }
+  function stopRingback() {
+    ringCtxRef.current?.stop();
+    ringCtxRef.current = null;
+  }
 
   function startTimer() {
     startedAtRef.current = Date.now();
@@ -118,6 +177,7 @@ function DialerPage() {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    stopRingback();
     const dur = startedAtRef.current
       ? Math.floor((Date.now() - startedAtRef.current) / 1000)
       : 0;
@@ -138,6 +198,7 @@ function DialerPage() {
     callIdRef.current = null;
     startedAtRef.current = null;
     setCallState("idle");
+    setTelnyxState("");
     setSeconds(0);
     setMuted(false);
   }
@@ -156,7 +217,11 @@ function DialerPage() {
   async function startCall() {
     if (!isValid) return toast.error("Enter a valid number");
     setCallState("connecting");
+    setTelnyxState("connecting socket");
+    startRingback();
     try {
+      // populate speaker list (after gesture)
+      loadSpeakers();
       const [{ username, password }, { id }, mod] = await Promise.all([
         fetchCreds(),
         startRecord({
@@ -169,6 +234,7 @@ function DialerPage() {
       clientRef.current = client;
 
       client.on("telnyx.ready", () => {
+        setTelnyxState("socket ready, dialing");
         const call = client.newCall({
           destinationNumber: e164,
           audio: true,
@@ -188,9 +254,12 @@ function DialerPage() {
         cleanup("failed");
       });
       client.on("telnyx.notification", (n: any) => {
+        console.log("telnyx.notification", n);
         if (n.type !== "callUpdate" || !n.call) return;
         const s = n.call.state;
+        setTelnyxState(s);
         if (s === "active") {
+          stopRingback();
           setCallState("active");
           if (!startedAtRef.current) startTimer();
         } else if (s === "hangup" || s === "destroy") {
@@ -235,7 +304,12 @@ function DialerPage() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
-      <audio id="telnyx-remote-audio" autoPlay playsInline />
+      <audio
+        id="telnyx-remote-audio"
+        autoPlay
+        playsInline
+        ref={(el) => { audioElRef.current = el; }}
+      />
       <h1 className="text-2xl font-semibold tracking-tight">Make a call</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Dial any international number. Credits deduct per second.
@@ -325,6 +399,28 @@ function DialerPage() {
             {callState === "active" && (
               <div className="text-xs text-muted-foreground">{formatCurrency(liveCost)} so far</div>
             )}
+            {telnyxState && (
+              <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                telnyx: {telnyxState}
+              </div>
+            )}
+          </div>
+        )}
+
+        {speakers.length > 0 && (
+          <div className="mt-4 flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={speakerId}
+              onChange={(e) => applySpeaker(e.target.value)}
+              className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+            >
+              {speakers.map((s) => (
+                <option key={s.deviceId} value={s.deviceId}>
+                  {s.label || `Speaker ${s.deviceId.slice(0, 6)}`}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
