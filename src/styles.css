@@ -167,3 +167,7 @@
   animation: marquee-x 40s linear infinite;
   will-change: transform;
 }
+.animate-marquee-reverse {
+  animation: marquee-x 40s linear infinite reverse;
+  will-change: transform;
+}
