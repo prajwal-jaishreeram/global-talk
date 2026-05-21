@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic, ChevronsUpDown, Check, Volume2 } from "lucide-react";
+import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic, ChevronsUpDown, Check, Volume2, FileText } from "lucide-react";
 import { AsYouType, parsePhoneNumberFromString, getCountries, getCountryCallingCode } from "libphonenumber-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ function DialerPage() {
   const [country, setCountry] = useState("US");
   const [raw, setRaw] = useState("");
   const [callState, setCallState] = useState<CallState>("idle");
+  const [panelOpen, setPanelOpen] = useState(false);
   const [telnyxState, setTelnyxState] = useState<string>("");
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
@@ -351,9 +352,13 @@ function DialerPage() {
         playsInline
         ref={(el) => { audioElRef.current = el; }}
       />
-      <div className="relative w-full max-w-[340px] shrink-0 self-center rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40 md:max-w-[380px]">
+      <div className={cn(
+        "relative w-full shrink-0 self-center rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40",
+        "max-w-[340px] md:max-w-[380px]",
+        panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[440px]",
+      )}>
         <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
-        <div className="rounded-[2rem] bg-background p-5">
+        <div className="rounded-[2rem] bg-background p-5 lg:p-6">
         {/* Top row: country + number + backspace */}
         <div className="flex items-center gap-2">
           <Popover open={countryOpen} onOpenChange={setCountryOpen}>
@@ -447,16 +452,19 @@ function DialerPage() {
         </div>
 
         {/* Keypad */}
-        <div className="mt-4 grid grid-cols-3 place-items-center gap-y-3">
+        <div className="mt-4 grid grid-cols-3 place-items-center gap-y-3 lg:mt-6 lg:gap-y-4">
           {keys.map((k) => {
             const sub = keyMeta[k];
             return (
               <button
                 key={k}
                 onClick={() => press(k)}
-                className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
+                className={cn(
+                  "flex h-14 w-14 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95",
+                  !panelOpen && "lg:h-16 lg:w-16",
+                )}
               >
-                <span className="text-2xl font-semibold leading-none">
+                <span className={cn("text-2xl font-semibold leading-none", !panelOpen && "lg:text-3xl")}>
                   {alpha && sub ? sub : k}
                 </span>
                 {sub && (
@@ -545,7 +553,34 @@ function DialerPage() {
         )}
         </div>
       </div>
-      <CallNotesPanel inCall={inCall} peerNumber={e164} />
+      {/* Mobile: panel always visible below the dialer */}
+      <div className="w-full lg:hidden">
+        <CallNotesPanel inCall={inCall} peerNumber={e164} />
+      </div>
+      {/* Desktop: toggle button collapses into a side panel */}
+      <div className="hidden lg:flex lg:items-stretch">
+        {panelOpen ? (
+          <CallNotesPanel
+            inCall={inCall}
+            peerNumber={e164}
+            onClose={() => setPanelOpen(false)}
+          />
+        ) : (
+          <button
+            onClick={() => setPanelOpen(true)}
+            className="group flex h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border bg-card/30 px-5 py-8 text-sm font-medium text-muted-foreground transition hover:border-primary/50 hover:bg-card/60 hover:text-foreground"
+            aria-label="Open script and notes"
+            title="Open script & notes"
+          >
+            <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary/20">
+              <FileText className="h-5 w-5" />
+            </span>
+            <span className="writing-mode-vertical text-xs uppercase tracking-[0.2em]">
+              Script &amp; Notes
+            </span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
