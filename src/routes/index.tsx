@@ -44,7 +44,7 @@ function Landing() {
   );
 }
 
-function SiteHeader() {
+function SiteHeaderOld() {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -535,7 +535,7 @@ function FAQ() {
   );
 }
 
-function SiteFooter() {
+function SiteFooterOld() {
   return (
     <footer className="border-t border-border/60 bg-card/50">
       <div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
