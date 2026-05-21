@@ -515,9 +515,9 @@ function FAQ() {
 function SiteFooter() {
   return (
     <footer className="border-t border-border/60 bg-card/50">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 md:grid-cols-4">
-          <div>
+      <div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-10">
+          <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 font-semibold">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
                 <Phone className="h-4 w-4" />
