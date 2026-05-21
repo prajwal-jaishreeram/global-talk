@@ -235,6 +235,7 @@ function DialerPage() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-10">
+      <audio id="telnyx-remote-audio" autoPlay playsInline />
       <h1 className="text-2xl font-semibold tracking-tight">Make a call</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Dial any international number. Credits deduct per second.
