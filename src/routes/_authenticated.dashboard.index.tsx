@@ -58,6 +58,7 @@ function DialerPage() {
   const timerRef = useRef<number | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
+  const multitapRef = useRef<{ k: string; idx: number; time: number } | null>(null);
   const fetchCreds = useServerFn(getWebrtcCredentials);
   const startRecord = useServerFn(startCallRecord);
   const finalizeRecord = useServerFn(finalizeCallRecord);
@@ -227,6 +228,21 @@ function DialerPage() {
       try { callRef.current.dtmf(ch); } catch {}
       return;
     }
+    const sub = keyMeta[ch];
+    if (alpha && sub) {
+      const now = Date.now();
+      const last = multitapRef.current;
+      if (last && last.k === ch && now - last.time < 900) {
+        const idx = (last.idx + 1) % sub.length;
+        multitapRef.current = { k: ch, idx, time: now };
+        setRaw((r) => r.slice(0, -1) + sub[idx]);
+      } else {
+        multitapRef.current = { k: ch, idx: 0, time: now };
+        setRaw((r) => r + sub[0]);
+      }
+      return;
+    }
+    multitapRef.current = null;
     setRaw((r) => r + ch);
   }
   function backspace() {
@@ -327,14 +343,16 @@ function DialerPage() {
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-56px)] max-w-md flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
+    <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-[360px] flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
       <audio
         id="telnyx-remote-audio"
         autoPlay
         playsInline
         ref={(el) => { audioElRef.current = el; }}
       />
-      <div className="w-full rounded-[2rem] border-2 border-border bg-card/80 p-6 shadow-xl shadow-black/20 backdrop-blur dark:shadow-black/40">
+      <div className="relative w-full rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
+        <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
+        <div className="rounded-[2rem] bg-background p-5">
         {/* Top row: country + number + backspace */}
         <div className="flex items-center gap-2">
           <Popover open={countryOpen} onOpenChange={setCountryOpen}>
@@ -434,8 +452,8 @@ function DialerPage() {
             return (
               <button
                 key={k}
-                onClick={() => press(alpha && sub ? sub[0] : k)}
-                className="flex h-16 w-16 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
+                onClick={() => press(k)}
+                className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
               >
                 <span className="text-2xl font-semibold leading-none">
                   {alpha && sub ? sub : k}
@@ -524,6 +542,7 @@ function DialerPage() {
             telnyx: {telnyxState}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

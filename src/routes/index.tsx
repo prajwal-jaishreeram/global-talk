@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
   CreditCard, Mic, MicOff, PhoneCall, PhoneOff, ChevronDown, Sparkles,
-  Plus, UserPlus, Volume2,
+  Plus, UserPlus, Volume2, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,7 +72,7 @@ function SiteHeader() {
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
-            <span className="block h-0.5 w-4 bg-foreground" />
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -96,6 +96,7 @@ function HeroDialer() {
   const [countryOpen, setCountryOpen] = useState(false);
   const [alpha, setAlpha] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const multitapRef = useRef<{ k: string; idx: number; time: number } | null>(null);
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
 
   const countries = useState(() =>
@@ -131,7 +132,23 @@ function HeroDialer() {
     { d: "0", sub: "+" },
     { d: "#" },
   ];
-  const press = (k: string) => setNumber((n) => (n + k).slice(0, 24));
+  const press = (digit: string, sub?: string) => {
+    if (alpha && sub) {
+      const now = Date.now();
+      const last = multitapRef.current;
+      if (last && last.k === digit && now - last.time < 900) {
+        const idx = (last.idx + 1) % sub.length;
+        multitapRef.current = { k: digit, idx, time: now };
+        setNumber((n) => (n.slice(0, -1) + sub[idx]).slice(0, 24));
+      } else {
+        multitapRef.current = { k: digit, idx: 0, time: now };
+        setNumber((n) => (n + sub[0]).slice(0, 24));
+      }
+      return;
+    }
+    multitapRef.current = null;
+    setNumber((n) => (n + digit).slice(0, 24));
+  };
   const back = () => setNumber((n) => n.slice(0, -1));
 
   async function startCall() {
@@ -269,7 +286,7 @@ function HeroDialer() {
                 {keys.map((k) => (
                   <button
                     key={k.d}
-                    onClick={() => press(alpha && k.sub ? k.sub[0] : k.d)}
+                    onClick={() => press(k.d, k.sub)}
                     className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
                   >
                     <span className="text-lg font-semibold leading-none">
