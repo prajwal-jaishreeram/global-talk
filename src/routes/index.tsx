@@ -269,12 +269,17 @@ function HeroDialer() {
                 {keys.map((k) => (
                   <button
                     key={k.d}
-                    onClick={() => press(k.d)}
+                    onClick={() => press(alpha && k.sub ? k.sub[0] : k.d)}
                     className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
                   >
-                    <span className="text-lg font-semibold leading-none">{k.d}</span>
-                    {k.sub && (
+                    <span className="text-lg font-semibold leading-none">
+                      {alpha && k.sub ? k.sub : k.d}
+                    </span>
+                    {!alpha && k.sub && (
                       <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">{k.sub}</span>
+                    )}
+                    {alpha && k.sub && (
+                      <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">{k.d}</span>
                     )}
                   </button>
                 ))}
@@ -291,8 +296,12 @@ function HeroDialer() {
                     {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </button>
                 ) : (
-                  <button className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted">
-                    123
+                  <button
+                    onClick={() => setAlpha((a) => !a)}
+                    aria-label="Toggle letters"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                  >
+                    {alpha ? "123" : "ABC"}
                   </button>
                 )}
                 {inCall ? (
