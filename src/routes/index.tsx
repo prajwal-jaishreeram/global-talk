@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
-  CreditCard, Mic, PhoneCall, ChevronDown, Sparkles, Plus, UserPlus,
+  CreditCard, Mic, MicOff, PhoneCall, PhoneOff, ChevronDown, Sparkles,
+  Plus, UserPlus, Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -81,6 +83,11 @@ function SiteHeader() {
 
 function HeroDialer() {
   const [number, setNumber] = useState("");
+  const [state, setState] = useState<"idle" | "connecting">("idle");
+  const [muted, setMuted] = useState(false);
+  const navigate = useNavigate();
+  const timerRef = useRef<number | null>(null);
+  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
   const keys: { d: string; sub?: string }[] = [
     { d: "1" },
     { d: "2", sub: "ABC" },
@@ -97,6 +104,29 @@ function HeroDialer() {
   ];
   const press = (k: string) => setNumber((n) => (n + k).slice(0, 18));
   const back = () => setNumber((n) => n.slice(0, -1));
+
+  async function startCall() {
+    if (!number) return;
+    setState("connecting");
+    const { data } = await supabase.auth.getSession();
+    timerRef.current = window.setTimeout(() => {
+      if (data.session) {
+        navigate({ to: "/dashboard", search: { to: `+${number}` } as never });
+      } else {
+        navigate({
+          to: "/auth/signup",
+          search: { redirect: `/dashboard?to=${encodeURIComponent("+" + number)}` } as never,
+        });
+      }
+    }, 900);
+  }
+  function endCall() {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    setState("idle");
+    setMuted(false);
+  }
+
+  const inCall = state !== "idle";
 
   return (
     <section className="relative overflow-hidden">
@@ -163,11 +193,15 @@ function HeroDialer() {
                 </button>
               </div>
 
-              {/* Add contact */}
-              <div className="mt-3 flex justify-center">
-                <button className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10">
-                  <UserPlus className="h-3 w-3" /> Add contact
-                </button>
+              {/* Status / Add contact */}
+              <div className="mt-3 flex h-6 items-center justify-center">
+                {inCall ? (
+                  <span className="text-xs text-muted-foreground">Connecting…</span>
+                ) : (
+                  <button className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10">
+                    <UserPlus className="h-3 w-3" /> Add contact
+                  </button>
+                )}
               </div>
 
               {/* Keypad */}
@@ -188,23 +222,53 @@ function HeroDialer() {
 
               {/* Bottom action row */}
               <div className="mt-3 grid grid-cols-3 place-items-center">
-                <button className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted">
-                  123
-                </button>
-                <Link
-                  to="/auth/signup"
-                  aria-label="Call"
-                  className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:opacity-90 active:scale-95"
-                >
-                  <PhoneCall className="h-6 w-6" />
-                </Link>
-                <button
-                  onClick={back}
-                  aria-label="Backspace"
-                  className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
-                >
-                  <Delete className="h-4 w-4" />
-                </button>
+                {inCall ? (
+                  <button
+                    onClick={() => setMuted((m) => !m)}
+                    aria-label={muted ? "Unmute" : "Mute"}
+                    className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+                  >
+                    {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                ) : (
+                  <button className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted">
+                    123
+                  </button>
+                )}
+                {inCall ? (
+                  <button
+                    onClick={endCall}
+                    aria-label="End call"
+                    className="grid h-14 w-14 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition hover:opacity-90 active:scale-95"
+                  >
+                    <PhoneOff className="h-6 w-6" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={startCall}
+                    disabled={!number}
+                    aria-label="Call"
+                    className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
+                  >
+                    <PhoneCall className="h-6 w-6" />
+                  </button>
+                )}
+                {inCall ? (
+                  <button
+                    aria-label="Speaker"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={back}
+                    aria-label="Backspace"
+                    className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+                  >
+                    <Delete className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
