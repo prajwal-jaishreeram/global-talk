@@ -8,6 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
