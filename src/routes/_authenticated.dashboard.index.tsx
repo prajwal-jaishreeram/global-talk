@@ -345,7 +345,7 @@ function DialerPage() {
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-6xl flex-col items-center justify-center gap-6 px-4 py-4 md:min-h-[calc(100vh-1px)] lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-6xl flex-col items-center justify-center gap-6 px-4 py-4 md:min-h-[calc(100vh-1px)] lg:flex-row lg:items-stretch lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -557,30 +557,32 @@ function DialerPage() {
       <div className="w-full lg:hidden">
         <CallNotesPanel inCall={inCall} peerNumber={e164} />
       </div>
-      {/* Desktop: toggle button collapses into a side panel */}
-      <div className="hidden lg:flex lg:items-stretch">
-        {panelOpen ? (
+      {/* Desktop: panel slides in beside the dialer when opened */}
+      {panelOpen && (
+        <div className="hidden lg:flex lg:items-stretch">
           <CallNotesPanel
             inCall={inCall}
             peerNumber={e164}
             onClose={() => setPanelOpen(false)}
           />
-        ) : (
-          <button
-            onClick={() => setPanelOpen(true)}
-            className="group flex h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border bg-card/30 px-5 py-8 text-sm font-medium text-muted-foreground transition hover:border-primary/50 hover:bg-card/60 hover:text-foreground"
-            aria-label="Open script and notes"
-            title="Open script & notes"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary/20">
-              <FileText className="h-5 w-5" />
-            </span>
-            <span className="writing-mode-vertical text-xs uppercase tracking-[0.2em]">
-              Script &amp; Notes
-            </span>
-          </button>
-        )}
-      </div>
+        </div>
+      )}
+      {/* Floating toggle: keeps the dialer centered when the panel is closed */}
+      {!panelOpen && (
+        <button
+          onClick={() => setPanelOpen(true)}
+          className="group fixed right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 rounded-l-2xl border border-r-0 border-border bg-card/80 px-3 py-4 text-xs font-medium text-muted-foreground shadow-md backdrop-blur transition hover:bg-card hover:text-foreground lg:flex"
+          aria-label="Open script and notes"
+          title="Open script & notes"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary transition group-hover:bg-primary/20">
+            <FileText className="h-4 w-4" />
+          </span>
+          <span className="[writing-mode:vertical-rl] rotate-180 uppercase tracking-[0.2em]">
+            Script &amp; Notes
+          </span>
+        </button>
+      )}
     </div>
   );
 }
