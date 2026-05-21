@@ -62,6 +62,25 @@ function DialerPage() {
   const startRecord = useServerFn(startCallRecord);
   const finalizeRecord = useServerFn(finalizeCallRecord);
 
+  // Prefill from ?to= search param (e.g. coming from landing page hero dialer)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const to = params.get("to");
+    if (!to) return;
+    const digits = to.replace(/\D/g, "");
+    for (let len = 3; len >= 1; len--) {
+      const prefix = digits.slice(0, len);
+      const code = getCountries().find((c) => getCountryCallingCode(c) === prefix);
+      if (code) {
+        setCountry(code);
+        setRaw(digits.slice(len));
+        return;
+      }
+    }
+    setRaw(digits);
+  }, []);
+
   const countries = useMemo(() => {
     return getCountries()
       .map((c) => ({
@@ -459,7 +478,20 @@ function DialerPage() {
                   <PhoneOff className="h-6 w-6" />
                 )}
               </Button>
-              <div className="w-12" />
+              <button
+                onClick={() => {
+                  if (speakers.length === 0) { loadSpeakers(); return; }
+                  const ids = speakers.map((s) => s.deviceId);
+                  const idx = ids.indexOf(speakerId);
+                  const next = ids[(idx + 1) % ids.length] ?? "default";
+                  applySpeaker(next);
+                }}
+                className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-foreground transition-colors hover:bg-secondary/70"
+                aria-label="Switch speaker"
+                title="Switch audio output"
+              >
+                <Volume2 className="h-5 w-5" />
+              </button>
             </>
           ) : (
             <>
