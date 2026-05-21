@@ -163,7 +163,7 @@ function HeroDialerInner() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
         {/* Floating background flag strip */}
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between gap-6 px-4 opacity-25 dark:opacity-20">
@@ -187,7 +187,7 @@ function HeroDialerInner() {
           ))}
         </div>
       </div>
-      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" /> Browser-native calling
