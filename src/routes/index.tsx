@@ -55,9 +55,11 @@ function SiteHeader() {
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <a href="#how" className="hover:text-foreground">How it works</a>
+          <Link to="/rates" className="hover:text-foreground">Rates</Link>
           <a href="#business" className="hover:text-foreground">Business</a>
           <a href="#why" className="hover:text-foreground">Why us</a>
           <a href="#faq" className="hover:text-foreground">FAQ</a>
+          <Link to="/contact" className="hover:text-foreground">Contact</Link>
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -79,9 +81,11 @@ function SiteHeader() {
       {open && (
         <div className="md:hidden border-t border-border/60 px-6 py-3 flex flex-col gap-3 text-sm">
           <a href="#how" onClick={() => setOpen(false)}>How it works</a>
+          <Link to="/rates" onClick={() => setOpen(false)}>Rates</Link>
           <a href="#business" onClick={() => setOpen(false)}>Business</a>
           <a href="#why" onClick={() => setOpen(false)}>Why us</a>
           <a href="#faq" onClick={() => setOpen(false)}>FAQ</a>
+          <Link to="/contact" onClick={() => setOpen(false)}>Contact</Link>
         </div>
       )}
     </header>
