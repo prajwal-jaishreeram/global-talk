@@ -295,7 +295,7 @@ function DialerPage() {
             </PopoverContent>
           </Popover>
           <Input
-            value={raw.startsWith("+") ? raw : formatted}
+            value={formatted}
             onChange={(e) => handlePhoneChange(e.target.value)}
             placeholder="Phone number or +countrycode"
             inputMode="tel"
