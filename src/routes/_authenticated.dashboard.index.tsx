@@ -450,8 +450,8 @@ function DialerPage() {
             return (
               <button
                 key={k}
-                onClick={() => press(alpha && sub ? sub[0] : k)}
-                className="flex h-16 w-16 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
+                onClick={() => press(k)}
+                className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
               >
                 <span className="text-2xl font-semibold leading-none">
                   {alpha && sub ? sub : k}
