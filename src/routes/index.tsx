@@ -8,6 +8,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getCountries, getCountryCallingCode } from "libphonenumber-js";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,8 +92,30 @@ function HeroDialer() {
   const [number, setNumber] = useState("");
   const [state, setState] = useState<"idle" | "connecting">("idle");
   const [muted, setMuted] = useState(false);
+  const [country, setCountry] = useState("US");
+  const [countryOpen, setCountryOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
+
+  const countries = useState(() =>
+    getCountries()
+      .map((c) => {
+        const dial = getCountryCallingCode(c);
+        const flag = String.fromCodePoint(
+          ...c.split("").map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
+        );
+        const name =
+          (typeof Intl !== "undefined" && "DisplayNames" in Intl
+            ? new Intl.DisplayNames(["en"], { type: "region" }).of(c)
+            : c) ?? c;
+        return { code: c, dial, flag, name };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  )[0];
+  const callingCode = getCountryCallingCode(country as never);
+  const currentFlag = String.fromCodePoint(
+    ...country.split("").map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
+  );
   const keys: { d: string; sub?: string }[] = [
     { d: "1" },
     { d: "2", sub: "ABC" },
@@ -111,7 +138,7 @@ function HeroDialer() {
     setState("connecting");
     const { data } = await supabase.auth.getSession();
     timerRef.current = window.setTimeout(() => {
-      const target = `/dashboard?to=${encodeURIComponent("+" + number)}`;
+      const target = `/dashboard?to=${encodeURIComponent("+" + callingCode + number)}`;
       window.location.href = data.session
         ? target
         : `/auth/signup?redirect=${encodeURIComponent(target)}`;
@@ -179,9 +206,44 @@ function HeroDialer() {
 
               {/* Number row */}
               <div className="mt-5 flex items-center gap-2">
-                <button className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                  us +1 <ChevronDown className="h-3 w-3" />
-                </button>
+                <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      <span className="text-base leading-none">{currentFlag}</span>
+                      <span>+{callingCode}</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[260px] p-0" align="start">
+                    <Command
+                      filter={(value, search) => {
+                        const q = search.toLowerCase().replace(/^\+/, "");
+                        return value.toLowerCase().includes(q) ? 1 : 0;
+                      }}
+                    >
+                      <CommandInput placeholder="Search country or +code…" />
+                      <CommandList>
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup>
+                          {countries.map((c) => (
+                            <CommandItem
+                              key={c.code}
+                              value={`${c.name} ${c.code} +${c.dial}`}
+                              onSelect={() => { setCountry(c.code); setCountryOpen(false); }}
+                            >
+                              <span className="mr-2 text-base leading-none">{c.flag}</span>
+                              <span className="flex-1 truncate">{c.name}</span>
+                              <span className="ml-2 text-xs text-muted-foreground">+{c.dial}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <div className="flex-1 truncate border-b border-border pb-1 text-left font-mono text-base text-foreground">
                   {number || <span className="text-muted-foreground font-sans">Enter phone number</span>}
                 </div>
@@ -245,7 +307,7 @@ function HeroDialer() {
                     onClick={startCall}
                     disabled={!number}
                     aria-label="Call"
-                    className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
+                    className="grid h-14 w-14 place-items-center rounded-full bg-call text-call-foreground shadow-lg shadow-call/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
                   >
                     <PhoneCall className="h-6 w-6" />
                   </button>
