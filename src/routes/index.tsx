@@ -194,20 +194,20 @@ function HeroDialerInner() {
           </div>
         </div>
       </div>
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 py-16 md:grid-cols-2 md:items-center md:gap-16 md:py-24 lg:gap-20 lg:px-10 lg:py-32">
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 px-6 py-12 md:min-h-[calc(100svh-5rem)] md:grid-cols-2 md:items-center md:gap-14 md:py-10 lg:gap-20 lg:px-10 lg:py-14">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" /> Browser-native calling
           </span>
-          <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-7xl">
+          <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl xl:text-7xl">
             Dial the world,
             <br />
             <span className="text-primary">right from your tab.</span>
           </h1>
-          <p className="mt-6 max-w-xl text-base text-muted-foreground md:text-lg lg:text-xl">
+          <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
             HD international calls powered by a tier-1 carrier network. Pay only for what you use - no apps, no contracts, no SIM swaps.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <Link to="/auth/signup">
               <Button size="lg" className="text-base">Start with $5 free credit</Button>
             </Link>
@@ -215,7 +215,7 @@ function HeroDialerInner() {
               <Button size="lg" variant="outline" className="text-base">See how it works</Button>
             </a>
           </div>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-primary" /> 200+ countries</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> TLS + SRTP</div>
             <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Sub-second connect</div>
