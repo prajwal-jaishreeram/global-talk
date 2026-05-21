@@ -499,7 +499,7 @@ function DialerPage() {
               <Button
                 size="lg"
                 onClick={startCall}
-                className="h-16 w-16 rounded-full p-0 shadow-lg"
+                className="h-16 w-16 rounded-full bg-call p-0 text-call-foreground shadow-lg shadow-call/30 hover:bg-call/90"
                 disabled={!isValid}
               >
                 <Phone className="h-6 w-6" />
