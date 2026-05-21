@@ -4,6 +4,7 @@ import { Phone, History, CreditCard, Settings, LogOut, Wallet } from "lucide-rea
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
@@ -110,13 +111,16 @@ function DashboardLayout() {
         </div>
         <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="truncate">{email}</span>
-          <button
-            onClick={signOut}
-            className="rounded p-1.5 hover:bg-sidebar-accent hover:text-foreground"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle className="h-7 w-7 rounded" />
+            <button
+              onClick={signOut}
+              className="rounded p-1.5 hover:bg-sidebar-accent hover:text-foreground"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </aside>
 
