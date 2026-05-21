@@ -1,11 +1,26 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Phone, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Phone, Menu, X, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { supabase } from "@/integrations/supabase/client";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSignedIn(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -24,12 +39,22 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link to="/auth/login" className="hidden sm:block">
-            <Button variant="ghost" size="sm">Log in</Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button size="sm">Get started</Button>
-          </Link>
+          {signedIn ? (
+            <Link to="/dashboard">
+              <Button size="sm" className="gap-1.5">
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/auth/login" className="hidden sm:block">
+                <Button variant="ghost" size="sm">Log in</Button>
+              </Link>
+              <Link to="/auth/signup">
+                <Button size="sm">Get started</Button>
+              </Link>
+            </>
+          )}
           <button
             className="md:hidden grid h-9 w-9 place-items-center rounded-md border border-border"
             onClick={() => setOpen(!open)}
