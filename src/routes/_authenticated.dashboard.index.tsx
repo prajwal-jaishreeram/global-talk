@@ -343,14 +343,16 @@ function DialerPage() {
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-56px)] max-w-md flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
+    <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-[360px] flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
       <audio
         id="telnyx-remote-audio"
         autoPlay
         playsInline
         ref={(el) => { audioElRef.current = el; }}
       />
-      <div className="w-full rounded-[2rem] border-2 border-border bg-card/80 p-6 shadow-xl shadow-black/20 backdrop-blur dark:shadow-black/40">
+      <div className="relative w-full rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
+        <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
+        <div className="rounded-[2rem] bg-background p-5">
         {/* Top row: country + number + backspace */}
         <div className="flex items-center gap-2">
           <Popover open={countryOpen} onOpenChange={setCountryOpen}>
@@ -540,6 +542,7 @@ function DialerPage() {
             telnyx: {telnyxState}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
