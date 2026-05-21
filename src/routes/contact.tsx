@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, MessageSquare, CheckCircle2 } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -26,9 +28,10 @@ function ContactPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">← Back home</Link>
-      <h1 className="mt-6 text-4xl font-bold tracking-tight">Contact us</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <main className="mx-auto max-w-3xl px-6 py-16">
+      <h1 className="text-4xl font-bold tracking-tight">Contact us</h1>
       <p className="mt-3 text-muted-foreground">
         Questions about pricing, integrations, or your account? We reply within one business day.
       </p>
@@ -89,6 +92,8 @@ function ContactPage() {
           )}
         </form>
       </div>
+      </main>
+      <SiteFooter />
     </div>
   );
 }
