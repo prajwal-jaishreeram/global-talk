@@ -14,13 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          cost: number
+          country_code: string | null
+          created_at: string
+          duration_seconds: number
+          from_number: string | null
+          id: string
+          rate_per_minute: number | null
+          recording_url: string | null
+          status: string
+          telnyx_call_control_id: string | null
+          to_number: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost?: number
+          country_code?: string | null
+          created_at?: string
+          duration_seconds?: number
+          from_number?: string | null
+          id?: string
+          rate_per_minute?: number | null
+          recording_url?: string | null
+          status?: string
+          telnyx_call_control_id?: string | null
+          to_number: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          country_code?: string | null
+          created_at?: string
+          duration_seconds?: number
+          from_number?: string | null
+          id?: string
+          rate_per_minute?: number | null
+          recording_url?: string | null
+          status?: string
+          telnyx_call_control_id?: string | null
+          to_number?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_purchases: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          credits_added: number
+          id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          credits_added: number
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          credits_added?: number
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credit_balance: number
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credit_balance?: number
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credit_balance?: number
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_credits: {
+        Args: { _amount: number; _user_id: string }
+        Returns: number
+      }
+      deduct_credits: {
+        Args: { _amount: number; _user_id: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
