@@ -94,6 +94,7 @@ function HeroDialer() {
   const [muted, setMuted] = useState(false);
   const [country, setCountry] = useState("US");
   const [countryOpen, setCountryOpen] = useState(false);
+  const [alpha, setAlpha] = useState(false);
   const timerRef = useRef<number | null>(null);
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
 
@@ -130,7 +131,7 @@ function HeroDialer() {
     { d: "0", sub: "+" },
     { d: "#" },
   ];
-  const press = (k: string) => setNumber((n) => (n + k).slice(0, 18));
+  const press = (k: string) => setNumber((n) => (n + k).slice(0, 24));
   const back = () => setNumber((n) => n.slice(0, -1));
 
   async function startCall() {
