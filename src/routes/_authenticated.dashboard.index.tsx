@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic } from "lucide-react";
-import { AsYouType, parsePhoneNumberFromString, getCountries, getCountryCallingCode } from "libphonenumber-js";
+import { Phone, PhoneOff, Delete, Info, Loader2, MicOff, Mic, ChevronsUpDown, Check } from "lucide-react";
+import { AsYouType, parsePhoneNumberFromString, getCountries, getCountryCallingCode, type CountryCode } from "libphonenumber-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { getRateForNumber, formatCurrency } from "@/lib/rates";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,11 +24,21 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DialerPage,
 });
 
-const COUNTRY_NAMES: Record<string, string> = {
-  US: "United States", CA: "Canada", GB: "United Kingdom", IN: "India", DE: "Germany",
-  FR: "France", ES: "Spain", IT: "Italy", NL: "Netherlands", AU: "Australia",
-  JP: "Japan", CN: "China", BR: "Brazil", MX: "Mexico", AE: "UAE", SG: "Singapore",
-};
+const displayNames =
+  typeof Intl !== "undefined" && "DisplayNames" in Intl
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null;
+
+function countryName(code: string) {
+  return displayNames?.of(code) ?? code;
+}
+
+function flagEmoji(code: string) {
+  if (!/^[A-Z]{2}$/.test(code)) return "🌐";
+  return String.fromCodePoint(
+    ...code.split("").map((c) => 0x1f1e6 + c.charCodeAt(0) - 65),
+  );
+}
 
 type CallState = "idle" | "connecting" | "ringing" | "active" | "ending";
 
