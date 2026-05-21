@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Phone, History, CreditCard, Settings, LogOut, Wallet } from "lucide-react";
+import { Phone, History, CreditCard, Settings, LogOut, Wallet, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,16 @@ function DashboardLayout() {
   const location = useLocation();
   const [balance, setBalance] = useState<number | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("rl_sidebar_collapsed") === "1";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("rl_sidebar_collapsed", collapsed ? "1" : "0");
+    }
+  }, [collapsed]);
 
   useEffect(() => {
     let active = true;
@@ -69,13 +79,30 @@ function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar p-4 md:flex">
-        <Link to="/" className="mb-8 flex items-center gap-2 font-semibold">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Phone className="h-4 w-4" />
-          </span>
-          Ringlink
-        </Link>
+      <aside
+        className={cn(
+          "hidden shrink-0 flex-col border-r border-border bg-sidebar p-3 md:flex transition-[width] duration-200",
+          collapsed ? "w-16" : "w-60",
+        )}
+      >
+        <div className={cn("mb-6 flex items-center", collapsed ? "justify-center" : "justify-between")}>
+          {!collapsed && (
+            <Link to="/" className="flex items-center gap-2 font-semibold">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <Phone className="h-4 w-4" />
+              </span>
+              Ringlink
+            </Link>
+          )}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label="Toggle sidebar"
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
+        </div>
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map((item) => {
             const active = item.exact
@@ -87,41 +114,65 @@ function DashboardLayout() {
                 to={item.to}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  collapsed && "justify-center px-0",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
                 )}
+                title={collapsed ? item.label : undefined}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && item.label}
               </Link>
             );
           })}
         </nav>
-        <div className="mt-4 rounded-xl border border-border/60 bg-card p-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Wallet className="h-3.5 w-3.5" /> Balance
-          </div>
-          <div className="mt-1 text-xl font-semibold">
-            {balance === null ? "-" : `$${balance.toFixed(2)}`}
-          </div>
-          <Link to="/dashboard/credits">
-            <Button size="sm" variant="outline" className="mt-2 w-full">Top up</Button>
-          </Link>
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="truncate">{email}</span>
-          <div className="flex items-center gap-1">
-            <ThemeToggle className="h-7 w-7 rounded" />
+        {collapsed ? (
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <Link
+              to="/dashboard/credits"
+              className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+              title={balance === null ? "Balance" : `Balance $${balance.toFixed(2)}`}
+            >
+              <Wallet className="h-4 w-4" />
+            </Link>
+            <ThemeToggle className="h-9 w-9 rounded-md" />
             <button
               onClick={signOut}
-              className="rounded p-1.5 hover:bg-sidebar-accent hover:text-foreground"
+              className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="mt-4 rounded-xl border border-border/60 bg-card p-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Wallet className="h-3.5 w-3.5" /> Balance
+              </div>
+              <div className="mt-1 text-xl font-semibold">
+                {balance === null ? "-" : `$${balance.toFixed(2)}`}
+              </div>
+              <Link to="/dashboard/credits">
+                <Button size="sm" variant="outline" className="mt-2 w-full">Top up</Button>
+              </Link>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span className="truncate">{email}</span>
+              <div className="flex items-center gap-1">
+                <ThemeToggle className="h-7 w-7 rounded" />
+                <button
+                  onClick={signOut}
+                  className="rounded p-1.5 hover:bg-sidebar-accent hover:text-foreground"
+                  title="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </aside>
 
       <main className="flex-1 overflow-x-hidden">
