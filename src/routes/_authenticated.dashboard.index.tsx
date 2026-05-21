@@ -317,40 +317,37 @@ function DialerPage() {
   }
 
   const keys = ["1","2","3","4","5","6","7","8","9","*","0","#"];
+  const keyMeta: Record<string, string | undefined> = {
+    "2": "ABC", "3": "DEF", "4": "GHI", "5": "JKL",
+    "6": "MNO", "7": "PQRS", "8": "TUV", "9": "WXYZ", "0": "+",
+  };
+  const [alpha, setAlpha] = useState(false);
   const inCall = callState !== "idle";
   const fmtTime = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto max-w-md px-6 py-10">
+    <div className="mx-auto flex min-h-[calc(100vh-1px)] max-w-md flex-col items-center justify-center px-4 py-4">
       <audio
         id="telnyx-remote-audio"
         autoPlay
         playsInline
         ref={(el) => { audioElRef.current = el; }}
       />
-      <h1 className="text-2xl font-semibold tracking-tight">Make a call</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Dial any international number. Credits deduct per second.
-      </p>
-
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex gap-2">
+      <div className="w-full rounded-[2rem] border-2 border-border bg-card/80 p-5 shadow-xl shadow-black/20 backdrop-blur dark:shadow-black/40">
+        {/* Top row: country + number + backspace */}
+        <div className="flex items-center gap-2">
           <Popover open={countryOpen} onOpenChange={setCountryOpen}>
             <PopoverTrigger asChild>
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                role="combobox"
                 disabled={inCall}
-                className="w-[130px] justify-between px-3 font-normal"
+                className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
               >
-                <span className="flex items-center gap-1.5 truncate">
-                  <span className="text-base leading-none">{flagEmoji(country)}</span>
-                  <span className="text-sm text-muted-foreground">+{callingCode}</span>
-                </span>
-                <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
-              </Button>
+                <span className="text-base leading-none">{flagEmoji(country)}</span>
+                <span className="font-mono text-xs">+{callingCode}</span>
+                <ChevronsUpDown className="h-3 w-3 opacity-60" />
+              </button>
             </PopoverTrigger>
             <PopoverContent className="w-[300px] p-0" align="start">
               <Command
@@ -391,129 +388,142 @@ function DialerPage() {
           <Input
             value={formatted}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            placeholder="Phone number or +countrycode"
+            placeholder="Phone number"
             inputMode="tel"
             disabled={inCall}
-            className="text-lg font-medium tracking-wider"
+            className="h-8 flex-1 border-0 border-b border-border bg-transparent px-0 font-mono text-base tracking-wide shadow-none focus-visible:ring-0 focus-visible:border-primary"
           />
+          <button
+            onClick={backspace}
+            disabled={inCall || !raw}
+            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+            aria-label="Backspace"
+          >
+            <Delete className="h-4 w-4" />
+          </button>
         </div>
 
-        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{detected ? countryName(detected) : "Unknown destination"}</span>
-          <span className="inline-flex items-center gap-1">
-            <Info className="h-3 w-3" /> {formatCurrency(rate)}/min
-          </span>
-        </div>
-
-
-        {inCall && (
-          <div className="mt-4 rounded-xl border border-border/60 bg-secondary/40 px-4 py-3 text-center">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              {callState === "connecting" && "Connecting…"}
-              {callState === "ringing" && "Ringing…"}
-              {callState === "active" && "In call"}
-              {callState === "ending" && "Ending…"}
-            </div>
-            <div className="mt-1 text-2xl font-semibold tabular-nums">{fmtTime}</div>
-            {callState === "active" && (
-              <div className="text-xs text-muted-foreground">{formatCurrency(liveCost)} so far</div>
-            )}
-            {telnyxState && (
-              <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                telnyx: {telnyxState}
-              </div>
-            )}
-          </div>
-        )}
-
-        {speakers.length > 0 && (
-          <div className="mt-4 flex items-center gap-2">
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={speakerId}
-              onChange={(e) => applySpeaker(e.target.value)}
-              className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs"
-            >
-              {speakers.map((s) => (
-                <option key={s.deviceId} value={s.deviceId}>
-                  {s.label || `Speaker ${s.deviceId.slice(0, 6)}`}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          {keys.map((k) => (
-            <button
-              key={k}
-              onClick={() => press(k)}
-              className="aspect-square rounded-2xl bg-secondary text-2xl font-medium text-secondary-foreground transition-colors hover:bg-secondary/70 active:scale-95"
-            >
-              {k}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 flex items-center justify-center gap-6">
+        {/* Status / rate line */}
+        <div className="mt-2 flex h-5 items-center justify-between text-[11px] text-muted-foreground">
           {inCall ? (
             <>
-              <button
-                onClick={toggleMute}
-                disabled={callState !== "active"}
-                className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-foreground transition-colors hover:bg-secondary/70 disabled:opacity-40"
-                aria-label={muted ? "Unmute" : "Mute"}
-              >
-                {muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-              </button>
-              <Button
-                size="lg"
-                onClick={hangup}
-                variant="destructive"
-                className="h-16 w-16 rounded-full p-0 shadow-lg"
-              >
-                {callState === "connecting" || callState === "ending" ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <PhoneOff className="h-6 w-6" />
-                )}
-              </Button>
-              <button
-                onClick={() => {
-                  if (speakers.length === 0) { loadSpeakers(); return; }
-                  const ids = speakers.map((s) => s.deviceId);
-                  const idx = ids.indexOf(speakerId);
-                  const next = ids[(idx + 1) % ids.length] ?? "default";
-                  applySpeaker(next);
-                }}
-                className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-foreground transition-colors hover:bg-secondary/70"
-                aria-label="Switch speaker"
-                title="Switch audio output"
-              >
-                <Volume2 className="h-5 w-5" />
-              </button>
+              <span className="uppercase tracking-wider">
+                {callState === "connecting" && "Connecting…"}
+                {callState === "ringing" && "Ringing…"}
+                {callState === "active" && "In call"}
+                {callState === "ending" && "Ending…"}
+              </span>
+              <span className="font-mono tabular-nums">
+                {fmtTime}{callState === "active" && ` · ${formatCurrency(liveCost)}`}
+              </span>
             </>
           ) : (
             <>
-              <div className="w-12" />
-              <Button
-                size="lg"
-                onClick={startCall}
-                className="h-16 w-16 rounded-full bg-call p-0 text-call-foreground shadow-lg shadow-call/30 hover:bg-call/90"
-                disabled={!isValid}
-              >
-                <Phone className="h-6 w-6" />
-              </Button>
-              <button
-                onClick={backspace}
-                className="grid h-12 w-12 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                aria-label="Delete"
-              >
-                <Delete className="h-5 w-5" />
-              </button>
+              <span>{detected ? countryName(detected) : "Unknown destination"}</span>
+              <span className="inline-flex items-center gap-1">
+                <Info className="h-3 w-3" /> {formatCurrency(rate)}/min
+              </span>
             </>
           )}
         </div>
+
+        {/* Keypad */}
+        <div className="mt-3 grid grid-cols-3 place-items-center gap-y-2">
+          {keys.map((k) => {
+            const sub = keyMeta[k];
+            return (
+              <button
+                key={k}
+                onClick={() => press(alpha && sub ? sub[0] : k)}
+                className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
+              >
+                <span className="text-lg font-semibold leading-none">
+                  {alpha && sub ? sub : k}
+                </span>
+                {sub && (
+                  <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">
+                    {alpha ? k : sub}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Bottom action row */}
+        <div className="mt-3 grid grid-cols-3 place-items-center">
+          {inCall ? (
+            <button
+              onClick={toggleMute}
+              disabled={callState !== "active"}
+              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-40"
+              aria-label={muted ? "Unmute" : "Mute"}
+            >
+              {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
+          ) : (
+            <button
+              onClick={() => setAlpha((a) => !a)}
+              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted"
+              aria-label="Toggle letters"
+            >
+              {alpha ? "123" : "ABC"}
+            </button>
+          )}
+          {inCall ? (
+            <button
+              onClick={hangup}
+              aria-label="End call"
+              className="grid h-14 w-14 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition hover:opacity-90 active:scale-95"
+            >
+              {callState === "connecting" || callState === "ending" ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <PhoneOff className="h-6 w-6" />
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={startCall}
+              disabled={!isValid}
+              aria-label="Call"
+              className="grid h-14 w-14 place-items-center rounded-full bg-call text-call-foreground shadow-lg shadow-call/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
+            >
+              <Phone className="h-6 w-6" />
+            </button>
+          )}
+          {inCall ? (
+            <button
+              onClick={() => {
+                if (speakers.length === 0) { loadSpeakers(); return; }
+                const ids = speakers.map((s) => s.deviceId);
+                const idx = ids.indexOf(speakerId);
+                const next = ids[(idx + 1) % ids.length] ?? "default";
+                applySpeaker(next);
+              }}
+              aria-label="Speaker"
+              title="Switch audio output"
+              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+            >
+              <Volume2 className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={backspace}
+              disabled={!raw}
+              aria-label="Backspace"
+              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-30"
+            >
+              <Delete className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {telnyxState && inCall && (
+          <div className="mt-2 text-center text-[10px] uppercase tracking-wider text-muted-foreground/70">
+            telnyx: {telnyxState}
+          </div>
+        )}
       </div>
     </div>
   );
