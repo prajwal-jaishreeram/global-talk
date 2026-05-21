@@ -23,14 +23,14 @@ export function SiteHeader() {
   }, []);
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
         <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Phone className="h-4 w-4" />
           </span>
           Ringlink
         </Link>
-        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex lg:gap-10">
           <Link to="/" hash="how" className="hover:text-foreground">How it works</Link>
           <Link to="/rates" className="hover:text-foreground">Rates</Link>
           <Link to="/" hash="business" className="hover:text-foreground">Business</Link>
