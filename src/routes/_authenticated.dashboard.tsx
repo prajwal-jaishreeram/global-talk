@@ -180,7 +180,7 @@ function DashboardLayout() {
         )}
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-x-hidden">
+      <div className="flex flex-1 flex-col overflow-x-clip">
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur md:hidden">
           <Link to="/" className="flex items-center gap-2 font-semibold">
@@ -278,7 +278,7 @@ function DashboardLayout() {
             </div>
           </div>
         )}
-        <main className="flex-1 overflow-x-hidden">
+        <main className="flex-1 overflow-x-clip">
           <Outlet />
         </main>
       </div>

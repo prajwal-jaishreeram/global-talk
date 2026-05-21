@@ -571,16 +571,14 @@ function DialerPage() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="group fixed right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 rounded-l-2xl border border-r-0 border-border bg-card/80 px-3 py-4 text-xs font-medium text-muted-foreground shadow-md backdrop-blur transition hover:bg-card hover:text-foreground lg:flex"
+          className="group fixed right-4 top-4 z-30 hidden items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-2 text-xs font-medium text-muted-foreground shadow-md backdrop-blur transition hover:bg-card hover:text-foreground lg:inline-flex"
           aria-label="Open script and notes"
           title="Open script & notes"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary transition group-hover:bg-primary/20">
-            <FileText className="h-4 w-4" />
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary/20">
+            <FileText className="h-3.5 w-3.5" />
           </span>
-          <span className="[writing-mode:vertical-rl] rotate-180 uppercase tracking-[0.2em]">
-            Script &amp; Notes
-          </span>
+          <span className="uppercase tracking-[0.15em]">Script &amp; Notes</span>
         </button>
       )}
     </div>
