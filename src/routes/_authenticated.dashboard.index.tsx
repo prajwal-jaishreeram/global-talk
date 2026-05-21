@@ -58,11 +58,35 @@ function DialerPage() {
   const finalizeRecord = useServerFn(finalizeCallRecord);
 
   const countries = useMemo(() => {
-    const all = getCountries();
-    const named = all.filter((c) => COUNTRY_NAMES[c]).sort();
-    const rest = all.filter((c) => !COUNTRY_NAMES[c]).sort();
-    return [...named, ...rest];
+    return getCountries()
+      .map((c) => ({
+        code: c,
+        name: countryName(c),
+        dial: getCountryCallingCode(c),
+        flag: flagEmoji(c),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, []);
+  const [countryOpen, setCountryOpen] = useState(false);
+
+  function handlePhoneChange(value: string) {
+    // Allow manual + prefix to switch country
+    if (value.startsWith("+")) {
+      const digits = value.replace(/\D/g, "");
+      // try longest match first
+      for (let len = 3; len >= 1; len--) {
+        const prefix = digits.slice(0, len);
+        const match = countries.find((c) => c.dial === prefix);
+        if (match) {
+          setCountry(match.code);
+          setRaw(digits.slice(len));
+          return;
+        }
+      }
+    }
+    setRaw(value.replace(/\D/g, ""));
+  }
+
 
   const callingCode = getCountryCallingCode(country as never);
   const e164 = `+${callingCode}${raw.replace(/\D/g, "")}`;
