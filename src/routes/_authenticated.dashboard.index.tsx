@@ -58,6 +58,7 @@ function DialerPage() {
   const timerRef = useRef<number | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
+  const multitapRef = useRef<{ k: string; idx: number; time: number } | null>(null);
   const fetchCreds = useServerFn(getWebrtcCredentials);
   const startRecord = useServerFn(startCallRecord);
   const finalizeRecord = useServerFn(finalizeCallRecord);
@@ -227,6 +228,21 @@ function DialerPage() {
       try { callRef.current.dtmf(ch); } catch {}
       return;
     }
+    const sub = keyMeta[ch];
+    if (alpha && sub) {
+      const now = Date.now();
+      const last = multitapRef.current;
+      if (last && last.k === ch && now - last.time < 900) {
+        const idx = (last.idx + 1) % sub.length;
+        multitapRef.current = { k: ch, idx, time: now };
+        setRaw((r) => r.slice(0, -1) + sub[idx]);
+      } else {
+        multitapRef.current = { k: ch, idx: 0, time: now };
+        setRaw((r) => r + sub[0]);
+      }
+      return;
+    }
+    multitapRef.current = null;
     setRaw((r) => r + ch);
   }
   function backspace() {
