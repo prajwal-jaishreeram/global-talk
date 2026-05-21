@@ -166,7 +166,7 @@ function HeroDialerInner() {
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
         {/* Floating background flag strip */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between gap-10 px-4 opacity-[0.07] dark:opacity-[0.09]">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between gap-6 px-4 opacity-25 dark:opacity-20">
           {[
             { src: flagUS, d: "0s" },
             { src: flagGB, d: "-1.2s" },
@@ -181,7 +181,7 @@ function HeroDialerInner() {
               src={f.src}
               alt=""
               aria-hidden
-              className="h-24 w-24 md:h-32 md:w-32 lg:h-40 lg:w-40 shrink-0 rounded-full object-cover animate-float"
+              className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-full object-cover shadow-lg animate-float"
               style={{ animationDelay: f.d }}
             />
           ))}
