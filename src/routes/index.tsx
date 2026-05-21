@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,6 +55,7 @@ function SiteHeader() {
           <a href="#faq" className="hover:text-foreground">FAQ</a>
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link to="/auth/login" className="hidden sm:block">
             <Button variant="ghost" size="sm">Log in</Button>
           </Link>
