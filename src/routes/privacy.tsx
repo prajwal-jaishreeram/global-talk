@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Ringlink" },
+      { title: "Privacy Policy - Ringlink" },
       { name: "description", content: "How Ringlink collects, uses, and protects your data." },
     ],
   }),

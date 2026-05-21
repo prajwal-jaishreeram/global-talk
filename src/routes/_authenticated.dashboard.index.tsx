@@ -20,7 +20,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
-  head: () => ({ meta: [{ title: "Dialer — Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Dialer - Ringlink" }] }),
   component: DialerPage,
 });
 

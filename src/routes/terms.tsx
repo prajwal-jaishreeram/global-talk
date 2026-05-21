@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — Ringlink" },
+      { title: "Terms of Service - Ringlink" },
       { name: "description", content: "The terms that govern your use of Ringlink." },
     ],
   }),
@@ -23,7 +23,7 @@ function TermsPage() {
         <h2 className="text-lg font-semibold text-foreground">2. Billing</h2>
         <p>All calls are billed per second from your prepaid credit balance. Credits are non-transferable and refundable within 30 days of purchase if unused.</p>
         <h2 className="text-lg font-semibold text-foreground">3. Service availability</h2>
-        <p>We target 99.9% uptime but make no guarantee. Emergency services (911, 112, 999, 100) are not supported — keep a real phone for emergencies.</p>
+        <p>We target 99.9% uptime but make no guarantee. Emergency services (911, 112, 999, 100) are not supported - keep a real phone for emergencies.</p>
         <h2 className="text-lg font-semibold text-foreground">4. Termination</h2>
         <p>You can close your account at any time from Settings. We may suspend accounts that violate these terms.</p>
         <h2 className="text-lg font-semibold text-foreground">5. Contact</h2>

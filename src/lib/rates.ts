@@ -1,6 +1,6 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
-// Per-minute rates in USD. Conservative wholesale-ish numbers — adjust later.
+// Per-minute rates in USD. Conservative wholesale-ish numbers - adjust later.
 export const RATES: Record<string, number> = {
   US: 0.01, CA: 0.01, GB: 0.015, IE: 0.02, FR: 0.02, DE: 0.02, ES: 0.02, IT: 0.02,
   NL: 0.02, BE: 0.02, PT: 0.025, SE: 0.025, NO: 0.025, DK: 0.025, FI: 0.025,

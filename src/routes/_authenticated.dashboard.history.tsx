@@ -14,7 +14,7 @@ type CallRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/dashboard/history")({
-  head: () => ({ meta: [{ title: "Call history — Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Call history - Ringlink" }] }),
   component: HistoryPage,
 });
 
@@ -57,7 +57,7 @@ function HistoryPage() {
                   <div className="flex-1 min-w-0">
                     <div className="truncate font-medium">{c.to_number}</div>
                     <div className="text-xs text-muted-foreground">
-                      {date.toLocaleString()} · {c.country_code ?? "—"}
+                      {date.toLocaleString()} · {c.country_code ?? "-"}
                     </div>
                   </div>
                   <div className="text-right text-sm">
