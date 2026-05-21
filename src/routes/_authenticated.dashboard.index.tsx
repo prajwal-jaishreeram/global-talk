@@ -327,14 +327,14 @@ function DialerPage() {
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-1px)] max-w-md flex-col items-center justify-center px-4 py-4">
+    <div className="mx-auto flex min-h-[calc(100vh-56px)] max-w-md flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
       <audio
         id="telnyx-remote-audio"
         autoPlay
         playsInline
         ref={(el) => { audioElRef.current = el; }}
       />
-      <div className="w-full rounded-[2rem] border-2 border-border bg-card/80 p-5 shadow-xl shadow-black/20 backdrop-blur dark:shadow-black/40">
+      <div className="w-full rounded-[2rem] border-2 border-border bg-card/80 p-6 shadow-xl shadow-black/20 backdrop-blur dark:shadow-black/40">
         {/* Top row: country + number + backspace */}
         <div className="flex items-center gap-2">
           <Popover open={countryOpen} onOpenChange={setCountryOpen}>
@@ -428,20 +428,20 @@ function DialerPage() {
         </div>
 
         {/* Keypad */}
-        <div className="mt-3 grid grid-cols-3 place-items-center gap-y-2">
+        <div className="mt-4 grid grid-cols-3 place-items-center gap-y-3">
           {keys.map((k) => {
             const sub = keyMeta[k];
             return (
               <button
                 key={k}
                 onClick={() => press(alpha && sub ? sub[0] : k)}
-                className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
+                className="flex h-16 w-16 flex-col items-center justify-center rounded-full bg-muted/70 transition hover:bg-muted active:scale-95"
               >
-                <span className="text-lg font-semibold leading-none">
+                <span className="text-2xl font-semibold leading-none">
                   {alpha && sub ? sub : k}
                 </span>
                 {sub && (
-                  <span className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground">
+                  <span className="mt-1 text-[10px] tracking-[0.15em] text-muted-foreground">
                     {alpha ? k : sub}
                   </span>
                 )}
@@ -451,20 +451,20 @@ function DialerPage() {
         </div>
 
         {/* Bottom action row */}
-        <div className="mt-3 grid grid-cols-3 place-items-center">
+        <div className="mt-4 grid grid-cols-3 place-items-center">
           {inCall ? (
             <button
               onClick={toggleMute}
               disabled={callState !== "active"}
-              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-40"
+              className="grid h-12 w-12 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-40"
               aria-label={muted ? "Unmute" : "Mute"}
             >
-              {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
           ) : (
             <button
               onClick={() => setAlpha((a) => !a)}
-              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted"
+              className="grid h-12 w-12 place-items-center rounded-full bg-muted/70 text-xs font-semibold text-muted-foreground hover:bg-muted"
               aria-label="Toggle letters"
             >
               {alpha ? "123" : "ABC"}
@@ -474,12 +474,12 @@ function DialerPage() {
             <button
               onClick={hangup}
               aria-label="End call"
-              className="grid h-14 w-14 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition hover:opacity-90 active:scale-95"
+              className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition hover:opacity-90 active:scale-95"
             >
               {callState === "connecting" || callState === "ending" ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="h-7 w-7 animate-spin" />
               ) : (
-                <PhoneOff className="h-6 w-6" />
+                <PhoneOff className="h-7 w-7" />
               )}
             </button>
           ) : (
@@ -487,9 +487,9 @@ function DialerPage() {
               onClick={startCall}
               disabled={!isValid}
               aria-label="Call"
-              className="grid h-14 w-14 place-items-center rounded-full bg-call text-call-foreground shadow-lg shadow-call/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
+              className="grid h-16 w-16 place-items-center rounded-full bg-call text-call-foreground shadow-lg shadow-call/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
             >
-              <Phone className="h-6 w-6" />
+              <Phone className="h-7 w-7" />
             </button>
           )}
           {inCall ? (
@@ -503,18 +503,18 @@ function DialerPage() {
               }}
               aria-label="Speaker"
               title="Switch audio output"
-              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
+              className="grid h-12 w-12 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted"
             >
-              <Volume2 className="h-4 w-4" />
+              <Volume2 className="h-5 w-5" />
             </button>
           ) : (
             <button
               onClick={backspace}
               disabled={!raw}
               aria-label="Backspace"
-              className="grid h-10 w-10 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-30"
+              className="grid h-12 w-12 place-items-center rounded-full bg-muted/70 text-muted-foreground hover:bg-muted disabled:opacity-30"
             >
-              <Delete className="h-4 w-4" />
+              <Delete className="h-5 w-5" />
             </button>
           )}
         </div>
