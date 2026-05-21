@@ -165,26 +165,23 @@ function HeroDialerInner() {
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
-        {/* Floating background flag strip */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between gap-6 px-4 opacity-25 dark:opacity-20">
-          {[
-            { src: flagUS, d: "0s" },
-            { src: flagGB, d: "-1.2s" },
-            { src: flagCA, d: "-2.4s" },
-            { src: flagIN, d: "-3.6s" },
-            { src: flagJP, d: "-4.8s" },
-            { src: flagBD, d: "-6s" },
-            { src: flagBS, d: "-7.2s" },
-          ].map((f, i) => (
-            <img
-              key={i}
-              src={f.src}
-              alt=""
-              aria-hidden
-              className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-full object-cover shadow-lg animate-float"
-              style={{ animationDelay: f.d }}
-            />
-          ))}
+        {/* Traveling background flag marquee */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-1/2 -translate-y-1/2 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] opacity-30 dark:opacity-20"
+        >
+          <div className="flex w-max items-center gap-12 md:gap-16 lg:gap-20 animate-marquee">
+            {[...Array(2)].flatMap((_, dup) =>
+              [flagUS, flagGB, flagCA, flagIN, flagJP, flagBD, flagBS].map((src, i) => (
+                <img
+                  key={`${dup}-${i}`}
+                  src={src}
+                  alt=""
+                  className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-full object-cover shadow-lg"
+                />
+              )),
+            )}
+          </div>
         </div>
       </div>
       <div className="relative z-10 mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
