@@ -242,22 +242,62 @@ function DialerPage() {
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex gap-2">
-          <Select value={country} onValueChange={setCountry} disabled={inCall}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              {countries.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c} +{getCountryCallingCode(c)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                role="combobox"
+                disabled={inCall}
+                className="w-[130px] justify-between px-3 font-normal"
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <span className="text-base leading-none">{flagEmoji(country)}</span>
+                  <span className="text-sm text-muted-foreground">+{callingCode}</span>
+                </span>
+                <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+              <Command
+                filter={(value, search) => {
+                  const q = search.toLowerCase().replace(/^\+/, "");
+                  return value.toLowerCase().includes(q) ? 1 : 0;
+                }}
+              >
+                <CommandInput placeholder="Search country or +code…" />
+                <CommandList>
+                  <CommandEmpty>No country found.</CommandEmpty>
+                  <CommandGroup>
+                    {countries.map((c) => (
+                      <CommandItem
+                        key={c.code}
+                        value={`${c.name} ${c.code} +${c.dial}`}
+                        onSelect={() => {
+                          setCountry(c.code);
+                          setCountryOpen(false);
+                        }}
+                      >
+                        <span className="mr-2 text-base leading-none">{c.flag}</span>
+                        <span className="flex-1 truncate">{c.name}</span>
+                        <span className="ml-2 text-xs text-muted-foreground">+{c.dial}</span>
+                        <Check
+                          className={cn(
+                            "ml-2 h-4 w-4",
+                            country === c.code ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <Input
-            value={formatted}
-            onChange={(e) => setRaw(e.target.value.replace(/\D/g, ""))}
-            placeholder="Phone number"
+            value={raw.startsWith("+") ? raw : formatted}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder="Phone number or +countrycode"
             inputMode="tel"
             disabled={inCall}
             className="text-lg font-medium tracking-wider"
@@ -265,11 +305,12 @@ function DialerPage() {
         </div>
 
         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{detected ? `${COUNTRY_NAMES[detected] ?? detected}` : "Unknown destination"}</span>
+          <span>{detected ? countryName(detected) : "Unknown destination"}</span>
           <span className="inline-flex items-center gap-1">
             <Info className="h-3 w-3" /> {formatCurrency(rate)}/min
           </span>
         </div>
+
 
         {inCall && (
           <div className="mt-4 rounded-xl border border-border/60 bg-secondary/40 px-4 py-3 text-center">
