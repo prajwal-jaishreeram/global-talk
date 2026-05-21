@@ -167,8 +167,30 @@ function HeroDialer() {
         </div>
 
         {/* Phone mockup */}
-        <div className="mx-auto w-full max-w-[300px]">
-          <div className="relative rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
+        <div className="relative mx-auto w-full max-w-[440px] py-6">
+          {/* Soft glow halo behind the phone */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-primary/20 via-primary/5 to-transparent blur-2xl"
+          />
+          {/* Orbiting flag chips */}
+          <FlagChip src={flagUS} name="USA" rate="$0.01/min" className="absolute -left-2 top-6 hidden sm:flex animate-float" />
+          <FlagChip src={flagGB} name="UK" rate="$0.02/min" className="absolute -right-2 top-0 hidden sm:flex animate-float [animation-delay:-1.5s]" />
+          <FlagChip src={flagIN} name="India" rate="$0.03/min" className="absolute -left-4 bottom-20 hidden sm:flex animate-float [animation-delay:-3s]" />
+          <FlagChip src={flagJP} name="Japan" rate="$0.04/min" className="absolute -right-4 bottom-24 hidden sm:flex animate-float [animation-delay:-2s]" />
+          <FlagChip src={flagCA} name="Canada" rate="$0.01/min" className="absolute -right-6 top-1/2 hidden md:flex animate-float [animation-delay:-4s]" />
+          <FlagChip src={flagBD} name="Bangladesh" rate="$0.05/min" className="absolute -left-6 bottom-2 hidden md:flex animate-float [animation-delay:-2.5s]" />
+          <FlagChip src={flagBS} name="Bahamas" rate="$0.06/min" className="absolute -right-2 bottom-2 hidden lg:flex animate-float [animation-delay:-1s]" />
+
+          {/* Mobile: clean horizontal flag strip (no overlap with phone) */}
+          <div className="mb-4 flex items-center justify-center gap-2 sm:hidden">
+            {[flagUS, flagGB, flagIN, flagJP, flagCA, flagBD].map((f, i) => (
+              <img key={i} src={f} alt="" className="h-6 w-6 rounded-full border border-border object-cover shadow-sm" />
+            ))}
+            <span className="ml-1 text-xs text-muted-foreground">+200 more</span>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-[300px] rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
             <div className="rounded-[2rem] bg-background p-4">
               {/* Top bar: balance + status dot */}
