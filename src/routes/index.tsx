@@ -72,7 +72,7 @@ function SiteHeader() {
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
-            <span className="block h-0.5 w-4 bg-foreground" />
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </div>
