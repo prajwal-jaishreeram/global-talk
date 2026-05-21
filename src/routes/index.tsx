@@ -165,22 +165,32 @@ function HeroDialerInner() {
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
-        {/* Diagonal traveling flag marquee */}
+        {/* Diagonal traveling flag rows */}
         <div
           aria-hidden
-          className="absolute left-1/2 top-1/2 w-[180%] -translate-x-1/2 -translate-y-1/2 rotate-[-12deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] opacity-30 dark:opacity-20"
+          className="absolute left-1/2 top-1/2 w-[200%] -translate-x-1/2 -translate-y-1/2 rotate-[-12deg] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] opacity-30 dark:opacity-20"
         >
-          <div className="flex w-max items-center gap-12 md:gap-16 lg:gap-20 animate-marquee">
-            {[...Array(2)].flatMap((_, dup) =>
-              [flagUS, flagGB, flagCA, flagIN, flagJP, flagBD, flagBS].map((src, i) => (
-                <img
-                  key={`${dup}-${i}`}
-                  src={src}
-                  alt=""
-                  className="h-20 w-20 md:h-28 md:w-28 lg:h-36 lg:w-36 shrink-0 rounded-2xl object-cover shadow-lg"
-                />
-              )),
-            )}
+          <div className="flex flex-col gap-8 md:gap-12 lg:gap-14">
+            {[
+              { dir: "animate-marquee", flags: [flagUS, flagGB, flagCA, flagIN, flagJP, flagBD, flagBS] },
+              { dir: "animate-marquee-reverse", flags: [flagIN, flagJP, flagUS, flagBS, flagGB, flagBD, flagCA] },
+              { dir: "animate-marquee", flags: [flagBD, flagCA, flagBS, flagGB, flagIN, flagUS, flagJP] },
+            ].map((row, ri) => (
+              <div key={ri} className="overflow-hidden">
+                <div className={`flex w-max items-center gap-10 md:gap-14 lg:gap-16 ${row.dir}`}>
+                  {[...Array(2)].flatMap((_, dup) =>
+                    row.flags.map((src, i) => (
+                      <img
+                        key={`${dup}-${i}`}
+                        src={src}
+                        alt=""
+                        className="h-16 w-16 md:h-24 md:w-24 lg:h-28 lg:w-28 shrink-0 rounded-2xl object-cover shadow-lg"
+                      />
+                    )),
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
