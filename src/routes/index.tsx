@@ -548,7 +548,7 @@ function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/terms" className="hover:text-foreground">Terms of Service</Link></li>
               <li><Link to="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
-              <li><a href="mailto:support@ringlink.app" className="hover:text-foreground">Contact</a></li>
+              <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
             </ul>
           </div>
         </div>
