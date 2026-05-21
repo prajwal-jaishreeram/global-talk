@@ -163,8 +163,29 @@ function HeroDialerInner() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-20 left-1/2 h-[360px] w-[520px] -translate-x-1/2 rounded-full bg-primary/15 blur-[80px]" />
+        {/* Floating background flag strip */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between gap-10 px-4 opacity-[0.07] dark:opacity-[0.09]">
+          {[
+            { src: flagUS, d: "0s" },
+            { src: flagGB, d: "-1.2s" },
+            { src: flagCA, d: "-2.4s" },
+            { src: flagIN, d: "-3.6s" },
+            { src: flagJP, d: "-4.8s" },
+            { src: flagBD, d: "-6s" },
+            { src: flagBS, d: "-7.2s" },
+          ].map((f, i) => (
+            <img
+              key={i}
+              src={f.src}
+              alt=""
+              aria-hidden
+              className="h-24 w-24 md:h-32 md:w-32 lg:h-40 lg:w-40 shrink-0 rounded-full object-cover animate-float"
+              style={{ animationDelay: f.d }}
+            />
+          ))}
+        </div>
       </div>
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-2 md:py-16 md:items-center">
         <div>
@@ -201,23 +222,6 @@ function HeroDialerInner() {
             aria-hidden
             className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-primary/20 via-primary/5 to-transparent blur-2xl"
           />
-          {/* Orbiting flag chips */}
-          <FlagChip src={flagUS} name="USA" rate="$0.01/min" className="absolute -left-2 top-6 hidden sm:flex animate-float" />
-          <FlagChip src={flagGB} name="UK" rate="$0.02/min" className="absolute -right-2 top-0 hidden sm:flex animate-float [animation-delay:-1.5s]" />
-          <FlagChip src={flagIN} name="India" rate="$0.03/min" className="absolute -left-4 bottom-20 hidden sm:flex animate-float [animation-delay:-3s]" />
-          <FlagChip src={flagJP} name="Japan" rate="$0.04/min" className="absolute -right-4 bottom-24 hidden sm:flex animate-float [animation-delay:-2s]" />
-          <FlagChip src={flagCA} name="Canada" rate="$0.01/min" className="absolute -right-6 top-1/2 hidden md:flex animate-float [animation-delay:-4s]" />
-          <FlagChip src={flagBD} name="Bangladesh" rate="$0.05/min" className="absolute -left-6 bottom-2 hidden md:flex animate-float [animation-delay:-2.5s]" />
-          <FlagChip src={flagBS} name="Bahamas" rate="$0.06/min" className="absolute -right-2 bottom-2 hidden lg:flex animate-float [animation-delay:-1s]" />
-
-          {/* Mobile: clean horizontal flag strip (no overlap with phone) */}
-          <div className="mb-4 flex items-center justify-center gap-2 sm:hidden">
-            {[flagUS, flagGB, flagIN, flagJP, flagCA, flagBD].map((f, i) => (
-              <img key={i} src={f} alt="" className="h-6 w-6 rounded-full border border-border object-cover shadow-sm" />
-            ))}
-            <span className="ml-1 text-xs text-muted-foreground">+200 more</span>
-          </div>
-
           <div className="relative mx-auto w-full max-w-[300px] rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
             <div className="rounded-[2rem] bg-background p-4">
