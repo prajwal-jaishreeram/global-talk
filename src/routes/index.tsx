@@ -187,7 +187,7 @@ function HeroDialer() {
 
         {/* Phone mockup */}
         <div className="mx-auto w-full max-w-[300px]">
-          <div className="relative rounded-[2.5rem] border border-border bg-card p-3 shadow-2xl shadow-primary/10">
+          <div className="relative rounded-[2.5rem] border-2 border-border bg-card p-3 shadow-xl shadow-black/20 dark:shadow-black/40">
             <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-muted" />
             <div className="rounded-[2rem] bg-background p-4">
               {/* Top bar: balance + status dot */}
