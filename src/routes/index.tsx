@@ -168,7 +168,7 @@ function HeroDialerInner() {
         {/* Diagonal traveling flag rows */}
         <div
           aria-hidden
-          className="absolute left-1/2 top-1/2 w-[320%] h-[220%] -translate-x-1/2 -translate-y-1/2 rotate-[-22deg] [mask-image:radial-gradient(ellipse_at_center,black_55%,transparent_92%)] opacity-30 dark:opacity-20"
+          className="absolute left-1/2 top-1/2 w-[200%] -translate-x-1/2 -translate-y-1/2 rotate-[-28deg] [mask-image:linear-gradient(to_right,transparent,black_18%,black_82%,transparent)] opacity-30 dark:opacity-20"
         >
           <div className="flex flex-col gap-3 md:gap-5 lg:gap-6">
             {[
