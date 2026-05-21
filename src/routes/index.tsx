@@ -168,9 +168,9 @@ function HeroDialerInner() {
         {/* Diagonal traveling flag rows */}
         <div
           aria-hidden
-          className="absolute left-1/2 top-1/2 w-[200%] -translate-x-1/2 -translate-y-1/2 rotate-[-12deg] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] opacity-30 dark:opacity-20"
+          className="absolute left-1/2 top-1/2 w-[200%] -translate-x-1/2 -translate-y-1/2 rotate-[-28deg] [mask-image:linear-gradient(to_right,transparent,black_18%,black_82%,transparent)] opacity-30 dark:opacity-20"
         >
-          <div className="flex flex-col gap-8 md:gap-12 lg:gap-14">
+          <div className="flex flex-col gap-3 md:gap-5 lg:gap-6">
             {[
               { dir: "animate-marquee", flags: [flagUS, flagGB, flagCA, flagIN, flagJP, flagBD, flagBS] },
               { dir: "animate-marquee-reverse", flags: [flagIN, flagJP, flagUS, flagBS, flagGB, flagBD, flagCA] },
