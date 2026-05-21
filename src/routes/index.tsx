@@ -43,9 +43,6 @@ function Landing() {
   );
 }
 
-    </header>
-  );
-}
 
 function HeroDialer() {
   const [number, setNumber] = useState("");
