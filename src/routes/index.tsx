@@ -3,11 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
   CreditCard, Mic, MicOff, PhoneCall, PhoneOff, ChevronDown, Sparkles,
-  Plus, UserPlus, Volume2, Menu, X,
+  Plus, UserPlus, Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
