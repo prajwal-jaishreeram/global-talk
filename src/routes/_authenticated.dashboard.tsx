@@ -9,12 +9,18 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
 });
 
-const NAV = [
+type NavItem = {
+  to: "/dashboard" | "/dashboard/history" | "/dashboard/credits" | "/dashboard/settings";
+  label: string;
+  icon: typeof Phone;
+  exact?: boolean;
+};
+const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dialer", icon: Phone, exact: true },
   { to: "/dashboard/history", label: "History", icon: History },
   { to: "/dashboard/credits", label: "Credits", icon: CreditCard },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 function DashboardLayout() {
   const navigate = useNavigate();
