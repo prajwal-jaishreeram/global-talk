@@ -171,8 +171,8 @@ function DialerPage() {
       client.on("telnyx.ready", () => {
         const call = client.newCall({
           destinationNumber: e164,
-          callerNumber: "+10000000000",
           audio: true,
+          remoteElement: "telnyx-remote-audio",
         });
         callRef.current = call;
         setCallState("ringing");
