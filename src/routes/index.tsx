@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
@@ -85,7 +85,6 @@ function HeroDialer() {
   const [number, setNumber] = useState("");
   const [state, setState] = useState<"idle" | "connecting">("idle");
   const [muted, setMuted] = useState(false);
-  const navigate = useNavigate();
   const timerRef = useRef<number | null>(null);
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
   const keys: { d: string; sub?: string }[] = [
@@ -110,14 +109,10 @@ function HeroDialer() {
     setState("connecting");
     const { data } = await supabase.auth.getSession();
     timerRef.current = window.setTimeout(() => {
-      if (data.session) {
-        navigate({ to: "/dashboard", search: { to: `+${number}` } as never });
-      } else {
-        navigate({
-          to: "/auth/signup",
-          search: { redirect: `/dashboard?to=${encodeURIComponent("+" + number)}` } as never,
-        });
-      }
+      const target = `/dashboard?to=${encodeURIComponent("+" + number)}`;
+      window.location.href = data.session
+        ? target
+        : `/auth/signup?redirect=${encodeURIComponent(target)}`;
     }, 900);
   }
   function endCall() {
