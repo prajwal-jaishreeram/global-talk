@@ -158,3 +158,12 @@
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee-x 40s linear infinite;
+  will-change: transform;
+}
