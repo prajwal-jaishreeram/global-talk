@@ -52,6 +52,34 @@ function Landing() {
 
 
 function HeroDialer() {
+  return <HeroDialerInner />;
+}
+
+function FlagChip({
+  src,
+  name,
+  rate,
+  className,
+}: {
+  src: string;
+  name: string;
+  rate: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`z-10 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/90 px-2.5 py-1.5 shadow-lg shadow-black/10 backdrop-blur-md dark:shadow-black/30 ${className ?? ""}`}
+    >
+      <img src={src} alt={`${name} flag`} className="h-5 w-5 rounded-full object-cover ring-1 ring-border/40" />
+      <div className="flex flex-col leading-tight">
+        <span className="text-[11px] font-semibold text-foreground">{name}</span>
+        <span className="text-[9px] tracking-wide text-muted-foreground">{rate}</span>
+      </div>
+    </div>
+  );
+}
+
+function HeroDialerInner() {
   const [number, setNumber] = useState("");
   const [state, setState] = useState<"idle" | "connecting">("idle");
   const [muted, setMuted] = useState(false);
