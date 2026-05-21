@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
   CreditCard, Mic, MicOff, PhoneCall, PhoneOff, ChevronDown, Sparkles,
-  Plus, UserPlus, Volume2,
+  Plus, UserPlus, Volume2, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
