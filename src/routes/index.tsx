@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import flagUS from "@/assets/flags/us.svg";
+import flagGB from "@/assets/flags/gb.svg";
+import flagIN from "@/assets/flags/in.svg";
+import flagJP from "@/assets/flags/jp.svg";
+import flagCA from "@/assets/flags/ca.svg";
+import flagBS from "@/assets/flags/bs.svg";
+import flagBD from "@/assets/flags/bd.svg";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
