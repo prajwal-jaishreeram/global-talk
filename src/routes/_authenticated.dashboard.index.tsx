@@ -343,7 +343,7 @@ function DialerPage() {
   const liveCost = (seconds / 60) * rate;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-[360px] flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
+    <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-[320px] flex-col items-center justify-center px-4 py-4 md:min-h-[calc(100vh-1px)]">
       <audio
         id="telnyx-remote-audio"
         autoPlay
