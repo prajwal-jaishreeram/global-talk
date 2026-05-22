@@ -5,8 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy - Ringlink" },
-      { name: "description", content: "How Ringlink collects, uses, and protects your data." },
+      { title: "Privacy Policy - Eginta" },
+      { name: "description", content: "How Eginta collects, uses, and protects your data." },
     ],
   }),
   component: PrivacyPage,
@@ -74,7 +74,7 @@ function PrivacyPage() {
         <section>
           <h2 className="text-lg font-semibold text-foreground">6. Contact Us</h2>
           <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-          <p className="mt-2">Email: <a href="mailto:info@ringlink.app" className="text-primary hover:underline">info@ringlink.app</a></p>
+          <p className="mt-2">Email: <a href="mailto:support@eginta.com" className="text-primary hover:underline">support@eginta.com</a></p>
         </section>
 
         <section>

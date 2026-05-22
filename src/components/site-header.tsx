@@ -28,7 +28,7 @@ export function SiteHeader() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Phone className="h-4 w-4" />
           </span>
-          Ringlink
+          Eginta
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex lg:gap-10">
           <Link to="/" hash="how" className="hover:text-foreground">How it works</Link>

@@ -96,7 +96,7 @@ function DashboardLayout() {
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
                 <Phone className="h-4 w-4" />
               </span>
-              Ringlink
+              Eginta
             </Link>
           )}
           <button
@@ -187,7 +187,7 @@ function DashboardLayout() {
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
               <Phone className="h-4 w-4" />
             </span>
-            Ringlink
+            Eginta
           </Link>
           <div className="flex items-center gap-2">
             <Link
@@ -218,7 +218,7 @@ function DashboardLayout() {
                   <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
                     <Phone className="h-4 w-4" />
                   </span>
-                  Ringlink
+                  Eginta
                 </Link>
                 <button
                   onClick={() => setMobileOpen(false)}
