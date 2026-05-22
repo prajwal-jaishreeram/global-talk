@@ -11,7 +11,7 @@ export function SiteFooter() {
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
                 <Phone className="h-4 w-4" />
               </span>
-              Ringlink
+              Eginta
             </Link>
             <p className="mt-3 text-sm text-muted-foreground">Browser-native international calling for individuals and teams.</p>
           </div>
@@ -42,7 +42,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
-          <div>© {new Date().getFullYear()} Ringlink. All rights reserved.</div>
+          <div>© {new Date().getFullYear()} Eginta. All rights reserved.</div>
           <div className="flex gap-4">
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>

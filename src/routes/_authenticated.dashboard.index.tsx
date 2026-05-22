@@ -21,7 +21,7 @@ import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib
 import { CallNotesPanel } from "@/components/call-notes-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
-  head: () => ({ meta: [{ title: "Dialer - Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Dialer - Eginta" }] }),
   component: DialerPage,
 });
 

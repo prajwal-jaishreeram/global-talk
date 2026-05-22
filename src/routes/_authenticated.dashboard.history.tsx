@@ -14,7 +14,7 @@ type CallRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/dashboard/history")({
-  head: () => ({ meta: [{ title: "Call history - Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Call history - Eginta" }] }),
   component: HistoryPage,
 });
 

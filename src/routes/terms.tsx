@@ -5,8 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms and Conditions - Ringlink" },
-      { name: "description", content: "The terms that govern your use of Ringlink." },
+      { title: "Terms and Conditions - Eginta" },
+      { name: "description", content: "The terms that govern your use of Eginta." },
     ],
   }),
   component: TermsPage,
@@ -72,7 +72,7 @@ function TermsPage() {
             We offer a 100% money-back guarantee with no questions asked for customers who are not satisfied with our service.
           </p>
           <p className="mt-2">
-            To request a refund, please contact our support team at <a href="mailto:support@ringlink.app" className="text-primary hover:underline">support@ringlink.app</a>. Refund requests will be processed within 5-7 business days.
+            To request a refund, please contact our support team at <a href="mailto:support@eginta.com" className="text-primary hover:underline">support@eginta.com</a>. Refund requests will be processed within 5-7 business days.
           </p>
           <p className="mt-2">
             Please note that refund requests may be denied if a substantial portion of the credit package has been consumed without raising a complaint about service quality or functionality issues.
@@ -92,7 +92,7 @@ function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-foreground">8. Contact</h2>
           <p>
-            If you have any questions about these terms or our service, please contact us at <a href="mailto:support@ringlink.app" className="text-primary hover:underline">support@ringlink.app</a>.
+            If you have any questions about these terms or our service, please contact us at <a href="mailto:support@eginta.com" className="text-primary hover:underline">support@eginta.com</a>.
           </p>
         </section>
       </div>

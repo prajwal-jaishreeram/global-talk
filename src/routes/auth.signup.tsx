@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth/signup")({
-  head: () => ({ meta: [{ title: "Sign up - Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Sign up - Eginta" }] }),
   component: SignupPage,
 });
 
@@ -41,7 +41,7 @@ function SignupPage() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Phone className="h-4 w-4" />
           </span>
-          Ringlink
+          Eginta
         </Link>
         <div className="rounded-2xl border border-border bg-card p-6">
           <h1 className="text-xl font-semibold">Create your account</h1>

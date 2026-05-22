@@ -25,7 +25,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ringlink - Browser-based international calling" },
+      { title: "Eginta - Browser-based international calling" },
       {
         name: "description",
         content:
@@ -451,7 +451,7 @@ function ForBusiness() {
           </ul>
           <div className="mt-8 flex gap-3">
             <Link to="/auth/signup"><Button>Start free trial</Button></Link>
-            <a href="mailto:sales@ringlink.app"><Button variant="outline">Talk to sales</Button></a>
+            <a href="mailto:support@eginta.com"><Button variant="outline">Talk to sales</Button></a>
           </div>
         </div>
         <div className="relative">
@@ -499,7 +499,7 @@ function WhyChooseUs() {
     <section id="why" className="border-t border-border/60 bg-card/30">
       <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why choose Ringlink</h2>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why choose Eginta</h2>
           <p className="mt-3 text-muted-foreground">Built by ex-telecom engineers who got tired of bloated softphones.</p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -518,7 +518,7 @@ function WhyChooseUs() {
 
 function FAQ() {
   const qs = [
-    { q: "Do I need to install anything?", a: "No. Ringlink runs entirely in your browser using WebRTC. Chrome, Edge, Safari and Firefox are all supported." },
+    { q: "Do I need to install anything?", a: "No. Eginta runs entirely in your browser using WebRTC. Chrome, Edge, Safari and Firefox are all supported." },
     { q: "How are calls priced?", a: "Pay-as-you-go per minute, billed by the second. Rates start at $0.01/min and are visible before you dial." },
     { q: "Can I use my own caller ID?", a: "Yes - business accounts can bring their own number or SIP trunk. Personal accounts use a shared verified caller ID." },
     { q: "Is my call audio encrypted?", a: "Always. Signalling is TLS 1.3 and media is SRTP. We never write call audio to disk." },

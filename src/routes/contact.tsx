@@ -8,8 +8,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact - Ringlink" },
-      { name: "description", content: "Get in touch with the Ringlink team." },
+      { title: "Contact - Eginta" },
+      { name: "description", content: "Get in touch with the Eginta team." },
     ],
   }),
   component: ContactPage,
@@ -23,7 +23,7 @@ function ContactPage() {
     e.preventDefault();
     const subject = encodeURIComponent(`Contact from ${form.name || "website"}`);
     const body = encodeURIComponent(`${form.message}\n\nFrom: ${form.name} <${form.email}>`);
-    window.location.href = `mailto:support@ringlink.app?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:support@eginta.com?subject=${subject}&body=${body}`;
     setSent(true);
   }
 
@@ -38,18 +38,18 @@ function ContactPage() {
 
       <div className="mt-10 grid gap-8 md:grid-cols-2">
         <div className="space-y-4">
-          <a href="mailto:support@ringlink.app" className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/40">
+          <a href="mailto:support@eginta.com" className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/40">
             <Mail className="mt-0.5 h-5 w-5 text-primary" />
             <div>
               <div className="font-semibold">Support</div>
-              <div className="text-sm text-muted-foreground">support@ringlink.app</div>
+              <div className="text-sm text-muted-foreground">support@eginta.com</div>
             </div>
           </a>
-          <a href="mailto:sales@ringlink.app" className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/40">
+          <a href="mailto:support@eginta.com" className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-5 hover:border-primary/40">
             <MessageSquare className="mt-0.5 h-5 w-5 text-primary" />
             <div>
               <div className="font-semibold">Sales</div>
-              <div className="text-sm text-muted-foreground">sales@ringlink.app</div>
+              <div className="text-sm text-muted-foreground">support@eginta.com</div>
             </div>
           </a>
         </div>

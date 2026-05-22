@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings - Ringlink" }] }),
+  head: () => ({ meta: [{ title: "Settings - Eginta" }] }),
   component: SettingsPage,
 });
 
