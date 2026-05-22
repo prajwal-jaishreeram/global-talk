@@ -16,8 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getRateForNumber, formatCurrency } from "@/lib/rates";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.functions";
+import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.client";
 import { CallNotesPanel } from "@/components/call-notes-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -61,9 +60,6 @@ function DialerPage() {
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
   const multitapRef = useRef<{ k: string; idx: number; time: number } | null>(null);
-  const fetchCreds = useServerFn(getWebrtcCredentials);
-  const startRecord = useServerFn(startCallRecord);
-  const finalizeRecord = useServerFn(finalizeCallRecord);
 
   // Prefill from ?to= search param (e.g. coming from landing page hero dialer)
   useEffect(() => {
@@ -209,8 +205,10 @@ function DialerPage() {
     clientRef.current = null;
     if (id) {
       try {
-        const res = await finalizeRecord({
-          data: { call_id: id, duration_seconds: dur, status },
+        const res = await finalizeCallRecord({
+          call_id: id,
+          duration_seconds: dur,
+          status,
         });
         if (res?.cost > 0) toast.success(`Call ended · ${formatCurrency(res.cost)} charged`);
       } catch (e: any) {
@@ -260,9 +258,11 @@ function DialerPage() {
       // populate speaker list (after gesture)
       loadSpeakers();
       const [{ username, password }, { id }, mod] = await Promise.all([
-        fetchCreds(),
-        startRecord({
-          data: { to_number: e164, country_code: detected, rate_per_minute: rate },
+        getWebrtcCredentials(),
+        startCallRecord({
+          to_number: e164,
+          country_code: detected,
+          rate_per_minute: rate,
         }),
         import("@telnyx/webrtc"),
       ]);
