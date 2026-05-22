@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
@@ -37,6 +37,15 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const hash = useRouterState({ select: (s) => s.location.hash });
+  useEffect(() => {
+    if (!hash) return;
+    const id = hash.replace(/^#/, "");
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [hash]);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
