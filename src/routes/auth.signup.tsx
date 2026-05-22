@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Phone } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Loader2, MailCheck, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,11 +19,14 @@ function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [resending, setResending] = useState(false);
+
+  const redirectUrl = useMemo(() => `${window.location.origin}/dashboard`, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/dashboard`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -30,8 +34,26 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Check your email to confirm your account");
-    navigate({ to: "/auth/login" });
+    setSubmittedEmail(email);
+    toast.success("Account created. Check your email for the verification link.");
+  }
+
+  async function handleResendVerification() {
+    if (!submittedEmail) return;
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: submittedEmail,
+      options: { emailRedirectTo: redirectUrl },
+    });
+    setResending(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Verification email sent again.");
   }
 
   return (
@@ -46,6 +68,26 @@ function SignupPage() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <h1 className="text-xl font-semibold">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start with $5 in trial credits.</p>
+          {submittedEmail ? (
+            <Alert className="mt-6 border-primary/30 bg-primary/5">
+              <MailCheck className="h-4 w-4" />
+              <AlertTitle>Check your inbox</AlertTitle>
+              <AlertDescription className="space-y-3">
+                <p>
+                  We sent a verification email to <strong>{submittedEmail}</strong>. Open it and click the link to activate your account.
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button type="button" onClick={handleResendVerification} disabled={resending}>
+                    {resending ? <Loader2 className="animate-spin" /> : null}
+                    Resend email
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => navigate({ to: "/auth/login" })}>
+                    Go to login
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full name</Label>
