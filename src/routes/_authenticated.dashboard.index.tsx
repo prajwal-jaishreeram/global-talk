@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getRateForNumber, formatCurrency } from "@/lib/rates";
 import { toast } from "sonner";
-import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.client";
+import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls";
 import { CallNotesPanel } from "@/components/call-notes-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
