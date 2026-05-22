@@ -31,7 +31,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Global Talk"
+const SITE_NAME = "Eginta"
 const SENDER_DOMAIN = "notify.eginta.com"
 const ROOT_DOMAIN = "eginta.com"
 const FROM_DOMAIN = "eginta.com"
