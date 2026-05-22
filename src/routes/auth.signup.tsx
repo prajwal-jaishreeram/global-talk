@@ -21,9 +21,11 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [resending, setResending] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitError("");
     setLoading(true);
     const redirectUrl = `${window.location.origin}/dashboard`;
     const { error } = await supabase.auth.signUp({
@@ -32,7 +34,17 @@ function SignupPage() {
       options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const friendlyMessage =
+        error.code === "weak_password"
+          ? "That password is too weak or has appeared in known breaches. Use a longer password with uppercase, lowercase, numbers, and a symbol."
+          : error.message;
+
+      setSubmitError(friendlyMessage);
+      toast.error(friendlyMessage);
+      return;
+    }
+
     setSubmittedEmail(email);
     toast.success("Account created. Check your email for the verification link.");
   }
@@ -100,7 +112,16 @@ function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <p className="text-xs text-muted-foreground">
+                Use at least 8 characters with uppercase, lowercase, a number, and a symbol.
+              </p>
             </div>
+            {submitError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Couldn&apos;t create account</AlertTitle>
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            ) : null}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating…" : "Sign up"}
             </Button>
