@@ -205,8 +205,10 @@ function DialerPage() {
     clientRef.current = null;
     if (id) {
       try {
-        const res = await finalizeRecord({
-          data: { call_id: id, duration_seconds: dur, status },
+        const res = await finalizeCallRecord({
+          call_id: id,
+          duration_seconds: dur,
+          status,
         });
         if (res?.cost > 0) toast.success(`Call ended · ${formatCurrency(res.cost)} charged`);
       } catch (e: any) {
@@ -256,9 +258,11 @@ function DialerPage() {
       // populate speaker list (after gesture)
       loadSpeakers();
       const [{ username, password }, { id }, mod] = await Promise.all([
-        fetchCreds(),
-        startRecord({
-          data: { to_number: e164, country_code: detected, rate_per_minute: rate },
+        getWebrtcCredentials(),
+        startCallRecord({
+          to_number: e164,
+          country_code: detected,
+          rate_per_minute: rate,
         }),
         import("@telnyx/webrtc"),
       ]);
