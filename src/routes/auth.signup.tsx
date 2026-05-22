@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Loader2, MailCheck, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,11 +22,10 @@ function SignupPage() {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [resending, setResending] = useState(false);
 
-  const redirectUrl = useMemo(() => `${window.location.origin}/dashboard`, []);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const redirectUrl = `${window.location.origin}/dashboard`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -41,6 +40,7 @@ function SignupPage() {
   async function handleResendVerification() {
     if (!submittedEmail) return;
     setResending(true);
+    const redirectUrl = `${window.location.origin}/dashboard`;
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: submittedEmail,
