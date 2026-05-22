@@ -16,8 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getRateForNumber, formatCurrency } from "@/lib/rates";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.functions";
+import { getWebrtcCredentials, startCallRecord, finalizeCallRecord } from "@/lib/calls.client";
 import { CallNotesPanel } from "@/components/call-notes-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -61,9 +60,6 @@ function DialerPage() {
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
   const multitapRef = useRef<{ k: string; idx: number; time: number } | null>(null);
-  const fetchCreds = useServerFn(getWebrtcCredentials);
-  const startRecord = useServerFn(startCallRecord);
-  const finalizeRecord = useServerFn(finalizeCallRecord);
 
   // Prefill from ?to= search param (e.g. coming from landing page hero dialer)
   useEffect(() => {
