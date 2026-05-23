@@ -34,6 +34,10 @@ function setSnapshot(session: Session | null) {
   emit();
 }
 
+export function primeAuthSession(session: Session | null) {
+  setSnapshot(session);
+}
+
 export function getAuthSnapshot() {
   return snapshot;
 }
