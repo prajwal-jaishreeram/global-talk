@@ -34,6 +34,14 @@ function setSnapshot(session: Session | null) {
   emit();
 }
 
+async function clearInvalidLocalSession() {
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // Ignore cleanup failures; the auth snapshot is still reset below.
+  }
+}
+
 export function primeAuthSession(session: Session | null) {
   setSnapshot(session);
 }
@@ -58,11 +66,28 @@ export async function ensureAuthStore() {
   initPromise = supabase.auth
     .getSession()
     .then(({ data: sessionData }) => {
+      if (snapshot.session && !sessionData.session) {
+        return snapshot;
+      }
+
       setSnapshot(sessionData.session);
       return snapshot;
     })
-    .catch((error) => {
+    .catch(async (error) => {
       console.error("Failed to hydrate auth session", error);
+
+      const isInvalidRefreshToken =
+        typeof error?.message === "string" &&
+        error.message.toLowerCase().includes("refresh token not found");
+
+      if (snapshot.session) {
+        return snapshot;
+      }
+
+      if (isInvalidRefreshToken) {
+        await clearInvalidLocalSession();
+      }
+
       setSnapshot(null);
       return snapshot;
     });
