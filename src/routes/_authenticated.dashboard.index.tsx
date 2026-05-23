@@ -315,13 +315,20 @@ function DialerPage() {
 
   function hangup() {
     setCallState("ending");
-    try { callRef.current?.hangup?.(); } catch {}
-    // cleanup will fire on hangup notification; fallback in case it doesn't
-    setTimeout(() => {
-      if (callRef.current || clientRef.current) {
-        cleanup(startedAtRef.current ? "completed" : "failed");
-      }
-    }, 2000);
+    // If the call object exists, ask Telnyx to hang up and let the
+    // "hangup"/"destroy" notification drive cleanup. Fallback after 1.5s
+    // in case the notification never arrives.
+    if (callRef.current?.hangup) {
+      try { callRef.current.hangup(); } catch {}
+      setTimeout(() => {
+        if (callRef.current || clientRef.current) {
+          cleanup(startedAtRef.current ? "completed" : "failed");
+        }
+      }, 1500);
+      return;
+    }
+    // No active call yet (still connecting socket / dialing) — tear down now
+    cleanup(startedAtRef.current ? "completed" : "failed");
   }
 
   function toggleMute() {
