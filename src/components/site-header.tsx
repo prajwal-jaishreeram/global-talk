@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Phone, Menu, X, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,10 +8,6 @@ import { useAuthState } from "@/lib/auth-client";
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { ready, isAuthenticated } = useAuthState();
-
-  useEffect(() => {
-    if (!open) return;
-  }, [open]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
