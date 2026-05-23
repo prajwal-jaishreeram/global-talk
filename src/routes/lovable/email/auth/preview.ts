@@ -21,6 +21,17 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 const SITE_NAME = "Eginta"
 const ROOT_DOMAIN = "eginta.com"
 
+function isAuthorizedPreviewRequest(request: Request, apiKey: string): boolean {
+  const url = new URL(request.url)
+  const queryToken = url.searchParams.get('__lovable_token')
+  const authHeader = request.headers.get('Authorization')
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : null
+
+  return queryToken === apiKey || bearerToken === apiKey
+}
+
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
 // The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
@@ -74,8 +85,7 @@ export const Route = createFileRoute("/lovable/email/auth/preview")({
         }
 
         // Verify the caller is authorized with LOVABLE_API_KEY
-        const authHeader = request.headers.get('Authorization')
-        if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+        if (!isAuthorizedPreviewRequest(request, apiKey)) {
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
