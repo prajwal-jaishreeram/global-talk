@@ -143,10 +143,12 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           newEmail: payload.data.new_email,
         }
 
-        // Render React Email to HTML and plain text
+        // Render React Email to HTML only. Skipping the plain-text render
+        // roughly halves render time on the signup hot path — most modern
+        // mail clients handle HTML-only fine, and the dispatcher can derive
+        // text from HTML later if needed.
         const element = React.createElement(EmailTemplate, templateProps)
         const html = await render(element)
-        const text = await render(element, { plainText: true })
 
         // Enqueue email for async processing by the dispatcher (process-email-queue).
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -163,14 +165,9 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
         const messageId = crypto.randomUUID()
 
-        // Log pending BEFORE enqueue so we have a record even if enqueue crashes
-        await supabase.from('email_send_log').insert({
-          message_id: messageId,
-          template_name: emailType,
-          recipient_email: payload.data.email,
-          status: 'pending',
-        })
-
+        // Enqueue first; only log on failure. This removes one round-trip
+        // from the synchronous signup path (Supabase blocks signup until
+        // this webhook returns).
         const { error: enqueueError } = await supabase.rpc('enqueue_email', {
           queue_name: 'auth_emails',
           payload: {
@@ -181,7 +178,6 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             sender_domain: SENDER_DOMAIN,
             subject: EMAIL_SUBJECTS[emailType] || 'Notification',
             html,
-            text,
             purpose: 'transactional',
             label: emailType,
             queued_at: new Date().toISOString(),
