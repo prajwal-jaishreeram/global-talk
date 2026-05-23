@@ -36,6 +36,17 @@ const SENDER_DOMAIN = "notify.eginta.com"
 const ROOT_DOMAIN = "eginta.com"
 const FROM_DOMAIN = "eginta.com"
 
+function hasTrustedLovableToken(request: Request, apiKey: string): boolean {
+  const url = new URL(request.url)
+  const queryToken = url.searchParams.get('__lovable_token')
+  const authHeader = request.headers.get('Authorization')
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : null
+
+  return queryToken === apiKey || bearerToken === apiKey
+}
+
 function redactEmail(email: string | null | undefined): string {
   if (!email) return '***'
   const [localPart, domain] = email.split('@')
@@ -57,7 +68,8 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           )
         }
 
-        // Verify signature + timestamp, then parse payload.
+        // Accept both signed webhook requests and trusted token-authenticated
+        // internal calls used by the managed email pipeline.
         let payload: any
         let run_id = ''
         try {
@@ -76,10 +88,16 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
               case 'invalid_timestamp':
               case 'stale_timestamp':
                 console.error('Invalid webhook signature', { error: error.message })
-                return Response.json(
-                  { error: 'Invalid signature' },
-                  { status: 401 }
-                )
+                if (!hasTrustedLovableToken(request, apiKey)) {
+                  return Response.json(
+                    { error: 'Invalid signature' },
+                    { status: 401 }
+                  )
+                }
+
+                payload = await request.json()
+                run_id = payload?.run_id ?? crypto.randomUUID()
+                break
               case 'invalid_payload':
               case 'invalid_json':
                 console.error('Invalid webhook payload', { error: error.message })
@@ -90,7 +108,25 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             }
           }
 
+          if (hasTrustedLovableToken(request, apiKey)) {
+            payload = await request.json()
+            run_id = payload?.run_id ?? crypto.randomUUID()
+            console.warn('Falling back to token-authenticated auth email webhook request')
+          } else {
           console.error('Webhook verification failed', { error })
+          return Response.json(
+            { error: 'Invalid webhook payload' },
+            { status: 400 }
+          )
+          }
+        }
+
+        if (!payload?.data?.action_type || !payload?.data?.email || !payload?.data?.url) {
+          console.error('Webhook payload missing required auth email fields', {
+            has_action_type: Boolean(payload?.data?.action_type),
+            has_email: Boolean(payload?.data?.email),
+            has_url: Boolean(payload?.data?.url),
+          })
           return Response.json(
             { error: 'Invalid webhook payload' },
             { status: 400 }
