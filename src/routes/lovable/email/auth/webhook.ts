@@ -47,6 +47,14 @@ function hasTrustedLovableToken(request: Request, apiKey: string): boolean {
   return queryToken === apiKey || bearerToken === apiKey
 }
 
+async function parseTrustedWebhookBody(request: Request): Promise<any> {
+  try {
+    return await request.clone().json()
+  } catch {
+    return await request.json()
+  }
+}
+
 function redactEmail(email: string | null | undefined): string {
   if (!email) return '***'
   const [localPart, domain] = email.split('@')
@@ -74,7 +82,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         let run_id = ''
         try {
           const verified = await verifyWebhookRequest({
-            req: request,
+            req: request.clone(),
             secret: apiKey,
             parser: parseEmailWebhookPayload,
           })
@@ -95,7 +103,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
                   )
                 }
 
-                payload = await request.json()
+                payload = await parseTrustedWebhookBody(request)
                 run_id = payload?.run_id ?? crypto.randomUUID()
                 break
               case 'invalid_payload':
@@ -109,15 +117,15 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           }
 
           if (hasTrustedLovableToken(request, apiKey)) {
-            payload = await request.json()
+            payload = await parseTrustedWebhookBody(request)
             run_id = payload?.run_id ?? crypto.randomUUID()
             console.warn('Falling back to token-authenticated auth email webhook request')
           } else {
-          console.error('Webhook verification failed', { error })
-          return Response.json(
-            { error: 'Invalid webhook payload' },
-            { status: 400 }
-          )
+            console.error('Webhook verification failed', { error })
+            return Response.json(
+              { error: 'Invalid webhook payload' },
+              { status: 400 }
+            )
           }
         }
 
@@ -141,7 +149,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           )
         }
 
-        if (payload.version !== '1') {
+        if (payload.version && payload.version !== '1') {
           console.error('Unsupported payload version', { version: payload.version, run_id })
           return Response.json(
             { error: `Unsupported payload version: ${payload.version}` },
