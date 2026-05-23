@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { primeAuthSession } from "@/lib/auth-client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,13 +19,25 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitError("");
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const friendly =
+        error.message?.toLowerCase().includes("email not confirmed")
+          ? "Your email isn't verified yet. Check your inbox for the verification link."
+          : error.message?.toLowerCase().includes("invalid login")
+          ? "Wrong email or password. Please try again."
+          : error.message;
+      setSubmitError(friendly);
+      toast.error(friendly);
+      return;
+    }
     primeAuthSession(data.session);
     toast.success("Welcome back");
     void navigate({ to: "/dashboard", replace: true });
@@ -51,6 +64,12 @@ function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
+            {submitError ? (
+              <Alert variant="destructive">
+                <AlertTitle>Couldn&apos;t log in</AlertTitle>
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            ) : null}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in…" : "Log in"}
             </Button>
