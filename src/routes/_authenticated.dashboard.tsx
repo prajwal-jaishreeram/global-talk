@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tansta
 import { useEffect, useState } from "react";
 import { Phone, History, CreditCard, Settings, LogOut, Wallet, PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthState } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -26,6 +27,7 @@ const NAV: NavItem[] = [
 function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { ready, user } = useAuthState();
   const [balance, setBalance] = useState<number | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -48,8 +50,7 @@ function DashboardLayout() {
     let active = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !active) return;
+      if (!ready || !user || !active) return;
       setEmail(user.email ?? null);
       const { data } = await supabase
         .from("profiles")
@@ -75,7 +76,7 @@ function DashboardLayout() {
       active = false;
       if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [ready, user]);
 
   async function signOut() {
     await supabase.auth.signOut();
