@@ -1,23 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getTelnyxWebrtcCredentials } from "@/lib/telnyx.functions";
 
 export async function getWebrtcCredentials() {
-  const username = import.meta.env.VITE_TELNYX_WEBRTC_USERNAME as string | undefined;
-  const password = import.meta.env.VITE_TELNYX_WEBRTC_PASSWORD as string | undefined;
-  if (!username || !password) throw new Error("Telnyx credentials not configured");
-
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (!user) throw new Error("Not authenticated");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("credit_balance")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile || Number(profile.credit_balance) <= 0) {
-    throw new Error("Insufficient credits. Please top up to make calls.");
-  }
-  return { username, password };
+  // Credentials are server-only secrets. Mint via a server function so we
+ // never ship them to the browser bundle.
+  return await getTelnyxWebrtcCredentials();
 }
 
 export async function startCallRecord(input: {
