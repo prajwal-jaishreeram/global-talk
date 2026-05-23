@@ -30,7 +30,7 @@ function SignupPage() {
     setSubmitError("");
     setLoading(true);
     const redirectUrl = `${window.location.origin}/dashboard`;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
@@ -44,6 +44,26 @@ function SignupPage() {
 
       setSubmitError(friendlyMessage);
       toast.error(friendlyMessage);
+      return;
+    }
+
+    const alreadyRegistered =
+      !!data.user &&
+      !data.session &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0;
+
+    if (alreadyRegistered) {
+      const message = "This email already has an account. Please log in instead.";
+      setSubmitError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (data.session) {
+      primeAuthSession(data.session);
+      toast.success("Account created. You're now signed in.");
+      void navigate({ to: "/dashboard", replace: true });
       return;
     }
 
