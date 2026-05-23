@@ -23,6 +23,7 @@ function SignupPage() {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [resending, setResending] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const hasSubmitted = submittedEmail.length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +50,9 @@ function SignupPage() {
     primeAuthSession(null);
 
     setSubmittedEmail(email);
+    setFullName("");
+    setEmail("");
+    setPassword("");
     toast.success("Account created. Check your email for the verification link.");
   }
 
@@ -83,7 +87,7 @@ function SignupPage() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <h1 className="text-xl font-semibold">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start with $5 in trial credits.</p>
-          {submittedEmail ? (
+          {hasSubmitted ? (
             <Alert className="mt-6 border-primary/30 bg-primary/5">
               <MailCheck className="h-4 w-4" />
               <AlertTitle>Check your inbox</AlertTitle>
@@ -102,37 +106,40 @@ function SignupPage() {
                 </div>
               </AlertDescription>
             </Alert>
-          ) : null}
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
-              <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-              <p className="text-xs text-muted-foreground">
-                Use at least 8 characters with uppercase, lowercase, a number, and a symbol.
+          ) : (
+            <>
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full name</Label>
+                  <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">
+                    Use at least 8 characters with uppercase, lowercase, a number, and a symbol.
+                  </p>
+                </div>
+                {submitError ? (
+                  <Alert variant="destructive">
+                    <AlertTitle>Couldn&apos;t create account</AlertTitle>
+                    <AlertDescription>{submitError}</AlertDescription>
+                  </Alert>
+                ) : null}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Creating…" : "Sign up"}
+                </Button>
+              </form>
+              <p className="mt-4 text-center text-sm text-muted-foreground">
+                Have an account?{" "}
+                <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">Log in</Link>
               </p>
-            </div>
-            {submitError ? (
-              <Alert variant="destructive">
-                <AlertTitle>Couldn&apos;t create account</AlertTitle>
-                <AlertDescription>{submitError}</AlertDescription>
-              </Alert>
-            ) : null}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating…" : "Sign up"}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Have an account?{" "}
-            <Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">Log in</Link>
-          </p>
+            </>
+          )}
         </div>
       </div>
     </div>
