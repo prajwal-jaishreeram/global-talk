@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { ensureAuthStore } from "@/lib/auth-client";
@@ -118,7 +119,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  void ensureAuthStore();
+  useEffect(() => {
+    void ensureAuthStore();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
