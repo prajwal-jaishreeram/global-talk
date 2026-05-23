@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, MailCheck, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { primeAuthSession } from "@/lib/auth-client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,8 @@ function SignupPage() {
       toast.error(friendlyMessage);
       return;
     }
+
+    primeAuthSession(null);
 
     setSubmittedEmail(email);
     toast.success("Account created. Check your email for the verification link.");
