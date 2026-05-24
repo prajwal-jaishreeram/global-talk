@@ -40,6 +40,8 @@ function CreditsPage() {
   const [custom, setCustom] = useState<string>("");
   const [autoTopUp, setAutoTopUp] = useState(false);
   const [taxInvoice, setTaxInvoice] = useState(false);
+  const [taxId, setTaxId] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
   const [promo, setPromo] = useState("");
 
   const customAmount = Number(custom);
@@ -170,6 +172,35 @@ function CreditsPage() {
                 <span className="text-muted-foreground">(address required)</span>
               </Label>
             </div>
+
+            {taxInvoice && (
+              <div className="ml-7 space-y-3 rounded-xl border border-border/60 bg-muted/30 p-4">
+                <div>
+                  <Label htmlFor="tax-id" className="text-sm">
+                    Tax ID / VAT number
+                  </Label>
+                  <Input
+                    id="tax-id"
+                    className="mt-2"
+                    placeholder="e.g. GB123456789"
+                    value={taxId}
+                    onChange={(e) => setTaxId(e.target.value.toUpperCase())}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="billing-address" className="text-sm">
+                    Billing address
+                  </Label>
+                  <Input
+                    id="billing-address"
+                    className="mt-2"
+                    placeholder="Street, city, postal code, country"
+                    value={billingAddress}
+                    onChange={(e) => setBillingAddress(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="promo" className="text-sm">
