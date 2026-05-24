@@ -25,22 +25,44 @@ function LoginPage() {
     e.preventDefault();
     setSubmitError("");
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      const friendly =
-        error.message?.toLowerCase().includes("email not confirmed")
-          ? "Your email isn't verified yet. Check your inbox for the verification link."
-          : error.message?.toLowerCase().includes("invalid login")
-          ? "Wrong email or password. Please try again."
-          : error.message;
-      setSubmitError(friendly);
-      toast.error(friendly);
-      return;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        const msg = error.message ?? "";
+        const lower = msg.toLowerCase();
+        const friendly =
+          lower.includes("email not confirmed")
+            ? "Your email isn't verified yet. Check your inbox for the verification link."
+            : lower.includes("invalid login") || lower.includes("invalid_credentials")
+            ? "Wrong email or password. Please try again."
+            : lower.includes("rate limit")
+            ? "Too many attempts. Please wait a moment and try again."
+            : msg || "Something went wrong. Please try again.";
+        console.error("[login] supabase error", error);
+        setSubmitError(friendly);
+        toast.error(friendly);
+        return;
+      }
+      if (!data.session) {
+        const msg = "Could not start a session. Please try again.";
+        setSubmitError(msg);
+        toast.error(msg);
+        return;
+      }
+      primeAuthSession(data.session);
+      toast.success("Welcome back");
+      void navigate({ to: "/dashboard", replace: true });
+    } catch (err) {
+      console.error("[login] unexpected error", err);
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : "Network error. Check your connection and try again.";
+      setSubmitError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
-    primeAuthSession(data.session);
-    toast.success("Welcome back");
-    void navigate({ to: "/dashboard", replace: true });
   }
 
   return (
