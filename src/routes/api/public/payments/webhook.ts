@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           );
         }
 
-        if (event.type !== "checkout.session.completed" && event.type !== "transaction.completed") {
+        if (event.type !== "checkout.session.completed") {
           return new Response("ok");
         }
 
