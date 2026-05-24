@@ -2,14 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-export const Route = createFileRoute("/api/public/stripe-webhook")({
+export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.STRIPE_SECRET_KEY;
-        const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        const url = new URL(request.url);
+        const env = url.searchParams.get("env") === "live" ? "live" : "sandbox";
+        const key =
+          env === "live"
+            ? process.env.STRIPE_LIVE_API_KEY
+            : process.env.STRIPE_SANDBOX_API_KEY;
+        const whSecret =
+          env === "live"
+            ? process.env.PAYMENTS_LIVE_WEBHOOK_SECRET
+            : process.env.PAYMENTS_SANDBOX_WEBHOOK_SECRET;
         if (!key || !whSecret) {
-          return new Response("Stripe not configured", { status: 503 });
+          return new Response("Payments not configured", { status: 503 });
         }
         const stripe = new Stripe(key);
         const sig = request.headers.get("stripe-signature");
@@ -26,12 +34,14 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           );
         }
 
-        if (event.type !== "checkout.session.completed") {
+        if (event.type !== "checkout.session.completed" && event.type !== "transaction.completed") {
           return new Response("ok");
         }
 
         const session = event.data.object as Stripe.Checkout.Session;
-        if (session.payment_status !== "paid") return new Response("ok");
+        if (session.payment_status && session.payment_status !== "paid") {
+          return new Response("ok");
+        }
 
         const purchaseId = session.metadata?.purchase_id;
         if (!purchaseId) return new Response("ok");

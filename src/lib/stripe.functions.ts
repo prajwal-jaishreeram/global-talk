@@ -6,11 +6,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key =
+    process.env.STRIPE_LIVE_API_KEY ?? process.env.STRIPE_SANDBOX_API_KEY;
   if (!key) {
-    throw new Error(
-      "Stripe is not configured yet. Add STRIPE_SECRET_KEY in project secrets to enable checkout.",
-    );
+    throw new Error("Payments are not configured for this environment.");
   }
   return new Stripe(key);
 }
