@@ -246,6 +246,51 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          direction: string
+          from_number: string
+          id: string
+          media_urls: Json | null
+          read_at: string | null
+          status: string
+          telnyx_message_id: string | null
+          to_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          direction?: string
+          from_number: string
+          id?: string
+          media_urls?: Json | null
+          read_at?: string | null
+          status?: string
+          telnyx_message_id?: string | null
+          to_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          direction?: string
+          from_number?: string
+          id?: string
+          media_urls?: Json | null
+          read_at?: string | null
+          status?: string
+          telnyx_message_id?: string | null
+          to_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       phone_numbers: {
         Row: {
           country_code: string | null
