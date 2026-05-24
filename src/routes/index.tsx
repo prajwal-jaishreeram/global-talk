@@ -65,6 +65,25 @@ function HeroDialer() {
   return <HeroDialerInner />;
 }
 
+function AuthAwareCTA() {
+  const { ready, isAuthenticated } = useAuthState();
+  if (!ready) return <Button size="lg" disabled className="text-base">Loading…</Button>;
+  if (isAuthenticated) {
+    return (
+      <Link to="/dashboard">
+        <Button size="lg" className="gap-1.5 text-base">
+          <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
+        </Button>
+      </Link>
+    );
+  }
+  return (
+    <Link to="/auth/signup">
+      <Button size="lg" className="text-base">Start with $5 free credit</Button>
+    </Link>
+  );
+}
+
 function FlagChip({
   src,
   name,
