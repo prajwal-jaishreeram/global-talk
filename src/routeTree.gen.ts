@@ -20,6 +20,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
 import { Route as ApiPublicTelnyxSmsWebhookRouteImport } from './routes/api/public/telnyx-sms-webhook'
+import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar-webhook'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
 import { Route as AuthenticatedDashboardNumbersRouteImport } from './routes/_authenticated.dashboard.numbers'
 import { Route as AuthenticatedDashboardMessagesRouteImport } from './routes/_authenticated.dashboard.messages'
@@ -87,6 +88,11 @@ const ApiPublicTelnyxSmsWebhookRoute =
     path: '/api/public/telnyx-sms-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPolarWebhookRoute = ApiPublicPolarWebhookRouteImport.update({
+  id: '/api/public/polar-webhook',
+  path: '/api/public/polar-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardSettingsRoute =
   AuthenticatedDashboardSettingsRouteImport.update({
     id: '/settings',
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/_authenticated/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/dashboard/messages'
     | '/dashboard/numbers'
     | '/dashboard/settings'
+    | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
     | '/dashboard/'
     | '/api/public/payments/webhook'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/dashboard/messages'
     | '/dashboard/numbers'
     | '/dashboard/settings'
+    | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
     | '/dashboard'
     | '/api/public/payments/webhook'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/messages'
     | '/_authenticated/dashboard/numbers'
     | '/_authenticated/dashboard/settings'
+    | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
     | '/_authenticated/dashboard/'
     | '/api/public/payments/webhook'
@@ -291,6 +303,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  ApiPublicPolarWebhookRoute: typeof ApiPublicPolarWebhookRoute
   ApiPublicTelnyxSmsWebhookRoute: typeof ApiPublicTelnyxSmsWebhookRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/telnyx-sms-webhook'
       fullPath: '/api/public/telnyx-sms-webhook'
       preLoaderRoute: typeof ApiPublicTelnyxSmsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/polar-webhook': {
+      id: '/api/public/polar-webhook'
+      path: '/api/public/polar-webhook'
+      fullPath: '/api/public/polar-webhook'
+      preLoaderRoute: typeof ApiPublicPolarWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard/settings': {
@@ -497,6 +517,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  ApiPublicPolarWebhookRoute: ApiPublicPolarWebhookRoute,
   ApiPublicTelnyxSmsWebhookRoute: ApiPublicTelnyxSmsWebhookRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
@@ -506,13 +527,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

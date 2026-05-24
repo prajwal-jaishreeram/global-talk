@@ -1,104 +1,115 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Shield, ShieldCheck, Sparkles, Lock, Info } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Check, Shield, ShieldCheck, Sparkles, Lock, Info, Repeat, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  createCreditsCheckout,
-  confirmCheckoutSession,
-} from "@/lib/stripe.functions";
+  createPolarCheckout,
+  confirmPolarCheckout,
+  openPolarCustomerPortal,
+  cancelAutoTopup,
+  getBillingStatus,
+  POLAR_CATALOG,
+} from "@/lib/polar.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
   head: () => ({ meta: [{ title: "Buy credits — Eginta" }] }),
   component: CreditsPage,
 });
 
-type Pkg = {
-  id: string;
-  price: number;
-  badge?: string;
-  bonusLabel?: string;
-};
-
-const PACKAGES: Pkg[] = [
-  { id: "p5", price: 5 },
-  { id: "p10", price: 10 },
-  { id: "p20", price: 20, badge: "Most Popular" },
-  { id: "p50", price: 50, bonusLabel: "5% free" },
-  { id: "p100", price: 100, bonusLabel: "10% free" },
-];
-
-function bonusPct(price: number) {
-  if (price >= 100) return 0.10;
-  if (price >= 50) return 0.05;
-  return 0;
-}
+const TOPUPS = POLAR_CATALOG.topup;
+const AUTO = POLAR_CATALOG.autoTopup;
 
 function CreditsPage() {
-  const [selectedId, setSelectedId] = useState<string>("p20");
-  const [custom, setCustom] = useState<string>("");
-  const [autoTopUp, setAutoTopUp] = useState(false);
-  const [taxInvoice, setTaxInvoice] = useState(false);
-  const [taxId, setTaxId] = useState("");
-  const [billingAddress, setBillingAddress] = useState("");
-  const [promo, setPromo] = useState("");
+  const [selectedId, setSelectedId] = useState<string>(TOPUPS[2].id);
+  const [autoSelectedId, setAutoSelectedId] = useState<string>(AUTO[1].id);
   const [loading, setLoading] = useState(false);
+  const [autoLoading, setAutoLoading] = useState(false);
 
-  const startCheckout = useServerFn(createCreditsCheckout);
-  const confirmSession = useServerFn(confirmCheckoutSession);
+  const startCheckout = useServerFn(createPolarCheckout);
+  const confirmSession = useServerFn(confirmPolarCheckout);
+  const openPortal = useServerFn(openPolarCustomerPortal);
+  const cancelAuto = useServerFn(cancelAutoTopup);
+  const fetchStatus = useServerFn(getBillingStatus);
 
-  // Handle return from Stripe Checkout (verifies + credits if webhook hasn't run yet).
+  const { data: status, refetch: refetchStatus } = useQuery({
+    queryKey: ["billing-status"],
+    queryFn: () => fetchStatus(),
+  });
+
   useEffect(() => {
     const url = new URL(window.location.href);
-    const status = url.searchParams.get("purchase");
-    const sessionId = url.searchParams.get("session_id");
-    if (status === "cancelled") {
+    const statusParam = url.searchParams.get("purchase");
+    const checkoutId = url.searchParams.get("checkout_id");
+    if (statusParam === "cancelled") {
       toast.message("Checkout cancelled");
       url.searchParams.delete("purchase");
       window.history.replaceState({}, "", url.toString());
-    } else if (status === "success" && sessionId) {
-      confirmSession({ data: { sessionId } })
+    } else if (statusParam === "success" && checkoutId) {
+      confirmSession({ data: { checkoutId } })
         .then((r) => {
           if (r.credited) toast.success("Credits added to your balance");
-          else toast.message("Processing payment…", { description: "Your credits will appear shortly." });
+          else toast.message("Payment received", { description: "Credits will appear in a few seconds." });
+          refetchStatus();
         })
         .catch((e) => toast.error(e instanceof Error ? e.message : "Could not confirm payment"))
         .finally(() => {
           url.searchParams.delete("purchase");
-          url.searchParams.delete("session_id");
+          url.searchParams.delete("checkout_id");
           window.history.replaceState({}, "", url.toString());
         });
     }
-  }, [confirmSession]);
+  }, [confirmSession, refetchStatus]);
 
-  const customAmount = Number(custom);
-  const isCustomValid = custom !== "" && !Number.isNaN(customAmount) && customAmount >= 5;
-  const selectedPkg = PACKAGES.find((p) => p.id === selectedId);
-  const amount = isCustomValid ? customAmount : selectedPkg?.price ?? 0;
-  const bonus = Math.round(amount * bonusPct(amount) * 100) / 100;
-  const total = Math.round((amount + bonus) * 100) / 100;
-  const minutesEstimate = Math.round(amount / 0.015); // ~ india rate as a friendly cap
+  const selectedPkg = TOPUPS.find((p) => p.id === selectedId) ?? TOPUPS[0];
+  const amount = selectedPkg.price;
+  const total = selectedPkg.credits;
+  const bonus = Math.round((total - amount) * 100) / 100;
+  const minutesEstimate = Math.round(total / 0.015);
 
   async function checkout() {
-    if (amount < 5) {
-      toast.error("Minimum top-up is $5");
-      return;
-    }
     setLoading(true);
     try {
-      const { url } = await startCheckout({
-        data: { amountUsd: amount, promo: promo || undefined },
-      });
+      const { url } = await startCheckout({ data: { productId: selectedPkg.id } });
       window.location.assign(url);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start checkout");
       setLoading(false);
+    }
+  }
+
+  async function startAuto() {
+    setAutoLoading(true);
+    try {
+      const { url } = await startCheckout({ data: { productId: autoSelectedId } });
+      window.location.assign(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start subscription");
+      setAutoLoading(false);
+    }
+  }
+
+  async function managePortal() {
+    try {
+      const { url } = await openPortal();
+      window.location.assign(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open portal");
+    }
+  }
+
+  async function cancel() {
+    try {
+      const r = await cancelAuto();
+      if (r.cancelled) {
+        toast.success("Auto top-up will end at period end");
+        refetchStatus();
+      } else toast.message("No active auto top-up");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not cancel");
     }
   }
 
@@ -107,165 +118,113 @@ function CreditsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Select Your Credit Amount
+            Top up your calling credits
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your credits are used to make international calls at competitive rates.{" "}
+            One-time top-up or never run out with monthly auto top-up.{" "}
             <a href="/rates" className="text-primary underline-offset-4 hover:underline">
-              View our detailed rate calculator →
+              View rate calculator →
             </a>
           </p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-card p-3 text-sm">
-          <div className="font-medium">Need Eginta for the team?</div>
-          <a href="/contact" className="text-primary text-xs hover:underline">
-            See enterprise plans →
-          </a>
+        <div className="rounded-xl border border-border/60 bg-card px-4 py-3 text-sm">
+          <div className="text-xs text-muted-foreground">Current balance</div>
+          <div className="text-xl font-bold">${(status?.creditBalance ?? 0).toFixed(2)}</div>
         </div>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* Left: selection */}
-        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <div className="text-sm font-medium">
-            Choose Amount (USD) <span className="text-destructive">*</span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {PACKAGES.map((p) => {
-              const active = !isCustomValid && selectedId === p.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedId(p.id);
-                    setCustom("");
-                  }}
-                  className={cn(
-                    "relative rounded-xl border bg-background px-3 py-4 text-center transition-all",
-                    active
-                      ? "border-primary ring-2 ring-primary/30 shadow-sm"
-                      : "border-border hover:border-primary/40",
-                  )}
-                >
-                  {p.badge && (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
-                      {p.badge}
-                    </span>
-                  )}
-                  <div className="text-xl font-bold">${p.price}</div>
-                  {p.bonusLabel && (
-                    <div className="mt-1 text-[11px] font-medium text-primary">
-                      {p.bonusLabel}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-6">
-            <Label htmlFor="custom" className="text-sm">
-              Or enter custom amount (minimum $5)
-            </Label>
-            <div className="relative mt-2">
-              <span className="pointer-events-none absolute inset-y-0 left-3 grid place-items-center text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="custom"
-                inputMode="decimal"
-                placeholder="0.00"
-                className="pl-7"
-                value={custom}
-                onChange={(e) => setCustom(e.target.value.replace(/[^0-9.]/g, ""))}
-              />
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <div className="text-sm font-medium">One-time top-up</div>
+            <p className="mt-1 text-xs text-muted-foreground">Pay once, credits never expire.</p>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {TOPUPS.map((p) => {
+                const active = selectedId === p.id;
+                const bonusLabel = "bonusLabel" in p ? p.bonusLabel : undefined;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedId(p.id)}
+                    className={cn(
+                      "relative rounded-xl border bg-background px-3 py-4 text-center transition-all",
+                      active ? "border-primary ring-2 ring-primary/30 shadow-sm" : "border-border hover:border-primary/40",
+                    )}
+                  >
+                    <div className="text-xl font-bold">{p.label}</div>
+                    {bonusLabel && <div className="mt-1 text-[11px] font-medium text-primary">{bonusLabel}</div>}
+                    <div className="mt-1 text-[11px] text-muted-foreground">${p.credits.toFixed(2)} credits</div>
+                  </button>
+                );
+              })}
             </div>
-            {custom !== "" && !isCustomValid && (
-              <p className="mt-1 text-xs text-destructive">Minimum is $5</p>
-            )}
           </div>
 
-          <div className="mt-6 space-y-4 border-t border-border/60 pt-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Label htmlFor="auto" className="text-sm font-medium">
-                  Enable Auto Top-up
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Avoid interrupting an important call
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Repeat className="h-4 w-4 text-primary" /> Auto top-up (monthly)
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Never run out mid-call. Charged monthly — cancel anytime.
+            </p>
+
+            {status?.autoTopupActive ? (
+              <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <Check className="h-4 w-4" /> Auto top-up is active
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Credits are added automatically each billing cycle.
                 </p>
-              </div>
-              <Switch id="auto" checked={autoTopUp} onCheckedChange={setAutoTopUp} />
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="tax"
-                checked={taxInvoice}
-                onCheckedChange={(v) => setTaxInvoice(Boolean(v))}
-                className="mt-0.5"
-              />
-              <Label htmlFor="tax" className="text-sm font-normal leading-snug">
-                Issue tax-deductible invoice{" "}
-                <span className="text-muted-foreground">(address required)</span>
-              </Label>
-            </div>
-
-            {taxInvoice && (
-              <div className="ml-7 space-y-3 rounded-xl border border-border/60 bg-muted/30 p-4">
-                <div>
-                  <Label htmlFor="tax-id" className="text-sm">
-                    Tax ID / VAT number
-                  </Label>
-                  <Input
-                    id="tax-id"
-                    className="mt-2"
-                    placeholder="e.g. GB123456789"
-                    value={taxId}
-                    onChange={(e) => setTaxId(e.target.value.toUpperCase())}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="billing-address" className="text-sm">
-                    Billing address
-                  </Label>
-                  <Input
-                    id="billing-address"
-                    className="mt-2"
-                    placeholder="Street, city, postal code, country"
-                    value={billingAddress}
-                    onChange={(e) => setBillingAddress(e.target.value)}
-                  />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={managePortal}>
+                    <ExternalLink className="h-3.5 w-3.5" /> Manage billing
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={cancel}>
+                    Cancel auto top-up
+                  </Button>
                 </div>
               </div>
+            ) : (
+              <>
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {AUTO.map((p) => {
+                    const active = autoSelectedId === p.id;
+                    const bonusLabel = "bonusLabel" in p ? p.bonusLabel : undefined;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setAutoSelectedId(p.id)}
+                        className={cn(
+                          "relative rounded-xl border bg-background px-3 py-4 text-center transition-all",
+                          active ? "border-primary ring-2 ring-primary/30 shadow-sm" : "border-border hover:border-primary/40",
+                        )}
+                      >
+                        <div className="text-lg font-bold">{p.label}</div>
+                        {bonusLabel && <div className="mt-1 text-[11px] font-medium text-primary">{bonusLabel}</div>}
+                        <div className="mt-1 text-[11px] text-muted-foreground">${p.credits.toFixed(2)}/mo</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <Button className="mt-4 w-full" variant="secondary" onClick={startAuto} disabled={autoLoading}>
+                  <Repeat className="h-4 w-4" />
+                  {autoLoading ? "Redirecting…" : "Enable auto top-up"}
+                </Button>
+              </>
             )}
-
-            <div>
-              <Label htmlFor="promo" className="text-sm">
-                Promo Code <span className="text-muted-foreground">(Optional)</span>
-              </Label>
-              <Input
-                id="promo"
-                className="mt-2"
-                placeholder="Enter promo code"
-                value={promo}
-                onChange={(e) => setPromo(e.target.value.toUpperCase())}
-              />
-            </div>
           </div>
         </div>
 
-        {/* Right: summary */}
         <aside className="h-fit rounded-2xl border border-border bg-card p-5 sm:p-6 lg:sticky lg:top-6">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Sparkles className="h-4 w-4 text-primary" /> Order summary
           </div>
-
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Credit amount</span>
+              <span className="text-muted-foreground">You pay</span>
               <span className="font-medium">${amount.toFixed(2)}</span>
             </div>
             {bonus > 0 && (
@@ -280,37 +239,27 @@ function CreditsPage() {
               <span className="font-bold">${total.toFixed(2)}</span>
             </div>
           </div>
-
           <p className="mt-3 text-xs text-muted-foreground">
-            Up to ~{minutesEstimate.toLocaleString()} minutes of international calling time.
+            Up to ~{minutesEstimate.toLocaleString()} minutes of international calling.
           </p>
-
-          <Button
-            className="mt-5 w-full"
-            size="lg"
-            onClick={checkout}
-            disabled={loading}
-          >
+          <Button className="mt-5 w-full" size="lg" onClick={checkout} disabled={loading}>
             <Lock className="h-4 w-4" />
-            {loading ? "Redirecting…" : "Secure Checkout"}
+            {loading ? "Redirecting…" : `Buy ${selectedPkg.label} credits`}
           </Button>
-
           <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
             <li className="flex items-center gap-2">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              100% Money Back Guarantee. No questions asked.
+              Powered by Polar — international cards supported.
             </li>
             <li className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-primary" />
-              Credits never expire
+              <Check className="h-3.5 w-3.5 text-primary" /> Credits never expire
             </li>
             <li className="flex items-center gap-2">
-              <Shield className="h-3.5 w-3.5 text-primary" />
-              Encrypted, PCI-compliant payment
+              <Shield className="h-3.5 w-3.5 text-primary" /> Encrypted, PCI-compliant checkout
             </li>
             <li className="flex items-start gap-2">
               <Info className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
-              <span>*VAT may be added depending on your country and payment method.</span>
+              <span>VAT/GST handled by Polar (Merchant of Record).</span>
             </li>
           </ul>
         </aside>

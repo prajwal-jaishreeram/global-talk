@@ -121,6 +121,10 @@ export type Database = {
           created_at: string
           credits_added: number
           id: string
+          kind: string
+          polar_checkout_id: string | null
+          polar_order_id: string | null
+          polar_subscription_id: string | null
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
@@ -132,6 +136,10 @@ export type Database = {
           created_at?: string
           credits_added: number
           id?: string
+          kind?: string
+          polar_checkout_id?: string | null
+          polar_order_id?: string | null
+          polar_subscription_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -143,6 +151,10 @@ export type Database = {
           created_at?: string
           credits_added?: number
           id?: string
+          kind?: string
+          polar_checkout_id?: string | null
+          polar_order_id?: string | null
+          polar_subscription_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -332,27 +344,39 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auto_topup_active: boolean
+          auto_topup_product_id: string | null
+          auto_topup_subscription_id: string | null
           created_at: string
           credit_balance: number
           email: string | null
           full_name: string | null
           id: string
+          polar_customer_id: string | null
           updated_at: string
         }
         Insert: {
+          auto_topup_active?: boolean
+          auto_topup_product_id?: string | null
+          auto_topup_subscription_id?: string | null
           created_at?: string
           credit_balance?: number
           email?: string | null
           full_name?: string | null
           id: string
+          polar_customer_id?: string | null
           updated_at?: string
         }
         Update: {
+          auto_topup_active?: boolean
+          auto_topup_product_id?: string | null
+          auto_topup_subscription_id?: string | null
           created_at?: string
           credit_balance?: number
           email?: string | null
           full_name?: string | null
           id?: string
+          polar_customer_id?: string | null
           updated_at?: string
         }
         Relationships: []
