@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, Shield, ShieldCheck, Sparkles, Lock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  createCreditsCheckout,
+  confirmCheckoutSession,
+} from "@/lib/stripe.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
   head: () => ({ meta: [{ title: "Buy credits — Eginta" }] }),
@@ -43,6 +48,34 @@ function CreditsPage() {
   const [taxId, setTaxId] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
   const [promo, setPromo] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const startCheckout = useServerFn(createCreditsCheckout);
+  const confirmSession = useServerFn(confirmCheckoutSession);
+
+  // Handle return from Stripe Checkout (verifies + credits if webhook hasn't run yet).
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const status = url.searchParams.get("purchase");
+    const sessionId = url.searchParams.get("session_id");
+    if (status === "cancelled") {
+      toast.message("Checkout cancelled");
+      url.searchParams.delete("purchase");
+      window.history.replaceState({}, "", url.toString());
+    } else if (status === "success" && sessionId) {
+      confirmSession({ data: { sessionId } })
+        .then((r) => {
+          if (r.credited) toast.success("Credits added to your balance");
+          else toast.message("Processing payment…", { description: "Your credits will appear shortly." });
+        })
+        .catch((e) => toast.error(e instanceof Error ? e.message : "Could not confirm payment"))
+        .finally(() => {
+          url.searchParams.delete("purchase");
+          url.searchParams.delete("session_id");
+          window.history.replaceState({}, "", url.toString());
+        });
+    }
+  }, [confirmSession]);
 
   const customAmount = Number(custom);
   const isCustomValid = custom !== "" && !Number.isNaN(customAmount) && customAmount >= 5;
@@ -52,14 +85,21 @@ function CreditsPage() {
   const total = Math.round((amount + bonus) * 100) / 100;
   const minutesEstimate = Math.round(amount / 0.015); // ~ india rate as a friendly cap
 
-  function checkout() {
+  async function checkout() {
     if (amount < 5) {
       toast.error("Minimum top-up is $5");
       return;
     }
-    toast.info("Checkout not yet activated", {
-      description: `Eginta will charge $${amount.toFixed(2)} once payments are enabled.`,
-    });
+    setLoading(true);
+    try {
+      const { url } = await startCheckout({
+        data: { amountUsd: amount, promo: promo || undefined },
+      });
+      window.location.assign(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start checkout");
+      setLoading(false);
+    }
   }
 
   return (
@@ -245,9 +285,14 @@ function CreditsPage() {
             Up to ~{minutesEstimate.toLocaleString()} minutes of international calling time.
           </p>
 
-          <Button className="mt-5 w-full" size="lg" onClick={checkout}>
+          <Button
+            className="mt-5 w-full"
+            size="lg"
+            onClick={checkout}
+            disabled={loading}
+          >
             <Lock className="h-4 w-4" />
-            Secure Checkout
+            {loading ? "Redirecting…" : "Secure Checkout"}
           </Button>
 
           <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
