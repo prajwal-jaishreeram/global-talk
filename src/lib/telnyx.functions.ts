@@ -149,3 +149,62 @@ export const listMyPhoneNumbers = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { numbers: data ?? [] };
   });
+
+export const listMyMessages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id,to_number,from_number,body,direction,status,created_at,read_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    return { messages: data ?? [] };
+  });
+
+export const sendSms = createServerFn({ method: "POST" })
+  .inputValidator((data: { from: string; to: string; body: string }) => data)
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Verify the user owns the "from" number
+    const { data: own, error: ownErr } = await supabase
+      .from("phone_numbers")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("phone_number", data.from)
+      .maybeSingle();
+    if (ownErr) throw new Error(ownErr.message);
+    if (!own) throw new Error("You do not own that sender number.");
+
+    const res = await fetch(`${TELNYX_BASE}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${telnyxKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: data.from, to: data.to, text: data.body }),
+    });
+    const json = (await res.json()) as {
+      data?: { id?: string };
+      errors?: Array<{ detail?: string; title?: string }>;
+    };
+    if (!res.ok) {
+      const detail = json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Telnyx ${res.status}`;
+      throw new Error(detail);
+    }
+
+    await supabase.from("messages").insert({
+      user_id: userId,
+      from_number: data.from,
+      to_number: data.to,
+      body: data.body,
+      direction: "outbound",
+      status: "sent",
+      telnyx_message_id: json.data?.id ?? null,
+    });
+
+    return { ok: true };
+  });
