@@ -113,13 +113,12 @@ function HistoryPage() {
                       <div className="text-lg font-semibold tracking-tight">
                         {formatPhone(c.to_number)}
                       </div>
-                      <Link
-                        to="/dashboard"
-                        search={{ dial: c.to_number }}
+                      <a
+                        href={`/dashboard?dial=${encodeURIComponent(c.to_number)}`}
                         className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/15"
                       >
                         <Phone className="h-3.5 w-3.5" /> Call again
-                      </Link>
+                      </a>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1.5">
