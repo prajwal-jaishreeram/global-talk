@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Phone, History, CreditCard, Settings, LogOut, Wallet, PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
+import { Phone, History, CreditCard, Settings, LogOut, Wallet, PanelLeftClose, PanelLeftOpen, Menu, X, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,14 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 type NavItem = {
-  to: "/dashboard" | "/dashboard/history" | "/dashboard/credits" | "/dashboard/settings";
+  to: "/dashboard" | "/dashboard/contacts" | "/dashboard/history" | "/dashboard/credits" | "/dashboard/settings";
   label: string;
   icon: typeof Phone;
   exact?: boolean;
 };
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dialer", icon: Phone, exact: true },
+  { to: "/dashboard/contacts", label: "Contacts", icon: Users },
   { to: "/dashboard/history", label: "History", icon: History },
   { to: "/dashboard/credits", label: "Credits", icon: CreditCard },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
