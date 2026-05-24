@@ -29,51 +29,67 @@ function SignupPage() {
     e.preventDefault();
     setSubmitError("");
     setLoading(true);
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
-    });
-    setLoading(false);
-    if (error) {
-      const friendlyMessage =
-        error.code === "weak_password"
-          ? "That password is too weak or has appeared in known breaches. Use a longer password with uppercase, lowercase, numbers, and a symbol."
-          : error.message;
+    try {
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
+      });
+      if (error) {
+        const msg = error.message ?? "";
+        const lower = msg.toLowerCase();
+        const friendlyMessage =
+          error.code === "weak_password"
+            ? "That password is too weak or has appeared in known breaches. Use a longer password with uppercase, lowercase, numbers, and a symbol."
+            : lower.includes("already registered") || lower.includes("user already")
+            ? "This email already has an account. Please log in instead."
+            : lower.includes("rate limit")
+            ? "Too many attempts. Please wait a moment and try again."
+            : msg || "Something went wrong. Please try again.";
+        console.error("[signup] supabase error", error);
+        setSubmitError(friendlyMessage);
+        toast.error(friendlyMessage);
+        return;
+      }
 
-      setSubmitError(friendlyMessage);
-      toast.error(friendlyMessage);
-      return;
+      const alreadyRegistered =
+        !!data.user &&
+        !data.session &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0;
+
+      if (alreadyRegistered) {
+        const message = "This email already has an account. Please log in instead.";
+        setSubmitError(message);
+        toast.error(message);
+        return;
+      }
+
+      if (data.session) {
+        primeAuthSession(data.session);
+        toast.success("Account created. You're now signed in.");
+        void navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      primeAuthSession(null);
+      setSubmittedEmail(email);
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      toast.success("Account created. Check your email for the verification link.");
+    } catch (err) {
+      console.error("[signup] unexpected error", err);
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : "Network error. Check your connection and try again.";
+      setSubmitError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
-
-    const alreadyRegistered =
-      !!data.user &&
-      !data.session &&
-      Array.isArray(data.user.identities) &&
-      data.user.identities.length === 0;
-
-    if (alreadyRegistered) {
-      const message = "This email already has an account. Please log in instead.";
-      setSubmitError(message);
-      toast.error(message);
-      return;
-    }
-
-    if (data.session) {
-      primeAuthSession(data.session);
-      toast.success("Account created. You're now signed in.");
-      void navigate({ to: "/dashboard", replace: true });
-      return;
-    }
-
-    primeAuthSession(null);
-
-    setSubmittedEmail(email);
-    setFullName("");
-    setEmail("");
-    setPassword("");
-    toast.success("Account created. Check your email for the verification link.");
   }
 
   async function handleResendVerification() {
