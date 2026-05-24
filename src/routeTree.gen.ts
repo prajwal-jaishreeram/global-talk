@@ -20,6 +20,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
+import { Route as AuthenticatedDashboardNumbersRouteImport } from './routes/_authenticated.dashboard.numbers'
 import { Route as AuthenticatedDashboardHistoryRouteImport } from './routes/_authenticated.dashboard.history'
 import { Route as AuthenticatedDashboardCreditsRouteImport } from './routes/_authenticated.dashboard.credits'
 import { Route as AuthenticatedDashboardContactsRouteImport } from './routes/_authenticated.dashboard.contacts'
@@ -83,6 +84,12 @@ const AuthenticatedDashboardSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardNumbersRoute =
+  AuthenticatedDashboardNumbersRouteImport.update({
+    id: '/numbers',
+    path: '/numbers',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardHistoryRoute =
   AuthenticatedDashboardHistoryRouteImport.update({
     id: '/history',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
   '/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
+  '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
   '/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
+  '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/_authenticated/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
   '/_authenticated/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
+  '/_authenticated/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/dashboard/contacts'
     | '/dashboard/credits'
     | '/dashboard/history'
+    | '/dashboard/numbers'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/lovable/email/auth/preview'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/dashboard/contacts'
     | '/dashboard/credits'
     | '/dashboard/history'
+    | '/dashboard/numbers'
     | '/dashboard/settings'
     | '/dashboard'
     | '/lovable/email/auth/preview'
@@ -223,6 +235,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/contacts'
     | '/_authenticated/dashboard/credits'
     | '/_authenticated/dashboard/history'
+    | '/_authenticated/dashboard/numbers'
     | '/_authenticated/dashboard/settings'
     | '/_authenticated/dashboard/'
     | '/lovable/email/auth/preview'
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSettingsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/numbers': {
+      id: '/_authenticated/dashboard/numbers'
+      path: '/numbers'
+      fullPath: '/dashboard/numbers'
+      preLoaderRoute: typeof AuthenticatedDashboardNumbersRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/history': {
       id: '/_authenticated/dashboard/history'
       path: '/history'
@@ -372,6 +392,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardContactsRoute: typeof AuthenticatedDashboardContactsRoute
   AuthenticatedDashboardCreditsRoute: typeof AuthenticatedDashboardCreditsRoute
   AuthenticatedDashboardHistoryRoute: typeof AuthenticatedDashboardHistoryRoute
+  AuthenticatedDashboardNumbersRoute: typeof AuthenticatedDashboardNumbersRoute
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -381,6 +402,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardContactsRoute: AuthenticatedDashboardContactsRoute,
     AuthenticatedDashboardCreditsRoute: AuthenticatedDashboardCreditsRoute,
     AuthenticatedDashboardHistoryRoute: AuthenticatedDashboardHistoryRoute,
+    AuthenticatedDashboardNumbersRoute: AuthenticatedDashboardNumbersRoute,
     AuthenticatedDashboardSettingsRoute: AuthenticatedDashboardSettingsRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
