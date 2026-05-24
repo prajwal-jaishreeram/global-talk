@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import {
   Phone, Globe, Zap, ShieldCheck, Delete, Briefcase, Headphones,
   CreditCard, Mic, MicOff, PhoneCall, PhoneOff, ChevronDown, Sparkles,
-  Plus, UserPlus, Volume2,
+  Plus, UserPlus, Volume2, LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useAuthState } from "@/lib/auth-client";
 import flagUS from "@/assets/flags/us.svg";
 import flagGB from "@/assets/flags/gb.svg";
 import flagIN from "@/assets/flags/in.svg";
@@ -62,6 +63,25 @@ function Landing() {
 
 function HeroDialer() {
   return <HeroDialerInner />;
+}
+
+function AuthAwareCTA() {
+  const { ready, isAuthenticated } = useAuthState();
+  if (!ready) return <Button size="lg" disabled className="text-base">Loading…</Button>;
+  if (isAuthenticated) {
+    return (
+      <Link to="/dashboard">
+        <Button size="lg" className="gap-1.5 text-base">
+          <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
+        </Button>
+      </Link>
+    );
+  }
+  return (
+    <Link to="/auth/signup">
+      <Button size="lg" className="text-base">Start with $5 free credit</Button>
+    </Link>
+  );
 }
 
 function FlagChip({
@@ -217,9 +237,7 @@ function HeroDialerInner() {
             HD international calls powered by a tier-1 carrier network. Pay only for what you use - no apps, no contracts, no SIM swaps.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/auth/signup">
-              <Button size="lg" className="text-base">Start with $5 free credit</Button>
-            </Link>
+            <AuthAwareCTA />
             <a href="#how">
               <Button size="lg" variant="outline" className="text-base">See how it works</Button>
             </a>
