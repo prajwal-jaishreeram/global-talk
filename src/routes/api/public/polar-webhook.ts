@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Webhook } from "standardwebhooks";
 import { Buffer } from "node:buffer";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { POLAR_CATALOG } from "@/lib/polar-catalog";
 
 function verify(body: string, headers: Headers) {
   const secret = process.env.POLAR_WEBHOOK_SECRET;
@@ -147,10 +148,9 @@ export const Route = createFileRoute("/api/public/polar-webhook")({
               const userId = await userIdForCustomer(externalCustomerId, customerId);
               if (!userId) break;
               const productId = (d.product_id as string) ?? null;
-              const product = [
-                ...(await import("@/lib/polar.functions")).POLAR_CATALOG.topup,
-                ...(await import("@/lib/polar.functions")).POLAR_CATALOG.autoTopup,
-              ].find((p) => p.id === productId);
+              const product = [...POLAR_CATALOG.topup, ...POLAR_CATALOG.autoTopup].find(
+                (p) => p.id === productId,
+              );
               if (!product) break;
               const subId = (d.subscription_id as string | undefined) ?? null;
               const kind = subId ? "auto_topup_cycle" : "topup";
