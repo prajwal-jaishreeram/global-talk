@@ -80,8 +80,15 @@ function DialerPage() {
     setRaw(digits);
   }, []);
 
-  const countries = useMemo(() => {
-    return getCountries()
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countries, setCountries] = useState<
+    Array<{ code: string; name: string; dial: string; flag: string }>
+  >([]);
+  // Build the (heavy) country list lazily — first time the popover opens, or
+  // when a "+" prefix is typed. This keeps first paint of the dialer fast.
+  function ensureCountries() {
+    if (countries.length > 0) return countries;
+    const list = getCountries()
       .map((c) => ({
         code: c,
         name: countryName(c),
@@ -89,17 +96,19 @@ function DialerPage() {
         flag: flagEmoji(c),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
-  const [countryOpen, setCountryOpen] = useState(false);
+    setCountries(list);
+    return list;
+  }
 
   function handlePhoneChange(value: string) {
     // Allow manual + prefix to switch country
     if (value.startsWith("+")) {
       const digits = value.replace(/\D/g, "");
+      const list = ensureCountries();
       // try longest match first
       for (let len = 3; len >= 1; len--) {
         const prefix = digits.slice(0, len);
-        const match = countries.find((c) => c.dial === prefix);
+        const match = list.find((c) => c.dial === prefix);
         if (match) {
           setCountry(match.code);
           setRaw(digits.slice(len));
@@ -368,7 +377,13 @@ function DialerPage() {
         <div className="rounded-[2rem] bg-background p-5 lg:p-6">
         {/* Top row: country + number + backspace */}
         <div className="flex items-center gap-2">
-          <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+          <Popover
+            open={countryOpen}
+            onOpenChange={(open) => {
+              if (open) ensureCountries();
+              setCountryOpen(open);
+            }}
+          >
             <PopoverTrigger asChild>
               <button
                 type="button"
