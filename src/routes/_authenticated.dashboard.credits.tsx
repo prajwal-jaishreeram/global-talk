@@ -12,8 +12,8 @@ import {
   openPolarCustomerPortal,
   cancelAutoTopup,
   getBillingStatus,
-  POLAR_CATALOG,
 } from "@/lib/polar.functions";
+import { POLAR_CATALOG } from "@/lib/polar-catalog";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
   head: () => ({ meta: [{ title: "Buy credits — Eginta" }] }),
