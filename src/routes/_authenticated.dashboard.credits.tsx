@@ -73,7 +73,9 @@ function CreditsPage() {
   async function checkout() {
     setLoading(true);
     try {
-      const { url } = await startCheckout({ data: { productId: selectedPkg.id } });
+      const { url } = await startCheckout({
+        data: { productId: selectedPkg.id, origin: window.location.origin },
+      });
       window.location.assign(url);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start checkout");
@@ -84,7 +86,9 @@ function CreditsPage() {
   async function startAuto() {
     setAutoLoading(true);
     try {
-      const { url } = await startCheckout({ data: { productId: autoSelectedId } });
+      const { url } = await startCheckout({
+        data: { productId: autoSelectedId, origin: window.location.origin },
+      });
       window.location.assign(url);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start subscription");
