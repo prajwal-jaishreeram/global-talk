@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getRequestHost } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { POLAR_CATALOG } from "@/lib/polar-catalog";
@@ -11,12 +10,6 @@ function getToken() {
   const t = process.env.POLAR_ACCESS_TOKEN;
   if (!t) throw new Error("POLAR_ACCESS_TOKEN is not configured");
   return t;
-}
-
-function origin() {
-  const host = getRequestHost();
-  const proto = host.startsWith("localhost") ? "http" : "https";
-  return `${proto}://${host}`;
 }
 
 async function polarFetch(path: string, init?: RequestInit) {
@@ -47,7 +40,12 @@ export const listPolarCatalog = createServerFn({ method: "GET" }).handler(async 
 export const createPolarCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ productId: z.string().min(1).max(64) }).parse(input),
+    z
+      .object({
+        productId: z.string().min(1).max(64),
+        origin: z.string().url().max(300),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const product = findProduct(data.productId);
@@ -72,7 +70,7 @@ export const createPolarCheckout = createServerFn({ method: "POST" })
       throw new Error(insErr?.message ?? "Could not create purchase record");
     }
 
-    const successUrl = `${origin()}/dashboard/credits?purchase=success&checkout_id={CHECKOUT_ID}`;
+    const successUrl = `${data.origin}/dashboard/credits?purchase=success&checkout_id={CHECKOUT_ID}`;
     const checkout = await polarFetch("/checkouts/", {
       method: "POST",
       body: JSON.stringify({
