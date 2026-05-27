@@ -55,7 +55,7 @@
   },
   "AR": {
     "landline": 0.016,
-    "mobile": 0.26,
+    "mobile": 0.16,
     "landlineSamples": 86,
     "mobileSamples": 1506
   },
@@ -67,13 +67,13 @@
   },
   "AT": {
     "landline": 0.0056,
-    "mobile": 0.0315,
+    "mobile": 0.023,
     "landlineSamples": 1023,
     "mobileSamples": 117
   },
   "AU": {
-    "landline": 0.025,
-    "mobile": 0.033,
+    "landline": 0.0119,
+    "mobile": 0.03,
     "landlineSamples": 34,
     "mobileSamples": 174
   },
@@ -90,7 +90,7 @@
     "mobileSamples": 10
   },
   "BA": {
-    "landline": 0.282,
+    "landline": 0.0479,
     "mobile": 0.182,
     "landlineSamples": 597,
     "mobileSamples": 30
@@ -102,13 +102,13 @@
     "mobileSamples": 24
   },
   "BD": {
-    "landline": 0.0975,
-    "mobile": 0.0975,
+    "landline": 0.02,
+    "mobile": 0.02,
     "landlineSamples": 8,
     "mobileSamples": 49
   },
   "BE": {
-    "landline": 0.0772,
+    "landline": 0.022,
     "mobile": 0.059,
     "landlineSamples": 1504,
     "mobileSamples": 71
@@ -120,8 +120,8 @@
     "mobileSamples": 67
   },
   "BG": {
-    "landline": 0.0827,
-    "mobile": 0.2,
+    "landline": 0.0175,
+    "mobile": 0.062,
     "landlineSamples": 381,
     "mobileSamples": 34
   },
@@ -157,13 +157,13 @@
   },
   "BO": {
     "landline": 0.3088,
-    "mobile": 0.3569,
+    "mobile": 0.336,
     "landlineSamples": 729,
     "mobileSamples": 82
   },
   "BR": {
-    "landline": 0.009,
-    "mobile": 0.02,
+    "landline": 0.007,
+    "mobile": 0.015,
     "landlineSamples": 67,
     "mobileSamples": 3891
   },
@@ -223,7 +223,7 @@
   },
   "CH": {
     "landline": 0.0245,
-    "mobile": 0.55,
+    "mobile": 0.0782,
     "landlineSamples": 50,
     "mobileSamples": 167
   },
@@ -241,13 +241,13 @@
   },
   "CL": {
     "landline": 0.02,
-    "mobile": 0.75,
+    "mobile": 0.015,
     "landlineSamples": 320,
     "mobileSamples": 4
   },
   "CM": {
     "landline": 0.315,
-    "mobile": 0.4178,
+    "mobile": 0.3375,
     "landlineSamples": 4,
     "mobileSamples": 45
   },
@@ -258,14 +258,14 @@
     "mobileSamples": 88
   },
   "CO": {
-    "landline": 0.016,
-    "mobile": 0.0125,
+    "landline": 0.0109,
+    "mobile": 0.008,
     "landlineSamples": 484,
     "mobileSamples": 99
   },
   "CR": {
-    "landline": 0.156,
-    "mobile": 0.156,
+    "landline": 0.0165,
+    "mobile": 0.056,
     "landlineSamples": 50,
     "mobileSamples": 27
   },
@@ -282,20 +282,20 @@
     "mobileSamples": 14
   },
   "CY": {
-    "landline": 0.0961,
-    "mobile": 0.164,
+    "landline": 0.069,
+    "mobile": 0.0967,
     "landlineSamples": 267,
     "mobileSamples": 12
   },
   "CZ": {
     "landline": 0.014,
-    "mobile": 0.124,
+    "mobile": 0.03,
     "landlineSamples": 24,
     "mobileSamples": 131
   },
   "DE": {
-    "landline": 0.006,
-    "mobile": 0.04,
+    "landline": 0.0032,
+    "mobile": 0.0245,
     "landlineSamples": 39,
     "mobileSamples": 102
   },
@@ -307,7 +307,7 @@
   },
   "DK": {
     "landline": 0.0097,
-    "mobile": 0.45,
+    "mobile": 0.0199,
     "landlineSamples": 44,
     "mobileSamples": 1437
   },
@@ -319,7 +319,7 @@
   },
   "DO": {
     "landline": 0.0518,
-    "mobile": 0.16,
+    "mobile": 0.1325,
     "landlineSamples": 1078,
     "mobileSamples": 1438
   },
@@ -337,7 +337,7 @@
   },
   "EE": {
     "landline": 0.005,
-    "mobile": 0.4334,
+    "mobile": 0.021,
     "landlineSamples": 26,
     "mobileSamples": 489
   },
@@ -367,7 +367,7 @@
   },
   "FI": {
     "landline": 0.009,
-    "mobile": 0.4268,
+    "mobile": 0.03,
     "landlineSamples": 16,
     "mobileSamples": 16
   },
@@ -397,7 +397,7 @@
   },
   "FR": {
     "landline": 0.0052,
-    "mobile": 0.0513,
+    "mobile": 0.022,
     "landlineSamples": 22,
     "mobileSamples": 539
   },
@@ -408,7 +408,7 @@
     "mobileSamples": 12
   },
   "GB": {
-    "landline": 0.0757,
+    "landline": 0.0042,
     "mobile": 0.02,
     "landlineSamples": 15657,
     "mobileSamples": 3093
@@ -420,19 +420,19 @@
     "mobileSamples": 40
   },
   "GE": {
-    "landline": 0.3954,
-    "mobile": 0.5086,
+    "landline": 0.3352,
+    "mobile": 0.4141,
     "landlineSamples": 8,
     "mobileSamples": 202
   },
   "GF": {
     "landline": 0.0175,
-    "mobile": 0.2344,
+    "mobile": 0.055,
     "landlineSamples": 2,
     "mobileSamples": 35
   },
   "GH": {
-    "landline": 0.4,
+    "landline": 0.295,
     "mobile": 0.335,
     "landlineSamples": 94,
     "mobileSamples": 39
@@ -475,7 +475,7 @@
   },
   "GR": {
     "landline": 0.0154,
-    "mobile": 0.52,
+    "mobile": 0.0325,
     "landlineSamples": 3,
     "mobileSamples": 26
   },
@@ -510,14 +510,14 @@
     "mobileSamples": 49
   },
   "HN": {
-    "landline": 0.326,
-    "mobile": 0.302,
+    "landline": 0.095,
+    "mobile": 0.149,
     "landlineSamples": 311,
     "mobileSamples": 95
   },
   "HR": {
     "landline": 0.0065,
-    "mobile": 0.5,
+    "mobile": 0.0225,
     "landlineSamples": 24,
     "mobileSamples": 29
   },
@@ -529,7 +529,7 @@
   },
   "HU": {
     "landline": 0.009,
-    "mobile": 0.0957,
+    "mobile": 0.015,
     "landlineSamples": 60,
     "mobileSamples": 57
   },
@@ -541,13 +541,13 @@
   },
   "IE": {
     "landline": 0.0096,
-    "mobile": 0.041,
+    "mobile": 0.02,
     "landlineSamples": 51,
     "mobileSamples": 82
   },
   "IL": {
     "landline": 0.2175,
-    "mobile": 0.1095,
+    "mobile": 0.0369,
     "landlineSamples": 12,
     "mobileSamples": 12
   },
@@ -577,7 +577,7 @@
   },
   "IT": {
     "landline": 0.0115,
-    "mobile": 0.25,
+    "mobile": 0.0365,
     "landlineSamples": 239,
     "mobileSamples": 87
   },
@@ -594,7 +594,7 @@
     "mobileSamples": 5
   },
   "JP": {
-    "landline": 0.072,
+    "landline": 0.055,
     "mobile": 0.028,
     "landlineSamples": 84,
     "mobileSamples": 6
@@ -636,14 +636,14 @@
     "mobileSamples": 0
   },
   "KR": {
-    "landline": 0.058,
+    "landline": 0.0266,
     "mobile": 0.025,
     "landlineSamples": 13,
     "mobileSamples": 41
   },
   "KW": {
     "landline": 0.0473,
-    "mobile": 0.17,
+    "mobile": 0.0438,
     "landlineSamples": 2,
     "mobileSamples": 6
   },
@@ -654,14 +654,14 @@
     "mobileSamples": 60
   },
   "KZ": {
-    "landline": 0.231,
-    "mobile": 0.267,
+    "landline": 0.173,
+    "mobile": 0.232,
     "landlineSamples": 15,
     "mobileSamples": 16
   },
   "LA": {
     "landline": 0.09,
-    "mobile": 0.1897,
+    "mobile": 0.0953,
     "landlineSamples": 2,
     "mobileSamples": 3
   },
@@ -703,19 +703,19 @@
   },
   "LT": {
     "landline": 0.003,
-    "mobile": 0.5253,
+    "mobile": 0.015,
     "landlineSamples": 4,
     "mobileSamples": 1093
   },
   "LU": {
-    "landline": 0.03,
-    "mobile": 0.2902,
+    "landline": 0.022,
+    "mobile": 0.08,
     "landlineSamples": 80,
     "mobileSamples": 27
   },
   "LV": {
-    "landline": 0.4631,
-    "mobile": 0.5782,
+    "landline": 0.008,
+    "mobile": 0.0105,
     "landlineSamples": 1319,
     "mobileSamples": 584
   },
@@ -774,8 +774,8 @@
     "mobileSamples": 17
   },
   "MM": {
-    "landline": 0.4125,
-    "mobile": 0.4125,
+    "landline": 0.1185,
+    "mobile": 0.1688,
     "landlineSamples": 550,
     "mobileSamples": 69
   },
@@ -799,7 +799,7 @@
   },
   "MQ": {
     "landline": 0.025,
-    "mobile": 0.1316,
+    "mobile": 0.055,
     "landlineSamples": 2,
     "mobileSamples": 38
   },
@@ -840,13 +840,13 @@
     "mobileSamples": 3
   },
   "MX": {
-    "landline": 0.018,
+    "landline": 0.007,
     "mobile": 0.018,
     "landlineSamples": 2069,
     "mobileSamples": 2
   },
   "MY": {
-    "landline": 0.035,
+    "landline": 0.009,
     "mobile": 0.01,
     "landlineSamples": 10,
     "mobileSamples": 265
@@ -877,12 +877,12 @@
   },
   "NG": {
     "landline": 0.0996,
-    "mobile": 0.285,
+    "mobile": 0.117,
     "landlineSamples": 105,
     "mobileSamples": 234
   },
   "NI": {
-    "landline": 0.335,
+    "landline": 0.306,
     "mobile": 0.3625,
     "landlineSamples": 4,
     "mobileSamples": 201
@@ -895,7 +895,7 @@
   },
   "NO": {
     "landline": 0.0145,
-    "mobile": 0.0386,
+    "mobile": 0.0275,
     "landlineSamples": 17,
     "mobileSamples": 696
   },
@@ -907,24 +907,24 @@
   },
   "NZ": {
     "landline": 0.0145,
-    "mobile": 0.0672,
+    "mobile": 0.0459,
     "landlineSamples": 16,
     "mobileSamples": 29
   },
   "OM": {
-    "landline": 0.3,
-    "mobile": 0.3375,
+    "landline": 0.127,
+    "mobile": 0.1283,
     "landlineSamples": 7,
     "mobileSamples": 25
   },
   "PA": {
-    "landline": 0.0582,
+    "landline": 0.037,
     "mobile": 0.1383,
     "landlineSamples": 416,
     "mobileSamples": 61
   },
   "PE": {
-    "landline": 0.4,
+    "landline": 0.2985,
     "mobile": 0.0073,
     "landlineSamples": 71,
     "mobileSamples": 709
@@ -942,20 +942,20 @@
     "mobileSamples": 7
   },
   "PH": {
-    "landline": 0.1725,
-    "mobile": 0.192,
+    "landline": 0.1675,
+    "mobile": 0.1488,
     "landlineSamples": 3709,
     "mobileSamples": 164
   },
   "PK": {
     "landline": 0.06,
-    "mobile": 0.082,
+    "mobile": 0.0457,
     "landlineSamples": 19,
     "mobileSamples": 11
   },
   "PL": {
-    "landline": 0.1022,
-    "mobile": 0.2386,
+    "landline": 0.0899,
+    "mobile": 0.02,
     "landlineSamples": 8445,
     "mobileSamples": 655
   },
@@ -979,7 +979,7 @@
   },
   "PT": {
     "landline": 0.0155,
-    "mobile": 0.1417,
+    "mobile": 0.036,
     "landlineSamples": 74,
     "mobileSamples": 121
   },
@@ -990,8 +990,8 @@
     "mobileSamples": 9
   },
   "PY": {
-    "landline": 0.1485,
-    "mobile": 0.1485,
+    "landline": 0.0478,
+    "mobile": 0.074,
     "landlineSamples": 4,
     "mobileSamples": 19
   },
@@ -1002,26 +1002,26 @@
     "mobileSamples": 8
   },
   "RE": {
-    "landline": 0.025,
-    "mobile": 0.1387,
+    "landline": 0.0218,
+    "mobile": 0.055,
     "landlineSamples": 4,
     "mobileSamples": 131
   },
   "RO": {
     "landline": 0.006,
-    "mobile": 0.0175,
+    "mobile": 0.0135,
     "landlineSamples": 69,
     "mobileSamples": 71
   },
   "RS": {
-    "landline": 0.4915,
+    "landline": 0.0389,
     "mobile": 0.0852,
     "landlineSamples": 126,
     "mobileSamples": 20
   },
   "RU": {
-    "landline": 0.34,
-    "mobile": 0.37,
+    "landline": 0.2,
+    "mobile": 0.35,
     "landlineSamples": 527,
     "mobileSamples": 2506
   },
@@ -1033,7 +1033,7 @@
   },
   "SA": {
     "landline": 0.168,
-    "mobile": 0.226,
+    "mobile": 0.2182,
     "landlineSamples": 40,
     "mobileSamples": 36
   },
@@ -1057,24 +1057,24 @@
   },
   "SE": {
     "landline": 0.01,
-    "mobile": 0.2039,
+    "mobile": 0.0215,
     "landlineSamples": 267,
     "mobileSamples": 783
   },
   "SG": {
     "landline": 0.0175,
-    "mobile": 0.025,
+    "mobile": 0.0199,
     "landlineSamples": 4,
     "mobileSamples": 7
   },
   "SI": {
-    "landline": 0.3104,
+    "landline": 0.017,
     "mobile": 0.065,
     "landlineSamples": 139,
     "mobileSamples": 59
   },
   "SK": {
-    "landline": 0.005,
+    "landline": 0.0034,
     "mobile": 0.016,
     "landlineSamples": 7,
     "mobileSamples": 53
@@ -1116,8 +1116,8 @@
     "mobileSamples": 5
   },
   "SV": {
-    "landline": 0.1262,
-    "mobile": 0.18,
+    "landline": 0.0749,
+    "mobile": 0.115,
     "landlineSamples": 727,
     "mobileSamples": 339
   },
@@ -1159,7 +1159,7 @@
   },
   "TH": {
     "landline": 0.084,
-    "mobile": 0.085,
+    "mobile": 0.084,
     "landlineSamples": 33,
     "mobileSamples": 2789
   },
@@ -1194,7 +1194,7 @@
     "mobileSamples": 7
   },
   "TR": {
-    "landline": 0.045,
+    "landline": 0.0407,
     "mobile": 0.0775,
     "landlineSamples": 34,
     "mobileSamples": 82
@@ -1206,7 +1206,7 @@
     "mobileSamples": 72
   },
   "TW": {
-    "landline": 0.086,
+    "landline": 0.028,
     "mobile": 0.1291,
     "landlineSamples": 9,
     "mobileSamples": 274
@@ -1219,7 +1219,7 @@
   },
   "UA": {
     "landline": 0.216,
-    "mobile": 0.3925,
+    "mobile": 0.356,
     "landlineSamples": 20,
     "mobileSamples": 33
   },
@@ -1243,7 +1243,7 @@
   },
   "UZ": {
     "landline": 0.1143,
-    "mobile": 0.136,
+    "mobile": 0.12,
     "landlineSamples": 8,
     "mobileSamples": 10
   },

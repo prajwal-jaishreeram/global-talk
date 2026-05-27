@@ -121,19 +121,28 @@ function bulkRate(arr) {
   return bestRate;
 }
 
+// For each (country, line type) compute mode of default-route and mode of
+// local-route, then take the smaller. Telnyx accounts default to local
+// routing where available, so this matches what we'll actually be billed.
+function pickRate(pool) {
+  const d = bulkRate(pool.default);
+  const l = bulkRate(pool.local);
+  if (d == null) return l;
+  if (l == null) return d;
+  return Math.min(d, l);
+}
+
 for (const [iso, b] of perCountry.entries()) {
   if (iso === "ZZ") continue; // Telnyx "unknown destination" sentinel
-  // Use the median per bucket — robust to single-row promo rates and to
-  // single very-expensive sub-prefixes. If a country only has mobile entries
-  // (e.g. small territories), use the mobile rate for both columns so we
-  // never undercharge.
-  const lMed = bulkRate(b.landline);
-  const mMed = bulkRate(b.mobile);
+  const lRate = pickRate(b.landline);
+  const mRate = pickRate(b.mobile);
   result[iso] = {
-    landline: lMed ?? mMed ?? null,
-    mobile: mMed ?? lMed ?? null,
-    landlineSamples: b.landline.length,
-    mobileSamples: b.mobile.length,
+    // Fall back to the other line type if one is missing (some small
+    // territories only publish a single combined rate).
+    landline: lRate ?? mRate ?? null,
+    mobile: mRate ?? lRate ?? null,
+    landlineSamples: b.landline.default.length + b.landline.local.length,
+    mobileSamples: b.mobile.default.length + b.mobile.local.length,
   };
 }
 
