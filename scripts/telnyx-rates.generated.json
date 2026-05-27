@@ -1,0 +1,1334 @@
+{
+  "AD": {
+    "landline": 0.0372,
+    "mobile": 0.2609,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "AE": {
+    "landline": 0.175,
+    "mobile": 0.175,
+    "landlineSamples": 68,
+    "mobileSamples": 26
+  },
+  "AF": {
+    "landline": 0.2135,
+    "mobile": 0.2581,
+    "landlineSamples": 1,
+    "mobileSamples": 11
+  },
+  "AG": {
+    "landline": 0.275,
+    "mobile": 0.2899,
+    "landlineSamples": 1,
+    "mobileSamples": 44
+  },
+  "AI": {
+    "landline": 0.2595,
+    "mobile": 0.2895,
+    "landlineSamples": 1,
+    "mobileSamples": 14
+  },
+  "AL": {
+    "landline": 0.1515,
+    "mobile": 0.4425,
+    "landlineSamples": 260,
+    "mobileSamples": 8
+  },
+  "AM": {
+    "landline": 0.2205,
+    "mobile": 0.382,
+    "landlineSamples": 3,
+    "mobileSamples": 15
+  },
+  "AN": {
+    "landline": 0.025,
+    "mobile": 0.2349,
+    "landlineSamples": 43,
+    "mobileSamples": 32
+  },
+  "AO": {
+    "landline": 0.3,
+    "mobile": 0.5653,
+    "landlineSamples": 1,
+    "mobileSamples": 114
+  },
+  "AR": {
+    "landline": 0.016,
+    "mobile": 0.26,
+    "landlineSamples": 86,
+    "mobileSamples": 1506
+  },
+  "AS": {
+    "landline": 0.2,
+    "mobile": 0.2,
+    "landlineSamples": 1,
+    "mobileSamples": 2
+  },
+  "AT": {
+    "landline": 0.0056,
+    "mobile": 0.0315,
+    "landlineSamples": 1023,
+    "mobileSamples": 117
+  },
+  "AU": {
+    "landline": 0.025,
+    "mobile": 0.033,
+    "landlineSamples": 34,
+    "mobileSamples": 174
+  },
+  "AW": {
+    "landline": 0.1005,
+    "mobile": 0.3033,
+    "landlineSamples": 1,
+    "mobileSamples": 12
+  },
+  "AZ": {
+    "landline": 0.3455,
+    "mobile": 0.45,
+    "landlineSamples": 2,
+    "mobileSamples": 10
+  },
+  "BA": {
+    "landline": 0.282,
+    "mobile": 0.182,
+    "landlineSamples": 597,
+    "mobileSamples": 30
+  },
+  "BB": {
+    "landline": 0.2326,
+    "mobile": 0.2235,
+    "landlineSamples": 1,
+    "mobileSamples": 24
+  },
+  "BD": {
+    "landline": 0.0975,
+    "mobile": 0.0975,
+    "landlineSamples": 8,
+    "mobileSamples": 49
+  },
+  "BE": {
+    "landline": 0.0772,
+    "mobile": 0.059,
+    "landlineSamples": 1504,
+    "mobileSamples": 71
+  },
+  "BF": {
+    "landline": 0.4458,
+    "mobile": 0.483,
+    "landlineSamples": 26,
+    "mobileSamples": 67
+  },
+  "BG": {
+    "landline": 0.0827,
+    "mobile": 0.2,
+    "landlineSamples": 381,
+    "mobileSamples": 34
+  },
+  "BH": {
+    "landline": 0.1425,
+    "mobile": 0.1425,
+    "landlineSamples": 2,
+    "mobileSamples": 34
+  },
+  "BI": {
+    "landline": 0.6515,
+    "mobile": 0.582,
+    "landlineSamples": 1,
+    "mobileSamples": 16
+  },
+  "BJ": {
+    "landline": 0.15,
+    "mobile": 0.5022,
+    "landlineSamples": 2,
+    "mobileSamples": 23
+  },
+  "BM": {
+    "landline": 0.04,
+    "mobile": 0.044,
+    "landlineSamples": 1,
+    "mobileSamples": 8
+  },
+  "BN": {
+    "landline": 0.075,
+    "mobile": 0.175,
+    "landlineSamples": 1,
+    "mobileSamples": 22
+  },
+  "BO": {
+    "landline": 0.3088,
+    "mobile": 0.3569,
+    "landlineSamples": 729,
+    "mobileSamples": 82
+  },
+  "BR": {
+    "landline": 0.009,
+    "mobile": 0.02,
+    "landlineSamples": 67,
+    "mobileSamples": 3891
+  },
+  "BS": {
+    "landline": 0.2955,
+    "mobile": 0.2955,
+    "landlineSamples": 1,
+    "mobileSamples": 85
+  },
+  "BT": {
+    "landline": 0.095,
+    "mobile": 0.095,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "BW": {
+    "landline": 0.2325,
+    "mobile": 0.318,
+    "landlineSamples": 1,
+    "mobileSamples": 50
+  },
+  "BY": {
+    "landline": 0.72,
+    "mobile": 0.68,
+    "landlineSamples": 4,
+    "mobileSamples": 15
+  },
+  "BZ": {
+    "landline": 0.35,
+    "mobile": 0.4092,
+    "landlineSamples": 3,
+    "mobileSamples": 1
+  },
+  "CA": {
+    "landline": 0.009,
+    "mobile": 0.009,
+    "landlineSamples": 6194,
+    "mobileSamples": 0
+  },
+  "CD": {
+    "landline": 0.3999,
+    "mobile": 0.5502,
+    "landlineSamples": 8,
+    "mobileSamples": 14
+  },
+  "CF": {
+    "landline": 0.7,
+    "mobile": 0.773,
+    "landlineSamples": 1,
+    "mobileSamples": 5
+  },
+  "CG": {
+    "landline": 0.6528,
+    "mobile": 0.6957,
+    "landlineSamples": 1,
+    "mobileSamples": 5
+  },
+  "CH": {
+    "landline": 0.0245,
+    "mobile": 0.55,
+    "landlineSamples": 50,
+    "mobileSamples": 167
+  },
+  "CI": {
+    "landline": 0.7504,
+    "mobile": 0.875,
+    "landlineSamples": 25,
+    "mobileSamples": 56
+  },
+  "CK": {
+    "landline": 1.85,
+    "mobile": 1.85,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "CL": {
+    "landline": 0.02,
+    "mobile": 0.75,
+    "landlineSamples": 320,
+    "mobileSamples": 4
+  },
+  "CM": {
+    "landline": 0.315,
+    "mobile": 0.4178,
+    "landlineSamples": 4,
+    "mobileSamples": 45
+  },
+  "CN": {
+    "landline": 0.12,
+    "mobile": 0.12,
+    "landlineSamples": 2,
+    "mobileSamples": 88
+  },
+  "CO": {
+    "landline": 0.016,
+    "mobile": 0.0125,
+    "landlineSamples": 484,
+    "mobileSamples": 99
+  },
+  "CR": {
+    "landline": 0.156,
+    "mobile": 0.156,
+    "landlineSamples": 50,
+    "mobileSamples": 27
+  },
+  "CU": {
+    "landline": 0.7,
+    "mobile": 0.7,
+    "landlineSamples": 8,
+    "mobileSamples": 8
+  },
+  "CV": {
+    "landline": 0.3,
+    "mobile": 0.458,
+    "landlineSamples": 1,
+    "mobileSamples": 14
+  },
+  "CY": {
+    "landline": 0.0961,
+    "mobile": 0.164,
+    "landlineSamples": 267,
+    "mobileSamples": 12
+  },
+  "CZ": {
+    "landline": 0.014,
+    "mobile": 0.124,
+    "landlineSamples": 24,
+    "mobileSamples": 131
+  },
+  "DE": {
+    "landline": 0.006,
+    "mobile": 0.04,
+    "landlineSamples": 39,
+    "mobileSamples": 102
+  },
+  "DJ": {
+    "landline": 0.5929,
+    "mobile": 0.5929,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "DK": {
+    "landline": 0.0097,
+    "mobile": 0.45,
+    "landlineSamples": 44,
+    "mobileSamples": 1437
+  },
+  "DM": {
+    "landline": 0.2865,
+    "mobile": 0.291,
+    "landlineSamples": 1,
+    "mobileSamples": 22
+  },
+  "DO": {
+    "landline": 0.0518,
+    "mobile": 0.16,
+    "landlineSamples": 1078,
+    "mobileSamples": 1438
+  },
+  "DZ": {
+    "landline": 0.1004,
+    "mobile": 0.997,
+    "landlineSamples": 3,
+    "mobileSamples": 10
+  },
+  "EC": {
+    "landline": 0.15,
+    "mobile": 0.306,
+    "landlineSamples": 341,
+    "mobileSamples": 208
+  },
+  "EE": {
+    "landline": 0.005,
+    "mobile": 0.4334,
+    "landlineSamples": 26,
+    "mobileSamples": 489
+  },
+  "EG": {
+    "landline": 0.1195,
+    "mobile": 0.146,
+    "landlineSamples": 2,
+    "mobileSamples": 7
+  },
+  "ER": {
+    "landline": 0.2647,
+    "mobile": 0.2745,
+    "landlineSamples": 1,
+    "mobileSamples": 4
+  },
+  "ES": {
+    "landline": 0.0105,
+    "mobile": 0.0232,
+    "landlineSamples": 677,
+    "mobileSamples": 248
+  },
+  "ET": {
+    "landline": 0.2928,
+    "mobile": 0.336,
+    "landlineSamples": 1,
+    "mobileSamples": 40
+  },
+  "FI": {
+    "landline": 0.009,
+    "mobile": 0.4268,
+    "landlineSamples": 16,
+    "mobileSamples": 16
+  },
+  "FJ": {
+    "landline": 0.3366,
+    "mobile": 0.3366,
+    "landlineSamples": 1,
+    "mobileSamples": 13
+  },
+  "FK": {
+    "landline": 2.797,
+    "mobile": 2.797,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "FM": {
+    "landline": 0.7572,
+    "mobile": 0.7572,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "FO": {
+    "landline": 0.0155,
+    "mobile": 0.1109,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "FR": {
+    "landline": 0.0052,
+    "mobile": 0.0513,
+    "landlineSamples": 22,
+    "mobileSamples": 539
+  },
+  "GA": {
+    "landline": 0.7526,
+    "mobile": 0.7959,
+    "landlineSamples": 1,
+    "mobileSamples": 12
+  },
+  "GB": {
+    "landline": 0.0757,
+    "mobile": 0.02,
+    "landlineSamples": 15657,
+    "mobileSamples": 3093
+  },
+  "GD": {
+    "landline": 0.2443,
+    "mobile": 0.2865,
+    "landlineSamples": 1,
+    "mobileSamples": 40
+  },
+  "GE": {
+    "landline": 0.3954,
+    "mobile": 0.5086,
+    "landlineSamples": 8,
+    "mobileSamples": 202
+  },
+  "GF": {
+    "landline": 0.0175,
+    "mobile": 0.2344,
+    "landlineSamples": 2,
+    "mobileSamples": 35
+  },
+  "GH": {
+    "landline": 0.4,
+    "mobile": 0.335,
+    "landlineSamples": 94,
+    "mobileSamples": 39
+  },
+  "GI": {
+    "landline": 0.0414,
+    "mobile": 0.1875,
+    "landlineSamples": 1,
+    "mobileSamples": 5
+  },
+  "GL": {
+    "landline": 0.1,
+    "mobile": 0.1,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "GM": {
+    "landline": 0.785,
+    "mobile": 0.6804,
+    "landlineSamples": 1,
+    "mobileSamples": 12
+  },
+  "GN": {
+    "landline": 0.8904,
+    "mobile": 0.7728,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "GP": {
+    "landline": 0.0232,
+    "mobile": 0.1484,
+    "landlineSamples": 1,
+    "mobileSamples": 78
+  },
+  "GQ": {
+    "landline": 0.6148,
+    "mobile": 0.5496,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "GR": {
+    "landline": 0.0154,
+    "mobile": 0.52,
+    "landlineSamples": 3,
+    "mobileSamples": 26
+  },
+  "GT": {
+    "landline": 0.0918,
+    "mobile": 0.182,
+    "landlineSamples": 502,
+    "mobileSamples": 722
+  },
+  "GU": {
+    "landline": 0.0253,
+    "mobile": 0.0253,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "GW": {
+    "landline": 0.704,
+    "mobile": 0.51,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "GY": {
+    "landline": 0.2775,
+    "mobile": 0.3382,
+    "landlineSamples": 1,
+    "mobileSamples": 37
+  },
+  "HK": {
+    "landline": 0.0508,
+    "mobile": 0.31,
+    "landlineSamples": 1,
+    "mobileSamples": 49
+  },
+  "HN": {
+    "landline": 0.326,
+    "mobile": 0.302,
+    "landlineSamples": 311,
+    "mobileSamples": 95
+  },
+  "HR": {
+    "landline": 0.0065,
+    "mobile": 0.5,
+    "landlineSamples": 24,
+    "mobileSamples": 29
+  },
+  "HT": {
+    "landline": 0.4144,
+    "mobile": 0.3519,
+    "landlineSamples": 5,
+    "mobileSamples": 23
+  },
+  "HU": {
+    "landline": 0.009,
+    "mobile": 0.0957,
+    "landlineSamples": 60,
+    "mobileSamples": 57
+  },
+  "ID": {
+    "landline": 0.0688,
+    "mobile": 0.0651,
+    "landlineSamples": 10,
+    "mobileSamples": 40
+  },
+  "IE": {
+    "landline": 0.0096,
+    "mobile": 0.041,
+    "landlineSamples": 51,
+    "mobileSamples": 82
+  },
+  "IL": {
+    "landline": 0.2175,
+    "mobile": 0.1095,
+    "landlineSamples": 12,
+    "mobileSamples": 12
+  },
+  "IN": {
+    "landline": 0.03,
+    "mobile": 0.035,
+    "landlineSamples": 10,
+    "mobileSamples": 5333
+  },
+  "IQ": {
+    "landline": 0.8017,
+    "mobile": 0.2355,
+    "landlineSamples": 15,
+    "mobileSamples": 6
+  },
+  "IR": {
+    "landline": 0.31,
+    "mobile": 0.3258,
+    "landlineSamples": 25,
+    "mobileSamples": 5
+  },
+  "IS": {
+    "landline": 0.009,
+    "mobile": 0.0276,
+    "landlineSamples": 1,
+    "mobileSamples": 41
+  },
+  "IT": {
+    "landline": 0.0115,
+    "mobile": 0.25,
+    "landlineSamples": 239,
+    "mobileSamples": 87
+  },
+  "JM": {
+    "landline": 0.285,
+    "mobile": 0.285,
+    "landlineSamples": 2,
+    "mobileSamples": 164
+  },
+  "JO": {
+    "landline": 0.189,
+    "mobile": 0.2066,
+    "landlineSamples": 2,
+    "mobileSamples": 5
+  },
+  "JP": {
+    "landline": 0.072,
+    "mobile": 0.028,
+    "landlineSamples": 84,
+    "mobileSamples": 6
+  },
+  "KE": {
+    "landline": 0.0675,
+    "mobile": 0.0675,
+    "landlineSamples": 9,
+    "mobileSamples": 113
+  },
+  "KG": {
+    "landline": 0.1268,
+    "mobile": 0.373,
+    "landlineSamples": 2,
+    "mobileSamples": 55
+  },
+  "KH": {
+    "landline": 0.1,
+    "mobile": 0.143,
+    "landlineSamples": 56,
+    "mobileSamples": 51
+  },
+  "KM": {
+    "landline": 0.9,
+    "mobile": 0.9,
+    "landlineSamples": 1,
+    "mobileSamples": 12
+  },
+  "KN": {
+    "landline": 0.213,
+    "mobile": 0.2895,
+    "landlineSamples": 1,
+    "mobileSamples": 19
+  },
+  "KP": {
+    "landline": 0.5197,
+    "mobile": 0.5197,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "KR": {
+    "landline": 0.058,
+    "mobile": 0.025,
+    "landlineSamples": 13,
+    "mobileSamples": 41
+  },
+  "KW": {
+    "landline": 0.0473,
+    "mobile": 0.17,
+    "landlineSamples": 2,
+    "mobileSamples": 6
+  },
+  "KY": {
+    "landline": 0.1595,
+    "mobile": 0.2205,
+    "landlineSamples": 1,
+    "mobileSamples": 60
+  },
+  "KZ": {
+    "landline": 0.231,
+    "mobile": 0.267,
+    "landlineSamples": 15,
+    "mobileSamples": 16
+  },
+  "LA": {
+    "landline": 0.09,
+    "mobile": 0.1897,
+    "landlineSamples": 2,
+    "mobileSamples": 3
+  },
+  "LB": {
+    "landline": 0.0998,
+    "mobile": 0.2055,
+    "landlineSamples": 1,
+    "mobileSamples": 23
+  },
+  "LC": {
+    "landline": 0.2175,
+    "mobile": 0.2865,
+    "landlineSamples": 1,
+    "mobileSamples": 38
+  },
+  "LI": {
+    "landline": 0.026,
+    "mobile": 0.1035,
+    "landlineSamples": 1,
+    "mobileSamples": 11
+  },
+  "LK": {
+    "landline": 0.1854,
+    "mobile": 0.174,
+    "landlineSamples": 150,
+    "mobileSamples": 19
+  },
+  "LR": {
+    "landline": 0.6098,
+    "mobile": 0.7875,
+    "landlineSamples": 1,
+    "mobileSamples": 9
+  },
+  "LS": {
+    "landline": 0.5413,
+    "mobile": 0.5196,
+    "landlineSamples": 1,
+    "mobileSamples": 2
+  },
+  "LT": {
+    "landline": 0.003,
+    "mobile": 0.5253,
+    "landlineSamples": 4,
+    "mobileSamples": 1093
+  },
+  "LU": {
+    "landline": 0.03,
+    "mobile": 0.2902,
+    "landlineSamples": 80,
+    "mobileSamples": 27
+  },
+  "LV": {
+    "landline": 0.4631,
+    "mobile": 0.5782,
+    "landlineSamples": 1319,
+    "mobileSamples": 584
+  },
+  "LY": {
+    "landline": 0.5252,
+    "mobile": 0.51,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "MA": {
+    "landline": 0.6646,
+    "mobile": 0.9515,
+    "landlineSamples": 11,
+    "mobileSamples": 96
+  },
+  "MC": {
+    "landline": 0.0817,
+    "mobile": 0.6675,
+    "landlineSamples": 1,
+    "mobileSamples": 5
+  },
+  "MD": {
+    "landline": 0.2445,
+    "mobile": 0.2783,
+    "landlineSamples": 6,
+    "mobileSamples": 19
+  },
+  "ME": {
+    "landline": 0.34,
+    "mobile": 0.613,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "MG": {
+    "landline": 0.92,
+    "mobile": 0.92,
+    "landlineSamples": 4,
+    "mobileSamples": 4
+  },
+  "MH": {
+    "landline": 0.2737,
+    "mobile": 0.2737,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "MK": {
+    "landline": 0.2068,
+    "mobile": 0.4837,
+    "landlineSamples": 1,
+    "mobileSamples": 9
+  },
+  "ML": {
+    "landline": 0.2107,
+    "mobile": 0.507,
+    "landlineSamples": 7,
+    "mobileSamples": 17
+  },
+  "MM": {
+    "landline": 0.4125,
+    "mobile": 0.4125,
+    "landlineSamples": 550,
+    "mobileSamples": 69
+  },
+  "MN": {
+    "landline": 0.0144,
+    "mobile": 0.015,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "MO": {
+    "landline": 0.1797,
+    "mobile": 0.2178,
+    "landlineSamples": 1,
+    "mobileSamples": 1
+  },
+  "MP": {
+    "landline": 0.045,
+    "mobile": 0.045,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "MQ": {
+    "landline": 0.025,
+    "mobile": 0.1316,
+    "landlineSamples": 2,
+    "mobileSamples": 38
+  },
+  "MR": {
+    "landline": 0.825,
+    "mobile": 0.7233,
+    "landlineSamples": 1,
+    "mobileSamples": 20
+  },
+  "MS": {
+    "landline": 0.3213,
+    "mobile": 0.3213,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "MT": {
+    "landline": 0.2272,
+    "mobile": 0.48,
+    "landlineSamples": 1,
+    "mobileSamples": 23
+  },
+  "MU": {
+    "landline": 0.1643,
+    "mobile": 0.1905,
+    "landlineSamples": 1,
+    "mobileSamples": 98
+  },
+  "MV": {
+    "landline": 1.2,
+    "mobile": 1.2,
+    "landlineSamples": 9,
+    "mobileSamples": 2
+  },
+  "MW": {
+    "landline": 0.5436,
+    "mobile": 0.4638,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "MX": {
+    "landline": 0.018,
+    "mobile": 0.018,
+    "landlineSamples": 2069,
+    "mobileSamples": 2
+  },
+  "MY": {
+    "landline": 0.035,
+    "mobile": 0.01,
+    "landlineSamples": 10,
+    "mobileSamples": 265
+  },
+  "MZ": {
+    "landline": 0.243,
+    "mobile": 0.392,
+    "landlineSamples": 2,
+    "mobileSamples": 12
+  },
+  "NA": {
+    "landline": 0.16,
+    "mobile": 0.0498,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "NC": {
+    "landline": 0.35,
+    "mobile": 0.35,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "NE": {
+    "landline": 0.489,
+    "mobile": 0.2556,
+    "landlineSamples": 1,
+    "mobileSamples": 22
+  },
+  "NG": {
+    "landline": 0.0996,
+    "mobile": 0.285,
+    "landlineSamples": 105,
+    "mobileSamples": 234
+  },
+  "NI": {
+    "landline": 0.335,
+    "mobile": 0.3625,
+    "landlineSamples": 4,
+    "mobileSamples": 201
+  },
+  "NL": {
+    "landline": 0.01,
+    "mobile": 0.025,
+    "landlineSamples": 13,
+    "mobileSamples": 327
+  },
+  "NO": {
+    "landline": 0.0145,
+    "mobile": 0.0386,
+    "landlineSamples": 17,
+    "mobileSamples": 696
+  },
+  "NP": {
+    "landline": 0.3025,
+    "mobile": 0.24,
+    "landlineSamples": 6,
+    "mobileSamples": 13
+  },
+  "NZ": {
+    "landline": 0.0145,
+    "mobile": 0.0672,
+    "landlineSamples": 16,
+    "mobileSamples": 29
+  },
+  "OM": {
+    "landline": 0.3,
+    "mobile": 0.3375,
+    "landlineSamples": 7,
+    "mobileSamples": 25
+  },
+  "PA": {
+    "landline": 0.0582,
+    "mobile": 0.1383,
+    "landlineSamples": 416,
+    "mobileSamples": 61
+  },
+  "PE": {
+    "landline": 0.4,
+    "mobile": 0.0073,
+    "landlineSamples": 71,
+    "mobileSamples": 709
+  },
+  "PF": {
+    "landline": 0.36,
+    "mobile": 0.36,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "PG": {
+    "landline": 1.3357,
+    "mobile": 1.25,
+    "landlineSamples": 1,
+    "mobileSamples": 7
+  },
+  "PH": {
+    "landline": 0.1725,
+    "mobile": 0.192,
+    "landlineSamples": 3709,
+    "mobileSamples": 164
+  },
+  "PK": {
+    "landline": 0.06,
+    "mobile": 0.082,
+    "landlineSamples": 19,
+    "mobileSamples": 11
+  },
+  "PL": {
+    "landline": 0.1022,
+    "mobile": 0.2386,
+    "landlineSamples": 8445,
+    "mobileSamples": 655
+  },
+  "PM": {
+    "landline": 0.3172,
+    "mobile": 0.63,
+    "landlineSamples": 1,
+    "mobileSamples": 2
+  },
+  "PR": {
+    "landline": 0.005,
+    "mobile": 0.005,
+    "landlineSamples": 2,
+    "mobileSamples": 0
+  },
+  "PS": {
+    "landline": 0.213,
+    "mobile": 0.24,
+    "landlineSamples": 1,
+    "mobileSamples": 2
+  },
+  "PT": {
+    "landline": 0.0155,
+    "mobile": 0.1417,
+    "landlineSamples": 74,
+    "mobileSamples": 121
+  },
+  "PW": {
+    "landline": 0.61,
+    "mobile": 0.6725,
+    "landlineSamples": 1,
+    "mobileSamples": 9
+  },
+  "PY": {
+    "landline": 0.1485,
+    "mobile": 0.1485,
+    "landlineSamples": 4,
+    "mobileSamples": 19
+  },
+  "QA": {
+    "landline": 0.24,
+    "mobile": 0.245,
+    "landlineSamples": 1,
+    "mobileSamples": 8
+  },
+  "RE": {
+    "landline": 0.025,
+    "mobile": 0.1387,
+    "landlineSamples": 4,
+    "mobileSamples": 131
+  },
+  "RO": {
+    "landline": 0.006,
+    "mobile": 0.0175,
+    "landlineSamples": 69,
+    "mobileSamples": 71
+  },
+  "RS": {
+    "landline": 0.4915,
+    "mobile": 0.0852,
+    "landlineSamples": 126,
+    "mobileSamples": 20
+  },
+  "RU": {
+    "landline": 0.34,
+    "mobile": 0.37,
+    "landlineSamples": 527,
+    "mobileSamples": 2506
+  },
+  "RW": {
+    "landline": 0.28,
+    "mobile": 0.3125,
+    "landlineSamples": 3,
+    "mobileSamples": 12
+  },
+  "SA": {
+    "landline": 0.168,
+    "mobile": 0.226,
+    "landlineSamples": 40,
+    "mobileSamples": 36
+  },
+  "SB": {
+    "landline": 1.53,
+    "mobile": 1.53,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "SC": {
+    "landline": 0.75,
+    "mobile": 0.864,
+    "landlineSamples": 1,
+    "mobileSamples": 31
+  },
+  "SD": {
+    "landline": 0.43,
+    "mobile": 0.4384,
+    "landlineSamples": 2,
+    "mobileSamples": 10
+  },
+  "SE": {
+    "landline": 0.01,
+    "mobile": 0.2039,
+    "landlineSamples": 267,
+    "mobileSamples": 783
+  },
+  "SG": {
+    "landline": 0.0175,
+    "mobile": 0.025,
+    "landlineSamples": 4,
+    "mobileSamples": 7
+  },
+  "SI": {
+    "landline": 0.3104,
+    "mobile": 0.065,
+    "landlineSamples": 139,
+    "mobileSamples": 59
+  },
+  "SK": {
+    "landline": 0.005,
+    "mobile": 0.016,
+    "landlineSamples": 7,
+    "mobileSamples": 53
+  },
+  "SL": {
+    "landline": 0.7214,
+    "mobile": 0.91,
+    "landlineSamples": 2,
+    "mobileSamples": 18
+  },
+  "SM": {
+    "landline": 0.0736,
+    "mobile": 0.7,
+    "landlineSamples": 1,
+    "mobileSamples": 2
+  },
+  "SN": {
+    "landline": 0.6384,
+    "mobile": 0.3502,
+    "landlineSamples": 4,
+    "mobileSamples": 11
+  },
+  "SO": {
+    "landline": 0.52,
+    "mobile": 0.2648,
+    "landlineSamples": 19,
+    "mobileSamples": 23
+  },
+  "SR": {
+    "landline": 0.4912,
+    "mobile": 0.472,
+    "landlineSamples": 1,
+    "mobileSamples": 19
+  },
+  "SS": {
+    "landline": 0.8083,
+    "mobile": 0.8607,
+    "landlineSamples": 1,
+    "mobileSamples": 5
+  },
+  "SV": {
+    "landline": 0.1262,
+    "mobile": 0.18,
+    "landlineSamples": 727,
+    "mobileSamples": 339
+  },
+  "SX": {
+    "landline": 0.2212,
+    "mobile": 0.2212,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "SY": {
+    "landline": 0.3225,
+    "mobile": 0.3583,
+    "landlineSamples": 1,
+    "mobileSamples": 1
+  },
+  "SZ": {
+    "landline": 0.225,
+    "mobile": 0.2735,
+    "landlineSamples": 1,
+    "mobileSamples": 4
+  },
+  "TC": {
+    "landline": 0.38,
+    "mobile": 1.2,
+    "landlineSamples": 1,
+    "mobileSamples": 31
+  },
+  "TD": {
+    "landline": 0.85,
+    "mobile": 0.75,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "TG": {
+    "landline": 0.3629,
+    "mobile": 0.3307,
+    "landlineSamples": 1,
+    "mobileSamples": 10
+  },
+  "TH": {
+    "landline": 0.084,
+    "mobile": 0.085,
+    "landlineSamples": 33,
+    "mobileSamples": 2789
+  },
+  "TJ": {
+    "landline": 0.1545,
+    "mobile": 0.243,
+    "landlineSamples": 2,
+    "mobileSamples": 29
+  },
+  "TL": {
+    "landline": 0.2475,
+    "mobile": 0.2475,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "TM": {
+    "landline": 0.1485,
+    "mobile": 0.2003,
+    "landlineSamples": 1,
+    "mobileSamples": 1
+  },
+  "TN": {
+    "landline": 0.91,
+    "mobile": 0.91,
+    "landlineSamples": 1,
+    "mobileSamples": 30
+  },
+  "TO": {
+    "landline": 1.679,
+    "mobile": 1.806,
+    "landlineSamples": 1,
+    "mobileSamples": 7
+  },
+  "TR": {
+    "landline": 0.045,
+    "mobile": 0.0775,
+    "landlineSamples": 34,
+    "mobileSamples": 82
+  },
+  "TT": {
+    "landline": 0.123,
+    "mobile": 0.27,
+    "landlineSamples": 1,
+    "mobileSamples": 72
+  },
+  "TW": {
+    "landline": 0.086,
+    "mobile": 0.1291,
+    "landlineSamples": 9,
+    "mobileSamples": 274
+  },
+  "TZ": {
+    "landline": 0.3795,
+    "mobile": 0.3523,
+    "landlineSamples": 3,
+    "mobileSamples": 18
+  },
+  "UA": {
+    "landline": 0.216,
+    "mobile": 0.3925,
+    "landlineSamples": 20,
+    "mobileSamples": 33
+  },
+  "UG": {
+    "landline": 0.127,
+    "mobile": 0.145,
+    "landlineSamples": 17,
+    "mobileSamples": 46
+  },
+  "US": {
+    "landline": 0.01,
+    "mobile": 0.01,
+    "landlineSamples": 16032,
+    "mobileSamples": 0
+  },
+  "UY": {
+    "landline": 0.0693,
+    "mobile": 0.2058,
+    "landlineSamples": 5,
+    "mobileSamples": 10
+  },
+  "UZ": {
+    "landline": 0.1143,
+    "mobile": 0.136,
+    "landlineSamples": 8,
+    "mobileSamples": 10
+  },
+  "VC": {
+    "landline": 0.228,
+    "mobile": 0.2803,
+    "landlineSamples": 1,
+    "mobileSamples": 26
+  },
+  "VE": {
+    "landline": 0.0721,
+    "mobile": 0.09,
+    "landlineSamples": 981,
+    "mobileSamples": 7
+  },
+  "VG": {
+    "landline": 0.2505,
+    "mobile": 0.282,
+    "landlineSamples": 1,
+    "mobileSamples": 41
+  },
+  "VI": {
+    "landline": 0.0484,
+    "mobile": 0.0484,
+    "landlineSamples": 64,
+    "mobileSamples": 0
+  },
+  "VN": {
+    "landline": 0.104,
+    "mobile": 0.104,
+    "landlineSamples": 135,
+    "mobileSamples": 61
+  },
+  "VU": {
+    "landline": 1.68,
+    "mobile": 1.68,
+    "landlineSamples": 1,
+    "mobileSamples": 3
+  },
+  "WF": {
+    "landline": 0.4536,
+    "mobile": 0.4536,
+    "landlineSamples": 1,
+    "mobileSamples": 0
+  },
+  "WS": {
+    "landline": 0.4664,
+    "mobile": 1.8,
+    "landlineSamples": 1,
+    "mobileSamples": 6
+  },
+  "XK": {
+    "landline": 0.6833,
+    "mobile": 0.6833,
+    "landlineSamples": 36,
+    "mobileSamples": 0
+  },
+  "YE": {
+    "landline": 0.165,
+    "mobile": 0.1598,
+    "landlineSamples": 1,
+    "mobileSamples": 4
+  },
+  "YT": {
+    "landline": 0.025,
+    "mobile": 0.055,
+    "landlineSamples": 1,
+    "mobileSamples": 1
+  },
+  "ZA": {
+    "landline": 0.028,
+    "mobile": 0.028,
+    "landlineSamples": 5428,
+    "mobileSamples": 304
+  },
+  "ZM": {
+    "landline": 0.1199,
+    "mobile": 0.145,
+    "landlineSamples": 3,
+    "mobileSamples": 10
+  },
+  "ZW": {
+    "landline": 0.3568,
+    "mobile": 0.4629,
+    "landlineSamples": 2,
+    "mobileSamples": 5
+  }
+}
