@@ -718,7 +718,7 @@ function FAQ() {
     { q: "Do credits expire?", a: "Never. Your balance stays available until you use it." },
     {
       q: "Can I get a refund?",
-      a: "Unused credits are refundable within 30 days of purchase. Just email support.",
+      a: "Unused credits are refundable within 14 days of purchase. Failed calls can be reviewed for make-up credits or a refund.",
     },
   ];
   const [open, setOpen] = useState<number | null>(0);

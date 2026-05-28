@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RatesRouteImport } from './routes/rates'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -38,6 +39,11 @@ import { Route as ApiPublicPaymentsRazorpayCreateOrderRouteImport } from './rout
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RatesRoute = RatesRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
+  '/refund': typeof RefundRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
+  '/refund': typeof RefundRoute
   '/terms': typeof TermsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
+  '/refund': typeof RefundRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/rates'
+    | '/refund'
     | '/terms'
     | '/dashboard'
     | '/auth/login'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/rates'
+    | '/refund'
     | '/terms'
     | '/auth/login'
     | '/auth/signup'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/rates'
+    | '/refund'
     | '/terms'
     | '/_authenticated/dashboard'
     | '/auth/login'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   PrivacyRoute: typeof PrivacyRoute
   RatesRoute: typeof RatesRoute
+  RefundRoute: typeof RefundRoute
   TermsRoute: typeof TermsRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rates': {
@@ -578,6 +598,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   PrivacyRoute: PrivacyRoute,
   RatesRoute: RatesRoute,
+  RefundRoute: RefundRoute,
   TermsRoute: TermsRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,

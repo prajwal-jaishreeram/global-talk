@@ -74,6 +74,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link to="/refund" className="hover:text-foreground">
+                  Refund Policy
+                </Link>
+              </li>
+              <li>
                 <Link to="/contact" className="hover:text-foreground">
                   Contact
                 </Link>
@@ -89,6 +94,9 @@ export function SiteFooter() {
             </Link>
             <Link to="/privacy" className="hover:text-foreground">
               Privacy
+            </Link>
+            <Link to="/refund" className="hover:text-foreground">
+              Refund
             </Link>
           </div>
         </div>
