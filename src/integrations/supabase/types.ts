@@ -310,8 +310,6 @@ export type Database = {
           id: string
           monthly_cost: number
           phone_number: string
-          razorpay_order_id: string | null
-          razorpay_payment_id: string | null
           status: string
           telnyx_number_id: string | null
           telnyx_order_id: string | null
@@ -324,8 +322,6 @@ export type Database = {
           id?: string
           monthly_cost?: number
           phone_number: string
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
           status?: string
           telnyx_number_id?: string | null
           telnyx_order_id?: string | null
@@ -338,8 +334,6 @@ export type Database = {
           id?: string
           monthly_cost?: number
           phone_number?: string
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
           status?: string
           telnyx_number_id?: string | null
           telnyx_order_id?: string | null
@@ -351,11 +345,8 @@ export type Database = {
       profiles: {
         Row: {
           auto_topup_active: boolean
-          auto_topup_amount: number | null
-          auto_topup_last_attempt_at: string | null
           auto_topup_product_id: string | null
           auto_topup_subscription_id: string | null
-          auto_topup_threshold: number | null
           created_at: string
           credit_balance: number
           email: string | null
@@ -366,11 +357,8 @@ export type Database = {
         }
         Insert: {
           auto_topup_active?: boolean
-          auto_topup_amount?: number | null
-          auto_topup_last_attempt_at?: string | null
           auto_topup_product_id?: string | null
           auto_topup_subscription_id?: string | null
-          auto_topup_threshold?: number | null
           created_at?: string
           credit_balance?: number
           email?: string | null
@@ -381,11 +369,8 @@ export type Database = {
         }
         Update: {
           auto_topup_active?: boolean
-          auto_topup_amount?: number | null
-          auto_topup_last_attempt_at?: string | null
           auto_topup_product_id?: string | null
           auto_topup_subscription_id?: string | null
-          auto_topup_threshold?: number | null
           created_at?: string
           credit_balance?: number
           email?: string | null
@@ -393,36 +378,6 @@ export type Database = {
           id?: string
           polar_customer_id?: string | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      verified_caller_ids: {
-        Row: {
-          created_at: string
-          id: string
-          phone_number: string
-          status: string
-          telnyx_id: string | null
-          user_id: string
-          verified_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          phone_number: string
-          status?: string
-          telnyx_id?: string | null
-          user_id: string
-          verified_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          phone_number?: string
-          status?: string
-          telnyx_id?: string | null
-          user_id?: string
-          verified_at?: string | null
         }
         Relationships: []
       }
