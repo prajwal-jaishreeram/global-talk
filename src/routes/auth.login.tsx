@@ -22,7 +22,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/auth/login")({
-  head: () => ({ meta: [{ title: "Log in - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Log in - Ringringa" }] }),
   validateSearch: (search) => searchSchema.parse(search),
   component: LoginPage,
 });
@@ -122,7 +122,7 @@ function LoginPage() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Phone className="h-4 w-4" />
           </span>
-          Eginta
+          Ringringa
         </Link>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">

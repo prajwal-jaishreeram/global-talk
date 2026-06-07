@@ -39,7 +39,7 @@ type CallRow = {
 };
 
 export const Route = createFileRoute("/_authenticated/dashboard/history")({
-  head: () => ({ meta: [{ title: "Call history - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Call history - Ringringa" }] }),
   component: HistoryPage,
 });
 

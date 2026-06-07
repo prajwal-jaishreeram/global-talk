@@ -79,7 +79,7 @@ import { CountryFlag } from "@/components/country-flag";
 import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
-  head: () => ({ meta: [{ title: "Make a call - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Make a call - Ringringa" }] }),
   component: DialerPage,
 });
 
@@ -433,7 +433,7 @@ function DialerPage() {
           amount: order.amount,
           currency: order.currency,
           order_id: order.orderId,
-          name: "Eginta",
+          name: "Ringringa",
           description: `Phone number ${num.phone_number}`,
           prefill: { email: order.prefillEmail },
           theme: { color: "#3b82f6" },
@@ -1699,7 +1699,7 @@ function DialerPage() {
         <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle>Add contact</DialogTitle>
-            <DialogDescription>Save this dialed number to your Eginta contacts.</DialogDescription>
+            <DialogDescription>Save this dialed number to your Ringringa contacts.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-2">

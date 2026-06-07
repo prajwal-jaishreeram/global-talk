@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RateCalculator } from "@/components/rate-calculator";
 
 export const Route = createFileRoute("/_authenticated/dashboard/rates")({
-  head: () => ({ meta: [{ title: "Rate calculator - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Rate calculator - Ringringa" }] }),
   component: DashboardRatesPage,
 });
 

@@ -31,10 +31,10 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Eginta"
-const SENDER_DOMAIN = "notify.eginta.com"
-const ROOT_DOMAIN = "eginta.com"
-const FROM_DOMAIN = "eginta.com"
+const SITE_NAME = "Ringringa"
+const SENDER_DOMAIN = "gmail.com"
+const ROOT_DOMAIN = "ringringa.com"
+const FROM_EMAIL = "prajwalshindeee@gmail.com"
 
 function hasTrustedLovableToken(request: Request, apiKey: string): boolean {
   const url = new URL(request.url)
@@ -218,7 +218,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             run_id,
             message_id: messageId,
             to: payload.data.email,
-            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+            from: `${SITE_NAME} <${FROM_EMAIL}>`,
             sender_domain: SENDER_DOMAIN,
             subject: EMAIL_SUBJECTS[emailType] || 'Notification',
             html,

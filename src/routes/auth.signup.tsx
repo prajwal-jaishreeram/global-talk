@@ -25,7 +25,7 @@ const signupSchema = z.object({
 type FieldErrors = Partial<Record<"fullName" | "email" | "password", string>>;
 
 export const Route = createFileRoute("/auth/signup")({
-  head: () => ({ meta: [{ title: "Sign up - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Sign up - Ringringa" }] }),
   component: SignupPage,
 });
 
@@ -149,7 +149,7 @@ function SignupPage() {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Phone className="h-4 w-4" />
           </span>
-          Eginta
+          Ringringa
         </Link>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">

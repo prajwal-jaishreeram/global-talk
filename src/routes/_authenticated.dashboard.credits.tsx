@@ -2,7 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Shield, ShieldCheck, Sparkles, Lock, Info, Repeat, ExternalLink } from "lucide-react";
+import {
+  Check,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  Lock,
+  Info,
+  Repeat,
+  ExternalLink,
+  Plus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -20,13 +30,25 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { formatMoneyExact } from "@/lib/rates";
 import { useCreditBalance } from "@/hooks/use-credit-balance";
+import { grantTestCredits } from "@/lib/credits.functions";
+import { useAuthState } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
-  head: () => ({ meta: [{ title: "Buy credits — Eginta" }] }),
+  head: () => ({ meta: [{ title: "Buy credits — Ringringa" }] }),
   component: CreditsPage,
 });
 
 const TOPUPS = POLAR_CATALOG.topup;
+const TEST_CREDIT_EMAIL = "prajwalshindeee@gmail.com";
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object" && error && "message" in error) {
+    const message = String((error as { message?: unknown }).message ?? "");
+    if (message) return message;
+  }
+  return fallback;
+}
 
 function CreditsPage() {
   const [selectedId, setSelectedId] = useState<string>(TOPUPS[2].id);
@@ -36,6 +58,8 @@ function CreditsPage() {
   const [autoAmount, setAutoAmount] = useState<string>("20");
   const [savingAuto, setSavingAuto] = useState(false);
   const { balance, refresh: refreshBalance } = useCreditBalance();
+  const { user } = useAuthState();
+  const [grantingTestCredits, setGrantingTestCredits] = useState(false);
 
   const startCheckout = useServerFn(createPolarCheckout);
   const confirmSession = useServerFn(confirmPolarCheckout);
@@ -43,6 +67,8 @@ function CreditsPage() {
   const cancelAuto = useServerFn(cancelAutoTopup);
   const saveAuto = useServerFn(saveAutoTopupSettings);
   const fetchStatus = useServerFn(getBillingStatus);
+  const grantTest = useServerFn(grantTestCredits);
+  const canGrantTestCredits = user?.email?.toLowerCase() === TEST_CREDIT_EMAIL;
 
   const { data: status, refetch: refetchStatus } = useQuery({
     queryKey: ["billing-status"],
@@ -68,7 +94,10 @@ function CreditsPage() {
       confirmSession({ data: { checkoutId } })
         .then((r) => {
           if (r.credited) toast.success("Credits added to your balance");
-          else toast.message("Payment received", { description: "Credits will appear in a few seconds." });
+          else
+            toast.message("Payment received", {
+              description: "Credits will appear in a few seconds.",
+            });
           refetchStatus();
           refreshBalance();
         })
@@ -138,6 +167,19 @@ function CreditsPage() {
     }
   }
 
+  async function addTestCredits() {
+    setGrantingTestCredits(true);
+    try {
+      const result = await grantTest();
+      await refreshBalance();
+      toast.success(`Added $${result.amount.toFixed(2)} test credits`);
+    } catch (e) {
+      toast.error(getErrorMessage(e, "Could not add test credits"));
+    } finally {
+      setGrantingTestCredits(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -157,6 +199,19 @@ function CreditsPage() {
           <div className="text-xl font-bold">
             {balance === null ? "-" : formatMoneyExact(balance)}
           </div>
+          {canGrantTestCredits && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="mt-2 w-full"
+              onClick={addTestCredits}
+              disabled={grantingTestCredits}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {grantingTestCredits ? "Adding..." : "Add $20 test credits"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -177,14 +232,20 @@ function CreditsPage() {
                     onClick={() => setSelectedId(p.id)}
                     className={cn(
                       "relative rounded-xl border bg-background px-3 py-4 text-center transition-all",
-                      active ? "border-primary ring-2 ring-primary/30 shadow-sm" : "border-border hover:border-primary/40",
+                      active
+                        ? "border-primary ring-2 ring-primary/30 shadow-sm"
+                        : "border-border hover:border-primary/40",
                       centerLastMobile &&
                         "col-span-2 mx-auto w-full max-w-[11rem] sm:col-span-1 sm:mx-0 sm:w-auto sm:max-w-none",
                     )}
                   >
                     <div className="text-xl font-bold">{p.label}</div>
-                    {bonusLabel && <div className="mt-1 text-[11px] font-medium text-primary">{bonusLabel}</div>}
-                    <div className="mt-1 text-[11px] text-muted-foreground">${p.credits.toFixed(2)} credits</div>
+                    {bonusLabel && (
+                      <div className="mt-1 text-[11px] font-medium text-primary">{bonusLabel}</div>
+                    )}
+                    <div className="mt-1 text-[11px] text-muted-foreground">
+                      ${p.credits.toFixed(2)} credits
+                    </div>
                   </button>
                 );
               })}
@@ -193,7 +254,10 @@ function CreditsPage() {
 
           <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <label htmlFor="auto-topup-toggle" className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+              <label
+                htmlFor="auto-topup-toggle"
+                className="flex cursor-pointer items-center gap-2 text-sm font-medium"
+              >
                 <Repeat className="h-4 w-4 text-primary" /> Enable Auto Top-up
                 {autoEnabled && (
                   <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
@@ -209,13 +273,14 @@ function CreditsPage() {
               />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              When your balance drops below the threshold, we automatically charge your saved card and
-              top up your credits. No monthly fees — you only pay when you need credits.
+              When your balance drops below the threshold, we automatically charge your saved card
+              and top up your credits. No monthly fees — you only pay when you need credits.
             </p>
 
             {!status?.hasSavedCard && (
               <p className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-                Make at least one one-time top-up first so we can save your payment method for auto top-up.
+                Make at least one one-time top-up first so we can save your payment method for auto
+                top-up.
               </p>
             )}
 
@@ -225,7 +290,9 @@ function CreditsPage() {
                   Auto Top-up Threshold (recommended at least $2)
                 </Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
                   <Input
                     id="auto-threshold"
                     type="number"
@@ -245,7 +312,9 @@ function CreditsPage() {
                   Auto Top-up Amount (recommended at least $10)
                 </Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
                   <Input
                     id="auto-amount"
                     type="number"

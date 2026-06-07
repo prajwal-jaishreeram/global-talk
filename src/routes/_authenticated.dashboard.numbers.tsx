@@ -27,7 +27,7 @@ import { CountryFlag } from "@/components/country-flag";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/numbers")({
-  head: () => ({ meta: [{ title: "Phone numbers — Eginta" }] }),
+  head: () => ({ meta: [{ title: "Phone numbers — Ringringa" }] }),
   component: NumbersPage,
 });
 
@@ -127,7 +127,7 @@ function NumbersPage() {
           amount: order.amount,
           currency: order.currency,
           order_id: order.orderId,
-          name: "Eginta",
+          name: "Ringringa",
           description: `Phone number ${num.phone_number}`,
           prefill: { email: order.prefillEmail },
           theme: { color: "#3b82f6" },

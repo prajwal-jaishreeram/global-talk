@@ -5,8 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy - Eginta" },
-      { name: "description", content: "How Eginta collects, uses, and protects your data." },
+      { title: "Privacy Policy - Ringringa" },
+      { name: "description", content: "How Ringringa collects, uses, and protects your data." },
     ],
   }),
   component: PrivacyPage,
@@ -23,7 +23,7 @@ function PrivacyPage() {
         <div className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground">
           <section>
             <h2 className="text-lg font-semibold text-foreground">1. Information We Collect</h2>
-            <p>We collect information needed to provide, secure, bill, and support Eginta:</p>
+            <p>We collect information needed to provide, secure, bill, and support Ringringa:</p>
             <ul className="ml-5 mt-2 list-disc space-y-1">
               <li>
                 Account information, such as email address, login credentials, and profile data.
@@ -43,7 +43,7 @@ function PrivacyPage() {
               </li>
             </ul>
             <p className="mt-2">
-              Eginta does not store full card numbers. Card and wallet payments are handled by our
+              Ringringa does not store full card numbers. Card and wallet payments are handled by our
               payment processors.
             </p>
           </section>
@@ -144,8 +144,8 @@ function PrivacyPage() {
             </ul>
             <p className="mt-2">
               To make a request, email{" "}
-              <a href="mailto:support@eginta.com" className="text-primary hover:underline">
-                support@eginta.com
+              <a href="mailto:prajwalshindeee@gmail.com" className="text-primary hover:underline">
+                prajwalshindeee@gmail.com
               </a>
               .
             </p>
@@ -154,7 +154,7 @@ function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">9. Children</h2>
             <p>
-              Eginta is not intended for children under 13, and we do not knowingly collect personal
+              Ringringa is not intended for children under 13, and we do not knowingly collect personal
               information from children under 13. If you believe a child has provided personal
               information to us, contact us so we can review and delete it where required.
             </p>
@@ -172,9 +172,9 @@ function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">11. Contact</h2>
             <p>
-              For privacy questions or requests, contact Eginta at{" "}
-              <a href="mailto:support@eginta.com" className="text-primary hover:underline">
-                support@eginta.com
+              For privacy questions or requests, contact Ringringa at{" "}
+              <a href="mailto:prajwalshindeee@gmail.com" className="text-primary hover:underline">
+                prajwalshindeee@gmail.com
               </a>{" "}
               or visit our{" "}
               <Link to="/contact" className="text-primary hover:underline">

@@ -1,9 +1,17 @@
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCreditBalance } from "@/lib/credits.functions";
 import { useAuthState } from "@/lib/auth-client";
+
+function parseCreditBalance(value: unknown) {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : null;
+}
 
 export function useCreditBalance() {
   const { ready, user } = useAuthState();
+  const fetchBalance = useServerFn(getCreditBalance);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,17 +23,14 @@ export function useCreditBalance() {
     }
 
     setLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("credit_balance")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!error) {
-      setBalance(Number(data?.credit_balance ?? 0));
+    try {
+      const data = await fetchBalance();
+      setBalance(data.profileFound ? data.balance : null);
+    } catch (error) {
+      console.error("Failed to refresh credit balance", error);
     }
     setLoading(false);
-  }, [ready, user]);
+  }, [fetchBalance, ready, user]);
 
   useEffect(() => {
     if (!ready) return;
@@ -40,15 +45,15 @@ export function useCreditBalance() {
       }
 
       setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("credit_balance")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!active) return;
-      if (!error) setBalance(Number(data?.credit_balance ?? 0));
-      setLoading(false);
+      try {
+        const data = await fetchBalance();
+        if (!active) return;
+        setBalance(data.profileFound ? data.balance : null);
+      } catch (error) {
+        if (active) console.error("Failed to load credit balance", error);
+      } finally {
+        if (active) setLoading(false);
+      }
 
       channel = supabase
         .channel(`profile-balance:${user.id}:${Math.random().toString(36).slice(2)}`)
@@ -56,8 +61,10 @@ export function useCreditBalance() {
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
           (payload) => {
-            const next = (payload.new as { credit_balance?: number }).credit_balance;
-            if (typeof next === "number") setBalance(next);
+            const next = parseCreditBalance(
+              (payload.new as { credit_balance?: unknown }).credit_balance,
+            );
+            if (next !== null) setBalance(next);
           },
         )
         .subscribe();
@@ -68,7 +75,7 @@ export function useCreditBalance() {
       active = false;
       if (channel) supabase.removeChannel(channel);
     };
-  }, [ready, user]);
+  }, [fetchBalance, ready, user]);
 
   return { balance, loading, refresh };
 }

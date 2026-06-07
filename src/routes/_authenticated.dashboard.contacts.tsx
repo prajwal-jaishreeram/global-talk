@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { PaginationFooter } from "@/components/pagination-footer";
 
 export const Route = createFileRoute("/_authenticated/dashboard/contacts")({
-  head: () => ({ meta: [{ title: "Contacts — Eginta" }] }),
+  head: () => ({ meta: [{ title: "Contacts — Ringringa" }] }),
   component: ContactsPage,
 });
 
@@ -297,7 +297,7 @@ function ContactsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Contacts</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your Eginta call list and tag people by group.
+            Manage your Ringringa call list and tag people by group.
           </p>
         </div>
       </div>

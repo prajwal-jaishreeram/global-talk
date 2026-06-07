@@ -5,8 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms and Conditions - Eginta" },
-      { name: "description", content: "The terms that govern your use of Eginta." },
+      { title: "Terms and Conditions - Ringringa" },
+      { name: "description", content: "The terms that govern your use of Ringringa." },
     ],
   }),
   component: TermsPage,
@@ -24,23 +24,23 @@ function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">1. Agreement to These Terms</h2>
             <p>
-              These Terms and Conditions govern your access to and use of Eginta, including our
+              These Terms and Conditions govern your access to and use of Ringringa, including our
               browser-based calling service, calling credits, phone number features, account tools,
               and related support. By creating an account, buying credits, purchasing a phone
-              number, enabling auto top-up, or using Eginta, you agree to these Terms.
+              number, enabling auto top-up, or using Ringringa, you agree to these Terms.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground">2. Service Description</h2>
             <p>
-              Eginta provides internet-based voice calling and related telecom tools. Calls are
+              Ringringa provides internet-based voice calling and related telecom tools. Calls are
               routed through third-party telecommunications providers, and call availability,
               quality, rates, and supported destinations may vary by carrier, country, network
               conditions, regulation, and destination number.
             </p>
             <p className="mt-2">
-              Eginta is a digital service. We do not ship physical goods. Account access, credits,
+              Ringringa is a digital service. We do not ship physical goods. Account access, credits,
               call features, and any purchased phone number functionality are delivered online after
               payment confirmation and any required provider checks.
             </p>
@@ -58,7 +58,7 @@ function TermsPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground">4. Acceptable Use</h2>
-            <p>You agree not to use Eginta for:</p>
+            <p>You agree not to use Ringringa for:</p>
             <ul className="ml-5 mt-2 list-disc space-y-1">
               <li>Illegal activity, fraud, scams, impersonation, harassment, or abuse.</li>
               <li>Spam, robocalling, mass calling, or traffic that violates telecom rules.</li>
@@ -87,8 +87,8 @@ function TermsPage() {
               call or complete a purchase.
             </p>
             <p className="mt-2">
-              Credits are digital account credits for Eginta services. Credits do not earn interest,
-              cannot be transferred outside Eginta, and are not redeemable for cash except where our
+              Credits are digital account credits for Ringringa services. Credits do not earn interest,
+              cannot be transferred outside Ringringa, and are not redeemable for cash except where our
               Refund Policy or applicable law requires a refund.
             </p>
             <p className="mt-2">
@@ -101,7 +101,7 @@ function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">6. Phone Numbers</h2>
             <p>
-              If Eginta offers phone number purchase, rental, or inbound calling features, numbers
+              If Ringringa offers phone number purchase, rental, or inbound calling features, numbers
               remain subject to carrier availability, regional rules, documentation requirements,
               and provider approval. A number is not guaranteed until payment is verified and the
               provider confirms provisioning. Releasing a number may be permanent and may stop
@@ -124,7 +124,7 @@ function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">8. Emergency Calls</h2>
             <p>
-              Eginta is not a replacement for a traditional phone line and must not be used for
+              Ringringa is not a replacement for a traditional phone line and must not be used for
               emergency calls. We cannot guarantee access to emergency services, accurate location
               routing, or uninterrupted emergency connectivity. Use a traditional phone service for
               emergencies.
@@ -159,10 +159,10 @@ function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">11. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, Eginta is not liable for indirect, incidental,
+              To the maximum extent permitted by law, Ringringa is not liable for indirect, incidental,
               special, consequential, or punitive damages, loss of profits, loss of data, missed
               calls, carrier failures, destination blocking, or losses caused by your misuse of the
-              service. Our total liability for a claim is limited to the amount you paid to Eginta
+              service. Our total liability for a claim is limited to the amount you paid to Ringringa
               for the affected service in the 30 days before the claim, except where law requires a
               different limit.
             </p>
@@ -173,7 +173,7 @@ function TermsPage() {
             <p>
               We may update these Terms when our service, pricing, providers, regulations, or
               business requirements change. Updates will be posted on this page with a new last
-              updated date. Continued use of Eginta after an update means you accept the updated
+              updated date. Continued use of Ringringa after an update means you accept the updated
               Terms.
             </p>
           </section>
@@ -181,10 +181,10 @@ function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">13. Contact</h2>
             <p>
-              For questions about these Terms, billing, refunds, or service access, contact Eginta
+              For questions about these Terms, billing, refunds, or service access, contact Ringringa
               support at{" "}
-              <a href="mailto:support@eginta.com" className="text-primary hover:underline">
-                support@eginta.com
+              <a href="mailto:prajwalshindeee@gmail.com" className="text-primary hover:underline">
+                prajwalshindeee@gmail.com
               </a>{" "}
               or use our{" "}
               <Link to="/contact" className="text-primary hover:underline">

@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 
-const SCRIPT_KEY = "eginta.callScript";
-const NOTES_KEY = "eginta.callNotes";
+const SCRIPT_KEY = "ringringa.callScript";
+const NOTES_KEY = "ringringa.callNotes";
 
 function useLocal(key: string) {
   const [val, setVal] = useState("");
@@ -125,7 +125,7 @@ export function CallNotesPanel({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `eginta-${kind}-${stamp}.txt`;
+    a.download = `ringringa-${kind}-${stamp}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`${kind === "script" ? "Script" : "Notes"} downloaded`);

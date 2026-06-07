@@ -34,6 +34,15 @@ function setSnapshot(session: Session | null) {
   emit();
 }
 
+function isRecoverableAuthError(error: unknown) {
+  const message =
+    typeof error === "object" && error && "message" in error
+      ? String((error as { message?: unknown }).message ?? "")
+      : "";
+
+  return /refresh token not found|user.*not.*found|invalid.*jwt|jwt.*expired/i.test(message);
+}
+
 async function clearInvalidLocalSession() {
   try {
     await supabase.auth.signOut({ scope: "local" });
@@ -65,26 +74,39 @@ export async function ensureAuthStore() {
 
   initPromise = supabase.auth
     .getSession()
-    .then(({ data: sessionData }) => {
-      if (snapshot.session && !sessionData.session) {
+    .then(async ({ data: sessionData }) => {
+      const session = sessionData.session;
+
+      if (snapshot.session && !session) {
         return snapshot;
       }
 
-      setSnapshot(sessionData.session);
+      if (session) {
+        const { data: userData, error } = await supabase.auth.getUser();
+        if (error || !userData.user || userData.user.id !== session.user.id) {
+          if (error && !isRecoverableAuthError(error)) {
+            console.error("Failed to validate auth session", error);
+          }
+          await clearInvalidLocalSession();
+          setSnapshot(null);
+          return snapshot;
+        }
+
+        setSnapshot({ ...session, user: userData.user });
+        return snapshot;
+      }
+
+      setSnapshot(null);
       return snapshot;
     })
     .catch(async (error) => {
       console.error("Failed to hydrate auth session", error);
 
-      const isInvalidRefreshToken =
-        typeof error?.message === "string" &&
-        error.message.toLowerCase().includes("refresh token not found");
-
       if (snapshot.session) {
         return snapshot;
       }
 
-      if (isInvalidRefreshToken) {
+      if (isRecoverableAuthError(error)) {
         await clearInvalidLocalSession();
       }
 

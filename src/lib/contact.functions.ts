@@ -34,11 +34,11 @@ function escapeHtml(value: string) {
 }
 
 function supportEmail() {
-  return envValue("SUPPORT_EMAIL") ?? "support@eginta.com";
+  return envValue("SUPPORT_EMAIL") ?? "prajwalshindeee@gmail.com";
 }
 
 function resendFromEmail() {
-  return envValue("RESEND_FROM_EMAIL") ?? "Eginta <noreply@eginta.com>";
+  return envValue("RESEND_FROM_EMAIL") ?? "Ringringa <prajwalshindeee@gmail.com>";
 }
 
 function resendApiKey() {
@@ -61,7 +61,7 @@ function messageText(data: ContactPayload) {
 function messageHtml(data: ContactPayload) {
   return `
     <div style="font-family:Inter,Arial,sans-serif;line-height:1.5;color:#111827">
-      <h2 style="margin:0 0 16px">New Eginta support message</h2>
+      <h2 style="margin:0 0 16px">New Ringringa support message</h2>
       <p style="white-space:pre-wrap;margin:0 0 20px">${escapeHtml(data.message)}</p>
       <table style="border-collapse:collapse;font-size:14px">
         <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Name</td><td>${escapeHtml(data.name)}</td></tr>
@@ -80,13 +80,13 @@ export const sendContactSupportEmail = createServerFn({ method: "POST" })
       headers: {
         Authorization: `Bearer ${resendApiKey()}`,
         "Content-Type": "application/json",
-        "User-Agent": "eginta-contact-form/1.0",
+        "User-Agent": "ringringa-contact-form/1.0",
       },
       body: JSON.stringify({
         from: resendFromEmail(),
         to: [supportEmail()],
         reply_to: data.email,
-        subject: `[Eginta Support] ${data.subject}`,
+        subject: `[Ringringa Support] ${data.subject}`,
         text: messageText(data),
         html: messageHtml(data),
       }),

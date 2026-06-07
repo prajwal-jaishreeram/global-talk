@@ -15,7 +15,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
         <Link to="/" className="flex min-w-0 items-center gap-3 font-semibold">
           <img src={logoUrl} alt="" className="h-10 w-10 shrink-0 object-contain sm:h-10 sm:w-10" />
-          <span className="truncate text-xl font-bold tracking-tight sm:text-2xl">Eginta</span>
+          <span className="truncate text-xl font-bold tracking-tight sm:text-2xl">Ringringa</span>
         </Link>
         <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.035] p-1 text-sm text-muted-foreground shadow-sm md:flex">
           <Link

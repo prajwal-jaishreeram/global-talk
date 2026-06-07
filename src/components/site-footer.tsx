@@ -9,7 +9,7 @@ export function SiteFooter() {
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
               <img src={logoUrl} alt="" className="h-9 w-9 object-contain" />
-              Eginta
+              Ringringa
             </Link>
             <p className="mt-3 text-sm text-muted-foreground">
               Browser-native international calling for individuals and teams.
@@ -87,7 +87,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
-          <div>© {new Date().getFullYear()} Eginta. All rights reserved.</div>
+          <div>© {new Date().getFullYear()} Ringringa. All rights reserved.</div>
           <div className="flex gap-4">
             <Link to="/terms" className="hover:text-foreground">
               Terms

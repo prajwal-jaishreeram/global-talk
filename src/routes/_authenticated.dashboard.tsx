@@ -103,13 +103,13 @@ function DashboardLayout() {
       >
         <div className={cn("mb-6 flex items-center", collapsed ? "flex-col gap-3" : "justify-between")}>
           {collapsed ? (
-            <Link to="/" className="grid h-9 w-9 place-items-center" title="Eginta">
+            <Link to="/" className="grid h-9 w-9 place-items-center" title="Ringringa">
               <img src={logoUrl} alt="" className="h-8 w-8 object-contain" />
             </Link>
           ) : (
             <Link to="/" className="flex min-w-0 items-center gap-2.5 font-bold tracking-tight">
               <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
-              <span className="truncate text-lg">Eginta</span>
+              <span className="truncate text-lg">Ringringa</span>
             </Link>
           )}
           <button
@@ -204,7 +204,7 @@ function DashboardLayout() {
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur md:hidden">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
-            <span className="text-lg font-bold tracking-tight">Eginta</span>
+            <span className="text-lg font-bold tracking-tight">Ringringa</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link
@@ -230,7 +230,7 @@ function DashboardLayout() {
               <div className="mb-6 flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-2 font-semibold">
                   <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
-                  <span className="text-lg font-bold tracking-tight">Eginta</span>
+                  <span className="text-lg font-bold tracking-tight">Ringringa</span>
                 </Link>
                 <button
                   onClick={() => setMobileOpen(false)}

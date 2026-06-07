@@ -76,13 +76,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Eginta" },
+      { title: "Ringringa" },
       {
         name: "description",
         content: "Browser-native international calling for individuals and teams.",
       },
-      { name: "author", content: "Eginta" },
-      { property: "og:title", content: "Eginta" },
+      { name: "author", content: "Ringringa" },
+      { property: "og:title", content: "Ringringa" },
       {
         property: "og:description",
         content: "Browser-native international calling for individuals and teams.",

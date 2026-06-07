@@ -29,7 +29,7 @@ import { formatMoneyExact } from "@/lib/rates";
 import { useCreditBalance } from "@/hooks/use-credit-balance";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings - Eginta" }] }),
+  head: () => ({ meta: [{ title: "Settings - Ringringa" }] }),
   component: SettingsPage,
 });
 

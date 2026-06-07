@@ -10,8 +10,8 @@ import { sendContactSupportEmail } from "@/lib/contact.functions";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact - Eginta" },
-      { name: "description", content: "Get in touch with the Eginta team." },
+      { title: "Contact - Ringringa" },
+      { name: "description", content: "Get in touch with the Ringringa team." },
     ],
   }),
   component: ContactPage,
@@ -66,7 +66,7 @@ function ContactPage() {
           <div className="order-2 lg:order-1">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
               <MessageSquare className="h-3.5 w-3.5" />
-              Contact Eginta
+              Contact Ringringa
             </span>
             <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
               Get clear answers before your next call.
@@ -78,7 +78,7 @@ function ContactPage() {
 
             <div className="mt-8 grid gap-3">
               <a
-                href="mailto:support@eginta.com"
+                href="mailto:prajwalshindeee@gmail.com"
                 className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-sm transition hover:border-primary/40 hover:bg-white/[0.055]"
               >
                 <span className="flex min-w-0 items-center gap-3">
@@ -88,7 +88,7 @@ function ContactPage() {
                   <span className="min-w-0">
                     <span className="block font-medium">Support inbox</span>
                     <span className="block truncate text-sm text-muted-foreground">
-                      support@eginta.com
+                      prajwalshindeee@gmail.com
                     </span>
                   </span>
                 </span>

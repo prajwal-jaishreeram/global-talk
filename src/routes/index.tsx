@@ -38,7 +38,7 @@ import { CountryFlag } from "@/components/country-flag";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Eginta - Browser-based international calling" },
+      { title: "Ringringa - Browser-based international calling" },
       {
         name: "description",
         content:
@@ -297,7 +297,7 @@ function HeroDialerInner() {
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
               Make clear international calls without apps, SIM swaps, or long-term carrier
-              contracts. Eginta gives teams a polished dialer, transparent rates, and prepaid
+              contracts. Ringringa gives teams a polished dialer, transparent rates, and prepaid
               control in one secure workspace.
             </p>
             <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:mt-6 sm:flex-row lg:justify-start">
@@ -598,7 +598,7 @@ function ForBusiness() {
             <Link to="/auth/signup">
               <Button>Start free trial</Button>
             </Link>
-            <a href="mailto:support@eginta.com">
+            <a href="mailto:prajwalshindeee@gmail.com">
               <Button variant="outline">Talk to sales</Button>
             </a>
           </div>
@@ -675,7 +675,7 @@ function WhyChooseUs() {
     <section id="why" className="border-t border-border/60 bg-card/30">
       <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why choose Eginta</h2>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why choose Ringringa</h2>
           <p className="mt-3 text-muted-foreground">
             Built by ex-telecom engineers who got tired of bloated softphones.
           </p>
@@ -701,7 +701,7 @@ function FAQ() {
   const qs = [
     {
       q: "Do I need to install anything?",
-      a: "No. Eginta runs entirely in your browser using WebRTC. Chrome, Edge, Safari and Firefox are all supported.",
+      a: "No. Ringringa runs entirely in your browser using WebRTC. Chrome, Edge, Safari and Firefox are all supported.",
     },
     {
       q: "How are calls priced?",
