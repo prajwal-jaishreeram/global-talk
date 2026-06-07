@@ -141,6 +141,43 @@ type CallState = "idle" | "connecting" | "ringing" | "active" | "ending";
 
 type VerifiedCallerId = { phone_number: string; status: string };
 
+const TELNYX_STATE_NAMES: Record<number, string> = {
+  0: "new",
+  1: "requesting",
+  2: "trying",
+  3: "recovering",
+  4: "ringing",
+  5: "answering",
+  6: "early",
+  7: "active",
+  8: "held",
+  9: "hangup",
+  10: "destroy",
+  11: "purge",
+};
+
+const TERMINAL_TELNYX_STATES = new Set([
+  "hangup",
+  "destroy",
+  "purge",
+  "bye",
+  "closed",
+  "ended",
+  "terminated",
+]);
+
+function normalizeTelnyxCallState(value: unknown) {
+  if (typeof value === "number") return TELNYX_STATE_NAMES[value] ?? String(value);
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_");
+}
+
+function isTerminalTelnyxCallState(value: unknown) {
+  return TERMINAL_TELNYX_STATES.has(normalizeTelnyxCallState(value));
+}
+
 function isVerifiedCallerId(phone: string, numbers: VerifiedCallerId[]) {
   return numbers.some(
     (n) => n.phone_number === phone && n.status.toLowerCase() === "verified",
@@ -589,6 +626,12 @@ function DialerPage() {
     }
   }
 
+  function finishProviderEndedCall() {
+    if (cleanupRunningRef.current) return;
+    setCallState("ending");
+    void cleanup(activeAtRef.current ? "completed" : "no_answer");
+  }
+
   function attachRemoteAudio(call: any) {
     const el = audioElRef.current;
     if (!el || !call) return;
@@ -609,6 +652,17 @@ function DialerPage() {
     const pc = call.peer?.instance as RTCPeerConnection | undefined | null;
     if (!pc || remoteTrackBindingsRef.current.has(pc)) return;
     remoteTrackBindingsRef.current.add(pc);
+    const finishIfPeerClosed = () => {
+      if (
+        pc.connectionState === "closed" ||
+        pc.signalingState === "closed" ||
+        isTerminalTelnyxCallState(call.state)
+      ) {
+        finishProviderEndedCall();
+      }
+    };
+    pc.addEventListener("connectionstatechange", finishIfPeerClosed);
+    pc.addEventListener("signalingstatechange", finishIfPeerClosed);
     pc.addEventListener("track", (event) => {
       if (event.track.kind !== "audio") return;
       if (event.streams[0] && el.srcObject !== event.streams[0]) {
@@ -618,6 +672,7 @@ function DialerPage() {
       // before the SIP early-media event reaches us. Watch the track itself
       // so we kill the local ringback the instant real audio is flowing.
       event.track.addEventListener("unmute", markRemoteAudioHeard);
+      event.track.addEventListener("ended", finishIfPeerClosed);
       markRemoteAudioHeard();
       playRemoteAudio();
     });
@@ -1022,7 +1077,7 @@ function DialerPage() {
       client.on("telnyx.notification", (n: any) => {
         if (n?.type !== "callUpdate" || !n.call) return;
         attachRemoteAudio(n.call);
-        const s: string = n.call.state;
+        const s = normalizeTelnyxCallState(n.call.state);
         // Avoid re-rendering the (huge) dashboard tree on no-op updates.
         setTelnyxState((prev) => (prev === s ? prev : s));
         if (s === "active") {
@@ -1033,7 +1088,7 @@ function DialerPage() {
         } else if (s === "early") {
           attachRemoteAudio(n.call);
           setCallState((p) => (p === "ringing" ? p : "ringing"));
-        } else if (s === "hangup" || s === "destroy") {
+        } else if (isTerminalTelnyxCallState(n.call.state)) {
           // Surface why the provider ended the call so we can debug profile
           // issues. Common causes: 21 normal, 16 normal_clearing, 487 timeout,
           // 603 declined, 503 service_unavailable (no outbound profile).
@@ -1111,7 +1166,7 @@ function DialerPage() {
               }
             }
           }
-          cleanup(activeAtRef.current ? "completed" : "no_answer");
+          finishProviderEndedCall();
         } else if (s === "ringing" || s === "trying" || s === "requesting") {
           setCallState((p) => (p === "ringing" ? p : "ringing"));
         }
