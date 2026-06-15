@@ -141,6 +141,21 @@ type CallState = "idle" | "connecting" | "ringing" | "active" | "ending";
 
 type VerifiedCallerId = { phone_number: string; status: string };
 
+type WindowWithLegacyAudioContext = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
+
+type WebrtcCallLike = {
+  localStream?: MediaStream;
+  remoteStream?: MediaStream;
+  state?: unknown;
+  peer?: { instance?: RTCPeerConnection | null };
+  muteAudio?: () => void;
+  unmuteAudio?: () => void;
+  updateMedia?: (options: { iceRestart?: boolean }) => void;
+};
+
 const TELNYX_STATE_NAMES: Record<number, string> = {
   0: "new",
   1: "requesting",
@@ -165,6 +180,8 @@ const TERMINAL_TELNYX_STATES = new Set([
   "ended",
   "terminated",
 ]);
+
+const SPEAKER_BOOST_GAIN = 1.8;
 
 function normalizeTelnyxCallState(value: unknown) {
   if (typeof value === "number") return TELNYX_STATE_NAMES[value] ?? String(value);
@@ -220,6 +237,7 @@ const BUY_NUMBER_COUNTRIES = [
   { code: "US", dial: "+1" },
   { code: "CA", dial: "+1" },
   { code: "GB", dial: "+44" },
+  { code: "GR", dial: "+30" },
   { code: "AU", dial: "+61" },
   { code: "DE", dial: "+49" },
   { code: "FR", dial: "+33" },
@@ -271,6 +289,7 @@ function DialerPage() {
   const [contactCompany, setContactCompany] = useState("");
   const [telnyxState, setTelnyxState] = useState<string>("");
   const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
   const secondsRef = useRef(0);
   const timerListenersRef = useRef<Set<(s: number) => void>>(new Set());
   const setSeconds = (s: number) => {
@@ -280,6 +299,8 @@ function DialerPage() {
   const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
   const [speakerId, setSpeakerId] = useState<string>("default");
   const [speakerOn, setSpeakerOn] = useState(false);
+  const speakerIdRef = useRef("default");
+  const speakerOnRef = useRef(false);
   const lastDefaultVolumeRef = useRef<number>(1);
   const [callFrom, setCallFrom] = useState<{ kind: "public" | "custom"; number?: string }>({
     kind: "public",
@@ -328,6 +349,12 @@ function DialerPage() {
   const callStartLockedRef = useRef(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
+  const remoteAudioBoostRef = useRef<{
+    ctx: AudioContext;
+    gain: GainNode;
+    source: MediaStreamAudioSourceNode | null;
+    stream: MediaStream | null;
+  } | null>(null);
   const heardRemoteAudioRef = useRef(false);
   const remoteTrackBindingsRef = useRef<WeakSet<object>>(new WeakSet());
 
@@ -537,6 +564,7 @@ function DialerPage() {
       try {
         clientRef.current?.disconnect?.();
       } catch {}
+      stopRemoteAudioBoost();
       stopRingback();
     };
   }, []);
@@ -549,15 +577,21 @@ function DialerPage() {
     // populate automatically once Telnyx grants mic permission.
     try {
       const devs = await navigator.mediaDevices.enumerateDevices();
-      setSpeakers(devs.filter((d) => d.kind === "audiooutput"));
+      const audioOutputs = devs.filter((d) => d.kind === "audiooutput");
+      setSpeakers(audioOutputs);
+      return audioOutputs;
     } catch (e) {
       console.warn("enumerateDevices failed", e);
+      return [] as MediaDeviceInfo[];
     }
   }
 
   async function applySpeaker(id: string) {
+    speakerIdRef.current = id;
     setSpeakerId(id);
-    const el = audioElRef.current as any;
+    const el = audioElRef.current as
+      | (HTMLAudioElement & { setSinkId?: (sinkId: string) => Promise<void> })
+      | null;
     if (el?.setSinkId) {
       try {
         await el.setSinkId(id);
@@ -565,10 +599,117 @@ function DialerPage() {
         console.warn("setSinkId failed", e);
       }
     }
+    const boost = remoteAudioBoostRef.current?.ctx as
+      | (AudioContext & { setSinkId?: (sinkId: string) => Promise<void> })
+      | undefined;
+    if (boost?.setSinkId) {
+      try {
+        await boost.setSinkId(id);
+      } catch (e) {
+        console.warn("AudioContext setSinkId failed", e);
+      }
+    }
+    try {
+      if (clientRef.current) clientRef.current.speaker = id;
+    } catch (e) {
+      console.warn("Telnyx speaker switch failed", e);
+    }
+  }
+
+  function getRemoteAudioStream() {
+    const src = audioElRef.current?.srcObject;
+    return typeof MediaStream !== "undefined" && src instanceof MediaStream ? src : null;
+  }
+
+  function ensureRemoteAudioBoost(stream?: MediaStream | null) {
+    if (typeof window === "undefined") return false;
+    const remoteStream = stream ?? getRemoteAudioStream();
+    const audioWindow = window as WindowWithLegacyAudioContext;
+    const AudioContextCtor: typeof AudioContext | undefined =
+      audioWindow.AudioContext ?? audioWindow.webkitAudioContext;
+    if (!AudioContextCtor) return false;
+
+    let boost = remoteAudioBoostRef.current;
+    if (!boost || boost.ctx.state === "closed") {
+      const ctx = new AudioContextCtor();
+      const gain = ctx.createGain();
+      gain.gain.value = SPEAKER_BOOST_GAIN;
+      gain.connect(ctx.destination);
+      boost = { ctx, gain, source: null, stream: null };
+      remoteAudioBoostRef.current = boost;
+      void applySpeaker(speakerIdRef.current);
+    }
+
+    boost.gain.gain.value = SPEAKER_BOOST_GAIN;
+    if (remoteStream && boost.stream !== remoteStream) {
+      try {
+        boost.source?.disconnect();
+      } catch (e) {
+        console.warn("Audio boost source disconnect failed", e);
+      }
+      try {
+        boost.source = boost.ctx.createMediaStreamSource(remoteStream);
+        boost.stream = remoteStream;
+        boost.source.connect(boost.gain);
+      } catch (e) {
+        console.warn("Audio boost source setup failed", e);
+        boost.source = null;
+        boost.stream = null;
+      }
+    }
+
+    if (boost.ctx.state === "suspended") {
+      void boost.ctx.resume().catch((e: unknown) => console.warn("Audio boost resume failed", e));
+    }
+
+    return Boolean(boost.source);
+  }
+
+  function stopRemoteAudioBoost() {
+    const boost = remoteAudioBoostRef.current;
+    remoteAudioBoostRef.current = null;
+    if (!boost) return;
+    try {
+      boost.source?.disconnect();
+    } catch (e) {
+      console.warn("Audio boost source disconnect failed", e);
+    }
+    try {
+      boost.gain.disconnect();
+    } catch (e) {
+      console.warn("Audio boost gain disconnect failed", e);
+    }
+    if (boost.ctx.state !== "closed") {
+      void boost.ctx.close().catch((e: unknown) => console.warn("Audio boost close failed", e));
+    }
+  }
+
+  function setMutedState(nextMuted: boolean) {
+    mutedRef.current = nextMuted;
+    setMuted(nextMuted);
+  }
+
+  function setSpeakerState(nextSpeakerOn: boolean) {
+    speakerOnRef.current = nextSpeakerOn;
+    setSpeakerOn(nextSpeakerOn);
+  }
+
+  function syncRemoteAudioPlayback() {
+    const el = audioElRef.current;
+    if (!el) return;
+    if (speakerOnRef.current) {
+      el.volume = 1;
+      const boosted = ensureRemoteAudioBoost();
+      el.muted = boosted;
+    } else {
+      stopRemoteAudioBoost();
+      el.muted = false;
+      if (el.volume == null || el.volume < 0.8) el.volume = 0.9;
+    }
   }
 
   // Speakerphone toggle: when ON, push the remote audio volume to max so it
-  // feels "loud" like a phone speaker. When OFF, restore the previous volume.
+  // feels "loud" like a phone speaker. When OFF, restore normal playback.
   // On platforms that expose multiple output devices, we also try to switch
   // to a non-default speaker if available.
   async function toggleSpeaker() {
@@ -577,29 +718,26 @@ function DialerPage() {
       toast.error("Audio not ready yet");
       return;
     }
-    if (speakerOn) {
-      // turn OFF
+    if (speakerOnRef.current) {
       el.volume = lastDefaultVolumeRef.current;
-      setSpeakerOn(false);
+      setSpeakerState(false);
+      syncRemoteAudioPlayback();
+      playRemoteAudio();
       toast.message("Speaker off");
     } else {
-      // turn ON
-      lastDefaultVolumeRef.current = el.volume;
-      el.volume = 1;
-      // If a non-default speaker device is available and selectable, prefer it.
+      lastDefaultVolumeRef.current = el.volume > 0 ? el.volume : 0.9;
+      setSpeakerState(true);
       try {
-        if (speakers.length === 0) await loadSpeakers();
-        const candidates = (speakers.length ? speakers : [])
+        const availableSpeakers = speakers.length > 0 ? speakers : await loadSpeakers();
+        const candidates = availableSpeakers
           .map((s) => s.deviceId)
           .filter((id) => id && id !== "default" && id !== "communications");
-        if (candidates[0] && (el as any).setSinkId) {
-          await (el as any).setSinkId(candidates[0]);
-          setSpeakerId(candidates[0]);
-        }
+        if (candidates[0]) await applySpeaker(candidates[0]);
       } catch (e) {
         console.warn("speaker switch failed", e);
       }
-      setSpeakerOn(true);
+      syncRemoteAudioPlayback();
+      playRemoteAudio();
       toast.message("Speaker on");
     }
   }
@@ -616,8 +754,7 @@ function DialerPage() {
   function playRemoteAudio() {
     const el = audioElRef.current;
     if (!el) return;
-    el.muted = false;
-    el.volume = speakerOn ? 1 : Math.max(el.volume || 0.8, 0.8);
+    syncRemoteAudioPlayback();
     const playPromise = el.play?.();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch((e: unknown) => {
@@ -632,7 +769,45 @@ function DialerPage() {
     void cleanup(activeAtRef.current ? "completed" : "no_answer");
   }
 
-  function attachRemoteAudio(call: any) {
+  function getLocalAudioTracks(call: WebrtcCallLike) {
+    const tracks = new Set<MediaStreamTrack>();
+    const localStream = call?.localStream as MediaStream | undefined;
+    try {
+      localStream?.getAudioTracks?.().forEach((track) => tracks.add(track));
+    } catch (e) {
+      console.warn("Could not read local audio stream tracks", e);
+    }
+    const pc = call?.peer?.instance as RTCPeerConnection | undefined | null;
+    try {
+      pc?.getSenders?.().forEach((sender) => {
+        if (sender.track?.kind === "audio") tracks.add(sender.track);
+      });
+    } catch (e) {
+      console.warn("Could not read outbound audio tracks", e);
+    }
+    return [...tracks];
+  }
+
+  function applyMuteToCall(call: WebrtcCallLike | null | undefined, nextMuted = mutedRef.current) {
+    if (!call) return false;
+    let applied = false;
+    try {
+      if (nextMuted) call.muteAudio?.();
+      else call.unmuteAudio?.();
+      applied = true;
+    } catch (e) {
+      console.warn("Telnyx mute toggle failed", e);
+    }
+
+    const tracks = getLocalAudioTracks(call);
+    for (const track of tracks) {
+      track.enabled = !nextMuted;
+      applied = true;
+    }
+    return applied;
+  }
+
+  function attachRemoteAudio(call: WebrtcCallLike) {
     const el = audioElRef.current;
     if (!el || !call) return;
     const stream = call.remoteStream as MediaStream | undefined;
@@ -642,11 +817,11 @@ function DialerPage() {
     // A real phone always plays whatever audio the carrier sends — ringback,
     // busy, "the number you have called", iPhone voicemail. So make sure the
     // <audio> sink is unmuted and at audible volume every time we (re)attach.
-    el.muted = false;
-    if (!speakerOn && (el.volume == null || el.volume < 0.8)) el.volume = 0.9;
+    syncRemoteAudioPlayback();
     if (stream?.getAudioTracks().length) {
       markRemoteAudioHeard();
     }
+    applyMuteToCall(call, mutedRef.current);
     playRemoteAudio();
 
     const pc = call.peer?.instance as RTCPeerConnection | undefined | null;
@@ -686,10 +861,10 @@ function DialerPage() {
         try {
           // Best-effort ICE restart. Both the SDK helper and the native API
           // exist depending on version, so try them in order.
-          if (typeof (call as any).updateMedia === "function") {
-            (call as any).updateMedia({ iceRestart: true });
-          } else if (typeof (pc as any).restartIce === "function") {
-            (pc as any).restartIce();
+          if (typeof call.updateMedia === "function") {
+            call.updateMedia({ iceRestart: true });
+          } else if (typeof pc.restartIce === "function") {
+            pc.restartIce();
           }
         } catch (e) {
           console.warn("ICE restart failed", e);
@@ -816,7 +991,9 @@ function DialerPage() {
     try {
       client?.disconnect?.();
     } catch {}
+    stopRemoteAudioBoost();
     if (audioElRef.current) {
+      audioElRef.current.muted = false;
       audioElRef.current.srcObject = null;
     }
     if (id) {
@@ -852,8 +1029,8 @@ function DialerPage() {
     setCallState("idle");
     setTelnyxState("");
     setSeconds(0);
-    setMuted(false);
-    setSpeakerOn(false);
+    setMutedState(false);
+    setSpeakerState(false);
     cleanupRunningRef.current = false;
   }
 
@@ -1037,6 +1214,7 @@ function DialerPage() {
         logLevel: "warn" as any,
       } as any);
       clientRef.current = client;
+      void applySpeaker(speakerIdRef.current);
 
       client.on("telnyx.ready", () => {
         if (clientRef.current !== client || callRef.current || cleanupRunningRef.current) return;
@@ -1049,6 +1227,7 @@ function DialerPage() {
             autoGainControl: true,
           } as any,
           remoteElement: "telnyx-remote-audio",
+          speakerId: speakerIdRef.current,
           // Always pass the intended caller ID so connection-level defaults do
           // not replace a verified caller ID selection.
           ...(callerIdForCall
@@ -1059,6 +1238,7 @@ function DialerPage() {
             : {}),
         });
         callRef.current = call;
+        applyMuteToCall(call, mutedRef.current);
         attachRemoteAudio(call);
         setCallState("ringing");
       });
@@ -1203,11 +1383,9 @@ function DialerPage() {
   function toggleMute() {
     const call = callRef.current;
     if (!call) return;
-    try {
-      if (muted) call.unmuteAudio?.();
-      else call.muteAudio?.();
-      setMuted((m) => !m);
-    } catch {}
+    const nextMuted = !mutedRef.current;
+    setMutedState(nextMuted);
+    applyMuteToCall(call, nextMuted);
   }
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
@@ -1468,7 +1646,9 @@ function DialerPage() {
                     className="flex min-w-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.045] px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-white/[0.08] disabled:opacity-50 sm:gap-1.5 sm:px-2.5"
                   >
                     <CountryFlag code={country} />
-                    <span className="font-mono text-xs">+{callingCode}</span>
+                    <span className="font-mono text-xs font-semibold text-foreground">
+                      +{callingCode}
+                    </span>
                     <ChevronsUpDown className="hidden h-3 w-3 opacity-60 sm:block" />
                   </button>
                 </PopoverTrigger>
@@ -1494,10 +1674,10 @@ function DialerPage() {
                             }}
                           >
                             <CountryFlag code={c.code} className="mr-2" />
-                            <span className="w-6 text-xs font-semibold text-foreground">
+                            <span className="w-6 text-xs font-semibold text-foreground group-data-[selected=true]:text-accent-foreground">
                               {c.code}
                             </span>
-                            <span className="font-mono text-xs text-muted-foreground">
+                            <span className="font-mono text-xs font-semibold text-foreground/80 group-data-[selected=true]:text-accent-foreground">
                               +{c.dial}
                             </span>
                             <span className="ml-3 flex-1 truncate">{c.name}</span>
@@ -1525,6 +1705,11 @@ function DialerPage() {
                   }
                 }}
                 onKeyDown={(e) => {
+                  if (e.key === "Backspace" && !inCall && (raw || (alpha && alphaInput))) {
+                    e.preventDefault();
+                    backspace();
+                    return;
+                  }
                   if (e.key === "Enter" && !inCall && isValid) {
                     e.preventDefault();
                     startCall();
@@ -1960,10 +2145,17 @@ function DialerPage() {
               </SelectTrigger>
               <SelectContent>
                 {BUY_NUMBER_COUNTRIES.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>
+                  <SelectItem key={c.code} value={c.code} className="group">
                     <CountryFlag code={c.code} className="mr-2" />
-                    <span className="w-6 text-xs font-semibold text-foreground">{c.code}</span>{" "}
-                    <span className="font-mono text-xs text-muted-foreground">{c.dial}</span>
+                    <span className="w-6 text-xs font-semibold text-foreground group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {c.code}
+                    </span>{" "}
+                    <span className="font-mono text-xs font-semibold text-foreground/85 group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {c.dial}
+                    </span>
+                    <span className="ml-1 truncate font-medium text-foreground/90 group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {countryName(c.code)}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
