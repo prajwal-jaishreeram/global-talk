@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PaginationFooter } from "@/components/pagination-footer";
+import { ConfirmAction } from "@/components/confirm-action";
 
 export const Route = createFileRoute("/_authenticated/dashboard/contacts")({
   head: () => ({ meta: [{ title: "Contacts — Ringringa" }] }),
@@ -71,6 +72,7 @@ function ContactsPage() {
   const [editing, setEditing] = useState<Contact | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const [tagsOpen, setTagsOpen] = useState(false);
   const [bulkTags, setBulkTags] = useState("");
@@ -190,7 +192,6 @@ function ContactsPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this contact?")) return;
     const { error } = await supabase.from("contacts").delete().eq("id", id);
     if (error) return toast.error("Delete failed", { description: error.message });
     setSelected((s) => {
@@ -218,49 +219,75 @@ function ContactsPage() {
   }
 
   async function importCsv(file: File) {
-    const text = await file.text();
-    const rows = parseCsv(text);
-    if (rows.length === 0) {
-      toast.error("CSV is empty");
+    if (!user) {
+      toast.error("Sign in before importing contacts");
       return;
     }
-    const header = rows[0].map((h) => h.toLowerCase().trim());
-    const idx = (k: string) => header.indexOf(k);
-    const cName = idx("name");
-    const cPhone = ["phone", "number", "mobile"].map(idx).find((i) => i >= 0) ?? -1;
-    const cCompany = idx("company");
-    const cEmail = idx("email");
-    const cWebsite = idx("website");
-    const cTags = idx("tags");
-    const cNote = ["note", "notes"].map(idx).find((i) => i >= 0) ?? -1;
-    if (cName < 0 && cPhone < 0) {
-      toast.error("CSV must have a 'name' or 'phone' column");
-      return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      if (rows.length === 0) {
+        toast.error("CSV is empty");
+        return;
+      }
+      const header = rows[0].map(normalizeCsvHeader);
+      const findColumn = (aliases: string[]) => aliases.map((k) => header.indexOf(k)).find((i) => i >= 0) ?? -1;
+      const cName = findColumn(["name", "full name", "contact name", "customer name"]);
+      const cFirstName = findColumn(["first name", "firstname", "given name"]);
+      const cLastName = findColumn(["last name", "lastname", "surname", "family name"]);
+      const cPhone = findColumn(["phone", "number", "mobile", "phone number", "mobile number", "telephone", "tel"]);
+      const cCompany = findColumn(["company", "organization", "organisation"]);
+      const cEmail = findColumn(["email", "email address", "e mail"]);
+      const cWebsite = findColumn(["website", "url", "site"]);
+      const cTags = findColumn(["tags", "tag", "labels", "groups"]);
+      const cNote = findColumn(["note", "notes"]);
+      if (cName < 0 && cFirstName < 0 && cLastName < 0 && cPhone < 0) {
+        toast.error("CSV must have a name or phone column");
+        return;
+      }
+
+      const payload = rows
+        .slice(1)
+        .filter((r) => r.some((v) => v.trim() !== ""))
+        .map((r) => {
+          const name =
+            cName >= 0
+              ? cleanCsvCell(r[cName])
+              : [cleanCsvCell(r[cFirstName]), cleanCsvCell(r[cLastName])].filter(Boolean).join(" ");
+          const phone = cleanCsvCell(r[cPhone]);
+          return {
+            user_id: user.id,
+            name,
+            phone,
+            company: cCompany >= 0 ? cleanCsvCell(r[cCompany]) || null : null,
+            email: cEmail >= 0 ? cleanCsvCell(r[cEmail]) || null : null,
+            website: cWebsite >= 0 ? cleanCsvCell(r[cWebsite]) || null : null,
+            tags:
+              cTags >= 0
+                ? (r[cTags] ?? "").split(/[,;|]/).map((t) => t.trim()).filter(Boolean)
+                : [],
+            note: cNote >= 0 ? cleanCsvCell(r[cNote]) || null : null,
+          };
+        })
+        .filter((row) => row.name || row.phone);
+      if (payload.length === 0) {
+        toast.error("No contacts found. Each imported row needs a name or phone number.");
+        return;
+      }
+      const { error } = await supabase.from("contacts").insert(payload);
+      if (error) {
+        toast.error("Import failed", { description: error.message });
+        return;
+      }
+      toast.success(`Imported ${payload.length} contacts`);
+      await load();
+    } catch (error) {
+      toast.error("Import failed", { description: error instanceof Error ? error.message : "Could not read this CSV file." });
+    } finally {
+      setImporting(false);
     }
-    const payload = rows
-      .slice(1)
-      .filter((r) => r.some((v) => v.trim() !== ""))
-      .map((r) => ({
-        user_id: user!.id,
-        name: (cName >= 0 ? r[cName] : "")?.trim() ?? "",
-        phone: (cPhone >= 0 ? r[cPhone] : "")?.trim() ?? "",
-        company: cCompany >= 0 ? r[cCompany]?.trim() || null : null,
-        email: cEmail >= 0 ? r[cEmail]?.trim() || null : null,
-        website: cWebsite >= 0 ? r[cWebsite]?.trim() || null : null,
-        tags:
-          cTags >= 0
-            ? (r[cTags] ?? "").split(/[,;|]/).map((t) => t.trim()).filter(Boolean)
-            : [],
-        note: cNote >= 0 ? r[cNote]?.trim() || null : null,
-      }));
-    if (payload.length === 0) {
-      toast.error("No rows to import");
-      return;
-    }
-    const { error } = await supabase.from("contacts").insert(payload);
-    if (error) return toast.error("Import failed", { description: error.message });
-    toast.success(`Imported ${payload.length} contacts`);
-    await load();
   }
 
   async function applyBulkTags() {
@@ -311,6 +338,7 @@ function ContactsPage() {
             type="file"
             accept=".csv,text/csv"
             className="hidden"
+            disabled={importing}
             onChange={async (e) => {
               const f = e.target.files?.[0];
               if (f) {
@@ -320,7 +348,7 @@ function ContactsPage() {
             }}
           />
           <span className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground sm:w-auto">
-            <Upload className="h-4 w-4" /> Import CSV
+            <Upload className="h-4 w-4" /> {importing ? "Importing..." : "Import CSV"}
           </span>
         </label>
         <Button
@@ -595,13 +623,21 @@ function ContactsPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => remove(c.id)}
-                          className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          title="Delete"
+                        <ConfirmAction
+                          title="Delete contact?"
+                          description="This contact will be removed from your saved list. Call history and billing records are not affected."
+                          confirmLabel="Delete contact"
+                          tone="destructive"
+                          onConfirm={() => void remove(c.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          <button
+                            type="button"
+                            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </ConfirmAction>
                       </div>
                     </td>
                   </tr>
@@ -727,6 +763,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 // Minimal CSV parser supporting quoted fields, commas, and escaped quotes.
+function cleanCsvCell(value: string | undefined): string {
+  return (value ?? "").trim();
+}
+
+function normalizeCsvHeader(value: string): string {
+  return value.replace(/^\uFEFF/, "").trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+}
+
 function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];

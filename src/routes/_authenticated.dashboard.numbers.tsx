@@ -24,10 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CountryFlag } from "@/components/country-flag";
+import { ConfirmAction } from "@/components/confirm-action";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/numbers")({
-  head: () => ({ meta: [{ title: "Phone numbers — Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Phone numbers - Ringringa" }] }),
   component: NumbersPage,
 });
 
@@ -51,6 +52,7 @@ const COUNTRIES: { code: string; label: string; dial: string }[] = [
   { code: "US", label: "United States", dial: "+1" },
   { code: "CA", label: "Canada", dial: "+1" },
   { code: "GB", label: "United Kingdom", dial: "+44" },
+  { code: "GR", label: "Greece", dial: "+30" },
   { code: "AU", label: "Australia", dial: "+61" },
   { code: "DE", label: "Germany", dial: "+49" },
   { code: "FR", label: "France", dial: "+33" },
@@ -133,7 +135,7 @@ function NumbersPage() {
           theme: { color: "#3b82f6" },
           modal: {
             ondismiss: () => {
-              // User closed the modal — cancel the pending row.
+              // User closed the modal - cancel the pending row.
               cancelOrder({ data: { rowId: order.rowId } }).catch(() => {});
               reject(new Error("Payment cancelled"));
             },
@@ -171,12 +173,6 @@ function NumbersPage() {
   }
 
   async function release(id: string) {
-    if (
-      !confirm(
-        "Release this number? This removes it from your voice account too, so you'll stop being billed for it.",
-      )
-    )
-      return;
     try {
       await releaseFn({ data: { id } });
       setOwned((os) => os.filter((o) => o.id !== id));
@@ -208,11 +204,17 @@ function NumbersPage() {
               </SelectTrigger>
               <SelectContent>
                 {COUNTRIES.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>
+                  <SelectItem key={c.code} value={c.code} className="group">
                     <CountryFlag code={c.code} className="mr-2" />
-                    <span className="w-6 text-xs font-semibold text-foreground">{c.code}</span>{" "}
-                    <span className="font-mono text-xs text-muted-foreground">{c.dial}</span>{" "}
-                    <span className="text-muted-foreground">— {c.label}</span>
+                    <span className="w-6 text-xs font-semibold text-foreground group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {c.code}
+                    </span>{" "}
+                    <span className="font-mono text-xs font-semibold text-foreground/85 group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {c.dial}
+                    </span>
+                    <span className="ml-1 truncate font-medium text-foreground/90 group-focus:text-accent-foreground group-data-[highlighted]:text-accent-foreground">
+                      {c.label}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -300,17 +302,25 @@ function NumbersPage() {
                     <div>
                       <div className="font-medium">{formatNumber(n.phone_number)}</div>
                       <div className="text-xs text-muted-foreground">
-                        {n.country_code ?? "—"} · ${Number(n.monthly_cost).toFixed(2)}/month · {n.status}
+                        {n.country_code ?? "N/A"} / ${Number(n.monthly_cost).toFixed(2)}/month / {n.status}
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={() => release(n.id)}
-                    className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    title="Release"
+                  <ConfirmAction
+                    title="Release phone number?"
+                    description="This removes the number from your voice account and stops future billing for it."
+                    confirmLabel="Release number"
+                    tone="destructive"
+                    onConfirm={() => void release(n.id)}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    <button
+                      type="button"
+                      className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      title="Release"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </ConfirmAction>
                 </li>
               ))}
             </ul>

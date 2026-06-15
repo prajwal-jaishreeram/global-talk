@@ -83,8 +83,10 @@ export function RateCalculator({
                     <span className="w-6 text-xs font-semibold text-foreground">
                       {current.code}
                     </span>
-                    <span className="truncate">{current.name}</span>
-                    <span className="text-sm text-muted-foreground">+{current.dial}</span>
+                    <span className="truncate font-medium text-foreground">{current.name}</span>
+                    <span className="text-sm font-semibold text-foreground/80">
+                      +{current.dial}
+                    </span>
                   </span>
                   <ChevronDown className="h-4 w-4 shrink-0 text-primary" />
                 </button>
@@ -99,17 +101,22 @@ export function RateCalculator({
                         <CommandItem
                           key={c.code}
                           value={`${c.name} ${c.code} +${c.dial}`}
+                          className="group"
                           onSelect={() => {
                             setCountry(c.code);
                             setOpen(false);
                           }}
                         >
                           <CountryFlag code={c.code} className="mr-2" />
-                          <span className="w-6 text-xs font-semibold text-foreground">
+                          <span className="w-6 text-xs font-semibold text-foreground group-data-[selected=true]:text-accent-foreground">
                             {c.code}
                           </span>
-                          <span className="text-xs text-muted-foreground">+{c.dial}</span>
-                          <span className="ml-3 flex-1 truncate">{c.name}</span>
+                          <span className="font-mono text-xs font-semibold text-foreground/80 group-data-[selected=true]:text-accent-foreground">
+                            +{c.dial}
+                          </span>
+                          <span className="ml-3 flex-1 truncate font-medium text-foreground group-data-[selected=true]:text-accent-foreground">
+                            {c.name}
+                          </span>
                         </CommandItem>
                       ))}
                     </CommandGroup>
