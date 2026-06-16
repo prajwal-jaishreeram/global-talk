@@ -156,6 +156,15 @@ type WebrtcCallLike = {
   updateMedia?: (options: { iceRestart?: boolean }) => void;
 };
 
+type RemoteAudioBoostChain = {
+  ctx: AudioContext;
+  sourceStream: MediaStream | null;
+  source: MediaStreamAudioSourceNode | null;
+  gain: GainNode;
+  compressor: DynamicsCompressorNode;
+  destination: MediaStreamAudioDestinationNode;
+};
+
 const TELNYX_STATE_NAMES: Record<number, string> = {
   0: "new",
   1: "requesting",
@@ -182,7 +191,9 @@ const TERMINAL_TELNYX_STATES = new Set([
 ]);
 
 const HANDSET_VOLUME = 0.5;
-const SPEAKER_VOLUME = 0.88;
+const SPEAKER_VOLUME = 1;
+const HANDSET_REMOTE_GAIN = 1;
+const SPEAKER_REMOTE_GAIN = 2.25;
 const HANDSET_TONE_GAIN = 0.08;
 const SPEAKER_TONE_GAIN = 0.14;
 
@@ -341,6 +352,7 @@ function DialerPage() {
   const cleanupRunningRef = useRef(false);
   const callStartLockedRef = useRef(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const remoteAudioBoostRef = useRef<RemoteAudioBoostChain | null>(null);
   const ringCtxRef = useRef<{
     ctx: AudioContext;
     gain: GainNode;
@@ -632,10 +644,137 @@ function DialerPage() {
     setSpeakerOn(nextSpeakerOn);
   }
 
+  function currentRemoteAudioGain() {
+    return speakerOnRef.current ? SPEAKER_REMOTE_GAIN : HANDSET_REMOTE_GAIN;
+  }
+
+  function ensureRemoteAudioBoost() {
+    if (typeof window === "undefined") return null;
+    const existing = remoteAudioBoostRef.current;
+    if (existing && existing.ctx.state !== "closed") return existing;
+
+    const Ctx = ((window as any).AudioContext ?? (window as any).webkitAudioContext) as
+      | typeof AudioContext
+      | undefined;
+    if (!Ctx) return null;
+
+    try {
+      const ctx = new Ctx();
+      const gain = ctx.createGain();
+      const compressor = ctx.createDynamicsCompressor();
+      const destination = ctx.createMediaStreamDestination();
+
+      gain.gain.value = currentRemoteAudioGain();
+      compressor.threshold.value = -12;
+      compressor.knee.value = 18;
+      compressor.ratio.value = 8;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.25;
+
+      gain.connect(compressor);
+      compressor.connect(destination);
+
+      const chain = {
+        ctx,
+        sourceStream: null,
+        source: null,
+        gain,
+        compressor,
+        destination,
+      };
+      remoteAudioBoostRef.current = chain;
+      return chain;
+    } catch (e) {
+      console.warn("Remote audio boost unavailable", e);
+      return null;
+    }
+  }
+
+  function resumeRemoteAudioBoost() {
+    const chain = remoteAudioBoostRef.current;
+    if (!chain || chain.ctx.state !== "suspended") return;
+    chain.ctx.resume().catch((e) => {
+      console.warn("Remote audio boost resume failed", e);
+    });
+  }
+
+  function syncRemoteAudioBoostGain() {
+    const chain = remoteAudioBoostRef.current;
+    if (!chain || chain.ctx.state === "closed") return;
+    const nextGain = currentRemoteAudioGain();
+    try {
+      const now = chain.ctx.currentTime;
+      chain.gain.gain.cancelScheduledValues(now);
+      chain.gain.gain.setTargetAtTime(nextGain, now, 0.02);
+    } catch {
+      chain.gain.gain.value = nextGain;
+    }
+  }
+
+  function primeRemoteAudioBoost() {
+    ensureRemoteAudioBoost();
+    syncRemoteAudioBoostGain();
+    resumeRemoteAudioBoost();
+  }
+
+  function disposeRemoteAudioBoost() {
+    const chain = remoteAudioBoostRef.current;
+    if (!chain) return;
+    remoteAudioBoostRef.current = null;
+    try {
+      chain.source?.disconnect();
+    } catch {}
+    try {
+      chain.gain.disconnect();
+    } catch {}
+    try {
+      chain.compressor.disconnect();
+    } catch {}
+    try {
+      chain.destination.disconnect();
+    } catch {}
+    try {
+      void chain.ctx.close();
+    } catch {}
+  }
+
+  function getRemoteAudioPlaybackStream(stream: MediaStream) {
+    if (stream.getAudioTracks().length === 0) return stream;
+    const chain = ensureRemoteAudioBoost();
+    if (!chain) return stream;
+
+    try {
+      if (chain.sourceStream !== stream) {
+        try {
+          chain.source?.disconnect();
+        } catch {}
+        const source = chain.ctx.createMediaStreamSource(stream);
+        source.connect(chain.gain);
+        chain.source = source;
+        chain.sourceStream = stream;
+      }
+      syncRemoteAudioBoostGain();
+      resumeRemoteAudioBoost();
+      return chain.destination.stream;
+    } catch (e) {
+      console.warn("Remote audio boost attach failed", e);
+      return stream;
+    }
+  }
+
+  function setRemoteAudioStream(el: HTMLAudioElement, stream: MediaStream) {
+    const playbackStream = getRemoteAudioPlaybackStream(stream);
+    if (el.srcObject !== playbackStream) {
+      el.srcObject = playbackStream;
+    }
+  }
+
   function syncRemoteAudioPlayback() {
     const el = audioElRef.current;
     if (!el) return;
     el.defaultMuted = false;
+    syncRemoteAudioBoostGain();
+    resumeRemoteAudioBoost();
     if (speakerOnRef.current) {
       el.volume = SPEAKER_VOLUME;
       el.muted = false;
@@ -753,7 +892,7 @@ function DialerPage() {
     if (!el || !call) return;
     const stream = call.remoteStream as MediaStream | undefined;
     if (stream && el.srcObject !== stream) {
-      el.srcObject = stream;
+      setRemoteAudioStream(el, stream);
     }
     // A real phone always plays whatever audio the carrier sends — ringback,
     // busy, "the number you have called", iPhone voicemail. So make sure the
@@ -786,7 +925,7 @@ function DialerPage() {
     pc.addEventListener("track", (event) => {
       if (event.track.kind !== "audio") return;
       if (event.streams[0] && el.srcObject !== event.streams[0]) {
-        el.srcObject = event.streams[0];
+        setRemoteAudioStream(el, event.streams[0]);
       }
       // Some carriers (especially mobile voicemail) start sending RTP a beat
       // before the SIP early-media event reaches us. Watch the track itself
@@ -977,6 +1116,7 @@ function DialerPage() {
       audioElRef.current.muted = false;
       audioElRef.current.srcObject = null;
     }
+    disposeRemoteAudioBoost();
     if (id) {
       try {
         const res = await finalizeCallRecord({
@@ -1129,6 +1269,7 @@ function DialerPage() {
     // srcObject is a no-op success and grants us the playback permission we
     // need a few moments later when the Telnyx remoteStream attaches.
     if (audioElRef.current) {
+      primeRemoteAudioBoost();
       audioElRef.current.muted = false;
       audioElRef.current.volume = speakerOnRef.current ? SPEAKER_VOLUME : HANDSET_VOLUME;
       try {
