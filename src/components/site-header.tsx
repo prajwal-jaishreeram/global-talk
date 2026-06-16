@@ -12,10 +12,15 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
-        <Link to="/" className="flex min-w-0 items-center gap-3 font-semibold">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-10">
+        <Link
+          to="/"
+          className="flex min-w-0 flex-1 items-center gap-2 font-semibold sm:flex-none sm:gap-3"
+        >
           <img src={logoUrl} alt="" className="h-10 w-10 shrink-0 object-contain sm:h-10 sm:w-10" />
-          <span className="truncate text-xl font-bold tracking-tight sm:text-2xl">Ringringa</span>
+          <span className="whitespace-nowrap text-lg font-bold tracking-tight sm:text-2xl">
+            Ringringa
+          </span>
         </Link>
         <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.035] p-1 text-sm text-muted-foreground shadow-sm md:flex">
           <Link
@@ -52,15 +57,17 @@ export function SiteHeader() {
             Contact
           </Link>
         </nav>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeToggle className="h-10 w-10 rounded-xl sm:h-9 sm:w-9 sm:rounded-md" />
           {ready && isAuthenticated ? (
-            <Link to="/dashboard">
+            <Link to="/dashboard" aria-label="Make a call">
               <Button
                 size="sm"
                 className="h-10 rounded-xl px-3 text-sm shadow-sm shadow-primary/10 sm:h-8 sm:rounded-md sm:px-3 sm:text-xs"
+                aria-label="Make a call"
               >
-                <PhoneCall className="h-4 w-4" /> Make a call
+                <PhoneCall className="h-4 w-4" />
+                <span className="hidden sm:inline">Make a call</span>
               </Button>
             </Link>
           ) : (
@@ -75,7 +82,8 @@ export function SiteHeader() {
                   size="sm"
                   className="h-10 rounded-xl px-3 text-sm shadow-sm shadow-primary/10 sm:h-8 sm:rounded-md sm:px-3 sm:text-xs"
                 >
-                  Get started
+                  <span className="hidden min-[390px]:inline">Get started</span>
+                  <span className="min-[390px]:hidden">Start</span>
                 </Button>
               </Link>
             </>

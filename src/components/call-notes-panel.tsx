@@ -19,17 +19,26 @@ import { toast } from "sonner";
 const SCRIPT_KEY = "ringringa.callScript";
 const NOTES_KEY = "ringringa.callNotes";
 
+type NavigatorWithShare = Navigator & {
+  canShare?: (data?: ShareData) => boolean;
+  share?: (data?: ShareData) => Promise<void>;
+};
+
 function useLocal(key: string) {
   const [val, setVal] = useState("");
   useEffect(() => {
     try {
       setVal(window.localStorage.getItem(key) ?? "");
-    } catch {}
+    } catch {
+      // Storage can be unavailable in private browsing or locked-down webviews.
+    }
   }, [key]);
   useEffect(() => {
     try {
       window.localStorage.setItem(key, val);
-    } catch {}
+    } catch {
+      // Keep the in-memory value even when persistence is unavailable.
+    }
   }, [key, val]);
   return [val, setVal] as const;
 }
@@ -92,18 +101,24 @@ export function CallNotesPanel({
     if (!text) return toast.error(`${kind === "script" ? "Script" : "Notes"} is empty`);
     const title = kind === "script" ? "Call script" : "Call notes";
     const payload = { title, text };
+    const nav = typeof navigator !== "undefined" ? (navigator as NavigatorWithShare) : null;
     const canShare =
-      typeof navigator !== "undefined" &&
-      typeof navigator.share === "function" &&
-      (typeof (navigator as any).canShare !== "function" ||
-        (navigator as any).canShare(payload));
-    if (canShare) {
+      nav &&
+      typeof nav.share === "function" &&
+      (typeof nav.canShare !== "function" || nav.canShare(payload));
+    if (canShare && nav.share) {
       try {
-        await navigator.share(payload);
+        await nav.share(payload);
         return;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // User cancelled — don't fall back, don't error.
-        if (err?.name === "AbortError") return;
+        if (
+          err instanceof DOMException ||
+          (typeof err === "object" && err !== null && "name" in err)
+        ) {
+          const name = err instanceof DOMException ? err.name : String(err.name);
+          if (name === "AbortError") return;
+        }
         // Otherwise (NotAllowedError in iframes, etc.) fall through to clipboard.
       }
     }
@@ -176,11 +191,11 @@ export function CallNotesPanel({
   }
 
   return (
-    <aside className="flex w-full flex-col rounded-2xl border border-border bg-card/50 p-3 shadow-sm lg:max-w-[340px] lg:self-stretch">
+    <aside className="isolate flex w-full max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm lg:max-w-[340px] lg:self-stretch">
       <Tabs
         value={tab}
         onValueChange={(v) => setTab(v as "script" | "notes")}
-        className="flex flex-1 flex-col"
+        className="flex min-h-0 flex-1 flex-col"
       >
         <div className="flex items-center gap-2">
           <TabsList className="grid flex-1 grid-cols-2">
@@ -203,7 +218,7 @@ export function CallNotesPanel({
           )}
         </div>
 
-        <TabsContent value="script" className="mt-3 flex flex-1 flex-col gap-2">
+        <TabsContent value="script" className="mt-3 flex min-h-0 flex-1 flex-col gap-2">
           <p className="px-1 text-xs text-muted-foreground">
             Paste a script to read while on the call. Auto-saved to this browser.
           </p>
@@ -212,7 +227,7 @@ export function CallNotesPanel({
             value={script}
             onChange={(e) => setScript(e.target.value)}
             placeholder={`Hi, this is [your name] from [company]…\n\n• Reason for call\n• Key points\n• Closing line`}
-            className={`min-h-[320px] flex-1 resize-none font-sans text-sm leading-relaxed lg:min-h-[420px] ${
+            className={`min-h-[220px] flex-1 resize-none font-sans text-sm leading-relaxed sm:min-h-[320px] lg:min-h-[420px] ${
               inCall ? "text-base leading-7" : ""
             }`}
           />
@@ -281,7 +296,7 @@ export function CallNotesPanel({
           {clearConfirm("script")}
         </TabsContent>
 
-        <TabsContent value="notes" className="mt-3 flex flex-1 flex-col gap-2">
+        <TabsContent value="notes" className="mt-3 flex min-h-0 flex-1 flex-col gap-2">
           <p className="px-1 text-xs text-muted-foreground">
             Jot down notes during or after the call. Auto-saved locally.
           </p>
@@ -289,7 +304,7 @@ export function CallNotesPanel({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Call notes, action items, follow-ups…"
-            className="min-h-[320px] flex-1 resize-none text-sm leading-relaxed lg:min-h-[420px]"
+            className="min-h-[220px] flex-1 resize-none text-sm leading-relaxed sm:min-h-[320px] lg:min-h-[420px]"
           />
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{notes.length} chars · auto-saved</span>

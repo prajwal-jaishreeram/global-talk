@@ -129,7 +129,10 @@ function sanitizeDialInput(value: string, code: CountryCode) {
   return next;
 }
 
-function countryForDialPrefix(prefix: string, candidates?: Array<{ code: CountryCode; dial: string }>) {
+function countryForDialPrefix(
+  prefix: string,
+  candidates?: Array<{ code: CountryCode; dial: string }>,
+) {
   if (prefix === "1") return "US" as CountryCode;
   const match =
     candidates?.find((c) => c.dial === prefix)?.code ??
@@ -153,6 +156,8 @@ type WebrtcCallLike = {
   peer?: { instance?: RTCPeerConnection | null };
   muteAudio?: () => void;
   unmuteAudio?: () => void;
+  setAudioOutDevice?: (deviceId: string) => Promise<boolean>;
+  setSpeakerPhone?: (enabled: boolean) => void;
   updateMedia?: (options: { iceRestart?: boolean }) => void;
 };
 
@@ -181,7 +186,7 @@ const TERMINAL_TELNYX_STATES = new Set([
   "terminated",
 ]);
 
-const SPEAKER_BOOST_GAIN = 1.8;
+const SPEAKER_BOOST_GAIN = 2.2;
 
 function normalizeTelnyxCallState(value: unknown) {
   if (typeof value === "number") return TELNYX_STATE_NAMES[value] ?? String(value);
@@ -196,9 +201,7 @@ function isTerminalTelnyxCallState(value: unknown) {
 }
 
 function isVerifiedCallerId(phone: string, numbers: VerifiedCallerId[]) {
-  return numbers.some(
-    (n) => n.phone_number === phone && n.status.toLowerCase() === "verified",
-  );
+  return numbers.some((n) => n.phone_number === phone && n.status.toLowerCase() === "verified");
 }
 
 function looksLikeProviderPolicyBlock(input: {
@@ -209,12 +212,7 @@ function looksLikeProviderPolicyBlock(input: {
 }) {
   const code = Number(input.sipCode);
   const carrierCode = Number(input.causeCode);
-  const detail = [
-    input.cause,
-    input.causeCode,
-    input.sipCode,
-    input.sipReason,
-  ]
+  const detail = [input.cause, input.causeCode, input.sipCode, input.sipReason]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -296,8 +294,6 @@ function DialerPage() {
     secondsRef.current = s;
     timerListenersRef.current.forEach((fn) => fn(s));
   };
-  const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
-  const [speakerId, setSpeakerId] = useState<string>("default");
   const [speakerOn, setSpeakerOn] = useState(false);
   const speakerIdRef = useRef("default");
   const speakerOnRef = useRef(false);
@@ -578,7 +574,6 @@ function DialerPage() {
     try {
       const devs = await navigator.mediaDevices.enumerateDevices();
       const audioOutputs = devs.filter((d) => d.kind === "audiooutput");
-      setSpeakers(audioOutputs);
       return audioOutputs;
     } catch (e) {
       console.warn("enumerateDevices failed", e);
@@ -588,7 +583,6 @@ function DialerPage() {
 
   async function applySpeaker(id: string) {
     speakerIdRef.current = id;
-    setSpeakerId(id);
     const el = audioElRef.current as
       | (HTMLAudioElement & { setSinkId?: (sinkId: string) => Promise<void> })
       | null;
@@ -613,6 +607,31 @@ function DialerPage() {
       if (clientRef.current) clientRef.current.speaker = id;
     } catch (e) {
       console.warn("Telnyx speaker switch failed", e);
+    }
+    const call = callRef.current as WebrtcCallLike | null;
+    if (call?.setAudioOutDevice) {
+      try {
+        await call.setAudioOutDevice(id);
+      } catch (e) {
+        console.warn("Telnyx call speaker switch failed", e);
+      }
+    }
+  }
+
+  async function applySpeakerModeToCall(enabled: boolean, outputId = speakerIdRef.current) {
+    const call = callRef.current as WebrtcCallLike | null;
+    if (!call) return;
+    try {
+      call.setSpeakerPhone?.(enabled);
+    } catch (e) {
+      console.warn("Telnyx speakerphone toggle failed", e);
+    }
+    if (call.setAudioOutDevice && outputId) {
+      try {
+        await call.setAudioOutDevice(outputId);
+      } catch (e) {
+        console.warn("Telnyx call speaker switch failed", e);
+      }
     }
   }
 
@@ -697,10 +716,11 @@ function DialerPage() {
   function syncRemoteAudioPlayback() {
     const el = audioElRef.current;
     if (!el) return;
+    el.defaultMuted = false;
     if (speakerOnRef.current) {
       el.volume = 1;
-      const boosted = ensureRemoteAudioBoost();
-      el.muted = boosted;
+      el.muted = false;
+      ensureRemoteAudioBoost();
     } else {
       stopRemoteAudioBoost();
       el.muted = false;
@@ -708,10 +728,18 @@ function DialerPage() {
     }
   }
 
-  // Speakerphone toggle: when ON, push the remote audio volume to max so it
-  // feels "loud" like a phone speaker. When OFF, restore normal playback.
-  // On platforms that expose multiple output devices, we also try to switch
-  // to a non-default speaker if available.
+  function reinforceSpeakerPlayback() {
+    [0, 150, 500, 1200].forEach((delay) => {
+      window.setTimeout(() => {
+        if (!speakerOnRef.current) return;
+        syncRemoteAudioPlayback();
+        playRemoteAudio();
+      }, delay);
+    });
+  }
+
+  // Speakerphone toggle: when ON, keep remote audio at max volume and add a
+  // boosted Web Audio path. When OFF, restore normal playback.
   async function toggleSpeaker() {
     const el = audioElRef.current;
     if (!el) {
@@ -721,23 +749,19 @@ function DialerPage() {
     if (speakerOnRef.current) {
       el.volume = lastDefaultVolumeRef.current;
       setSpeakerState(false);
+      void applySpeakerModeToCall(false, "default");
+      void applySpeaker("default");
       syncRemoteAudioPlayback();
       playRemoteAudio();
       toast.message("Speaker off");
     } else {
       lastDefaultVolumeRef.current = el.volume > 0 ? el.volume : 0.9;
       setSpeakerState(true);
-      try {
-        const availableSpeakers = speakers.length > 0 ? speakers : await loadSpeakers();
-        const candidates = availableSpeakers
-          .map((s) => s.deviceId)
-          .filter((id) => id && id !== "default" && id !== "communications");
-        if (candidates[0]) await applySpeaker(candidates[0]);
-      } catch (e) {
-        console.warn("speaker switch failed", e);
-      }
+      void applySpeakerModeToCall(true);
+      void applySpeaker(speakerIdRef.current);
       syncRemoteAudioPlayback();
       playRemoteAudio();
+      reinforceSpeakerPlayback();
       toast.message("Speaker on");
     }
   }
@@ -822,6 +846,10 @@ function DialerPage() {
       markRemoteAudioHeard();
     }
     applyMuteToCall(call, mutedRef.current);
+    if (speakerOnRef.current) {
+      void applySpeakerModeToCall(true);
+      reinforceSpeakerPlayback();
+    }
     playRemoteAudio();
 
     const pc = call.peer?.instance as RTCPeerConnection | undefined | null;
@@ -973,9 +1001,7 @@ function DialerPage() {
       watchdogRef.current = null;
     }
     stopRingback();
-    const dur = startedAtRef.current
-      ? Math.floor((Date.now() - startedAtRef.current) / 1000)
-      : 0;
+    const dur = startedAtRef.current ? Math.floor((Date.now() - startedAtRef.current) / 1000) : 0;
     const id = callIdRef.current;
     // Detach listeners first so notifications fired during disconnect() are
     // ignored instead of re-triggering cleanup.
@@ -1158,8 +1184,7 @@ function DialerPage() {
       } catch {}
     }
 
-    const selectedCallerId =
-      callFrom.kind === "custom" && callFrom.number ? callFrom.number : null;
+    const selectedCallerId = callFrom.kind === "custom" && callFrom.number ? callFrom.number : null;
 
     if (selectedCallerId && !isVerifiedCallerId(selectedCallerId, verifiedNumbers)) {
       let refreshedNumbers: VerifiedCallerId[];
@@ -1188,8 +1213,6 @@ function DialerPage() {
     startTimer();
     startRingback();
     try {
-      // populate speaker list (after gesture)
-      loadSpeakers();
       const [{ username, password, publicCallerId }, mod] = await Promise.all([
         getWebrtcCredentials(),
         import("@telnyx/webrtc"),
@@ -1274,10 +1297,8 @@ function DialerPage() {
           // 603 declined, 503 service_unavailable (no outbound profile).
           const cause: string | undefined = n.call?.cause;
           const causeCode: string | number | undefined = n.call?.causeCode;
-          const sipCode: string | number | undefined =
-            n.call?.sipCode ?? n.call?.sip_code;
-          const sipReason: string | undefined =
-            n.call?.sipReason ?? n.call?.sip_reason;
+          const sipCode: string | number | undefined = n.call?.sipCode ?? n.call?.sip_code;
+          const sipReason: string | undefined = n.call?.sipReason ?? n.call?.sip_reason;
           if (!activeAtRef.current && (cause || sipCode)) {
             console.warn("[telnyx] call ended pre-answer", {
               state: s,
@@ -1451,7 +1472,7 @@ function DialerPage() {
   }
 
   return (
-    <div className="relative isolate flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-center gap-5 overflow-hidden px-4 py-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative isolate flex min-h-[calc(100dvh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -1466,7 +1487,7 @@ function DialerPage() {
       <div
         className={cn(
           "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] p-2.5 shadow-2xl shadow-black/35",
-          "max-w-[340px] md:max-w-[380px]",
+          "max-w-[calc(100vw-1rem)] sm:max-w-[340px] md:max-w-[380px]",
           panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
         )}
       >
@@ -1476,138 +1497,137 @@ function DialerPage() {
             {/* Call from picker */}
             <div className="mb-3 flex items-center justify-between gap-2 text-xs">
               <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 text-muted-foreground">Call from:</span>
-              <Popover open={callFromOpen} onOpenChange={setCallFromOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    disabled={inCall}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-xs font-medium text-foreground transition hover:bg-white/[0.08] disabled:opacity-50"
+                <span className="shrink-0 text-muted-foreground">Call from:</span>
+                <Popover open={callFromOpen} onOpenChange={setCallFromOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={inCall}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-xs font-medium text-foreground transition hover:bg-white/[0.08] disabled:opacity-50"
+                    >
+                      {callFrom.kind === "public" ? (
+                        <Globe className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <Megaphone className="h-3.5 w-3.5 text-primary" />
+                      )}
+                      <span>
+                        {callFrom.kind === "public"
+                          ? "Public number"
+                          : (callFrom.number ?? "Custom caller ID")}
+                      </span>
+                      <ChevronDown className="h-3 w-3 opacity-60" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-[260px] border-white/10 bg-card/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur"
                   >
-                    {callFrom.kind === "public" ? (
-                      <Globe className="h-3.5 w-3.5 text-primary" />
-                    ) : (
-                      <Megaphone className="h-3.5 w-3.5 text-primary" />
-                    )}
-                    <span>
-                      {callFrom.kind === "public"
-                        ? "Public number"
-                        : callFrom.number ?? "Custom caller ID"}
-                    </span>
-                    <ChevronDown className="h-3 w-3 opacity-60" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="w-[260px] border-white/10 bg-card/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur"
-                >
-                  <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Default options
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCallFrom({ kind: "public" });
-                      setCallFromOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
-                  >
-                    <Globe className="h-4 w-4 text-primary" />
-                    <span className="flex-1">Public number</span>
-                    {callFrom.kind === "public" && <Check className="h-4 w-4 text-primary" />}
-                  </button>
-                  {verifiedNumbers.filter((v) => v.status === "verified").length > 0 && (
-                    <>
-                      <div className="mt-1.5 px-2 pt-1 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-                        Your verified numbers
-                      </div>
-                      {verifiedNumbers
-                        .filter((v) => v.status === "verified")
-                        .map((v) => (
-                          <div
-                            key={v.phone_number}
-                            className="group flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
-                          >
-                            <Megaphone className="h-4 w-4 text-primary" />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCallFrom({ kind: "custom", number: v.phone_number });
-                                setCallFromOpen(false);
-                              }}
-                              className="flex-1 truncate text-left"
+                    <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Default options
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCallFrom({ kind: "public" });
+                        setCallFromOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                    >
+                      <Globe className="h-4 w-4 text-primary" />
+                      <span className="flex-1">Public number</span>
+                      {callFrom.kind === "public" && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                    {verifiedNumbers.filter((v) => v.status === "verified").length > 0 && (
+                      <>
+                        <div className="mt-1.5 px-2 pt-1 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+                          Your verified numbers
+                        </div>
+                        {verifiedNumbers
+                          .filter((v) => v.status === "verified")
+                          .map((v) => (
+                            <div
+                              key={v.phone_number}
+                              className="group flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
                             >
-                              {v.phone_number}
-                            </button>
-                            {callFrom.kind === "custom" &&
-                              callFrom.number === v.phone_number && (
+                              <Megaphone className="h-4 w-4 text-primary" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCallFrom({ kind: "custom", number: v.phone_number });
+                                  setCallFromOpen(false);
+                                }}
+                                className="flex-1 truncate text-left"
+                              >
+                                {v.phone_number}
+                              </button>
+                              {callFrom.kind === "custom" && callFrom.number === v.phone_number && (
                                 <Check className="h-4 w-4 text-primary" />
                               )}
-                            <button
-                              type="button"
-                              aria-label={`Remove ${v.phone_number}`}
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  await removeVerifiedFn({
-                                    data: { phone: v.phone_number },
-                                  });
-                                  if (
-                                    callFrom.kind === "custom" &&
-                                    callFrom.number === v.phone_number
-                                  ) {
-                                    setCallFrom({ kind: "public" });
+                              <button
+                                type="button"
+                                aria-label={`Remove ${v.phone_number}`}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    await removeVerifiedFn({
+                                      data: { phone: v.phone_number },
+                                    });
+                                    if (
+                                      callFrom.kind === "custom" &&
+                                      callFrom.number === v.phone_number
+                                    ) {
+                                      setCallFrom({ kind: "public" });
+                                    }
+                                    await refreshVerifiedNumbers();
+                                    toast.success("Number removed");
+                                  } catch (err: any) {
+                                    toast.error(err?.message ?? "Could not remove");
                                   }
-                                  await refreshVerifiedNumbers();
-                                  toast.success("Number removed");
-                                } catch (err: any) {
-                                  toast.error(err?.message ?? "Could not remove");
-                                }
-                              }}
-                              className="rounded-md p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                    </>
-                  )}
-                  <div className="mt-1.5 px-2 pt-1 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Add caller ID
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCallFromOpen(false);
-                      setVerifyStep("enter");
-                      setVerifyNumber("");
-                      setVerifyCode("");
-                      setVerifyOpen(true);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
-                  >
-                    <Megaphone className="h-4 w-4 text-primary" />
-                    <span className="flex-1">Verify a new number</span>
-                    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                      FREE
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCallFromOpen(false);
-                      setBuyOpen(true);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
-                  >
-                    <Smartphone className="h-4 w-4 text-primary" />
-                    <span className="flex-1">Buy phone number</span>
-                    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                      from $2/mo
-                    </span>
-                  </button>
-                </PopoverContent>
-              </Popover>
+                                }}
+                                className="rounded-md p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                      </>
+                    )}
+                    <div className="mt-1.5 px-2 pt-1 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      Add caller ID
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCallFromOpen(false);
+                        setVerifyStep("enter");
+                        setVerifyNumber("");
+                        setVerifyCode("");
+                        setVerifyOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                    >
+                      <Megaphone className="h-4 w-4 text-primary" />
+                      <span className="flex-1">Verify a new number</span>
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        FREE
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCallFromOpen(false);
+                        setBuyOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                    >
+                      <Smartphone className="h-4 w-4 text-primary" />
+                      <span className="flex-1">Buy phone number</span>
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        from $2/mo
+                      </span>
+                    </button>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Popover open={mobileContactSearchOpen} onOpenChange={setMobileContactSearchOpen}>
                 <PopoverTrigger asChild>
@@ -1939,7 +1959,9 @@ function DialerPage() {
         <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle>Add contact</DialogTitle>
-            <DialogDescription>Save this dialed number to your Ringringa contacts.</DialogDescription>
+            <DialogDescription>
+              Save this dialed number to your Ringringa contacts.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-2">
@@ -2219,7 +2241,7 @@ function DialerPage() {
       </Dialog>
 
       {/* Mobile: panel always visible below the dialer */}
-      <div className="relative z-10 w-full lg:hidden">
+      <div className="relative z-10 w-full max-w-[calc(100vw-1rem)] pb-6 lg:hidden">
         <CallNotesPanel inCall={inCall} peerNumber={e164} />
       </div>
       {/* Desktop: panel slides in beside the dialer when opened */}
