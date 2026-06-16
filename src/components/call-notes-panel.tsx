@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   FileText,
   NotebookPen,
@@ -43,15 +43,13 @@ function useLocal(key: string) {
   return [val, setVal] as const;
 }
 
-export function CallNotesPanel({
-  inCall,
-  peerNumber,
-  onClose,
-}: {
+type CallNotesPanelProps = {
   inCall: boolean;
   peerNumber?: string;
   onClose?: () => void;
-}) {
+};
+
+function CallNotesPanelComponent({ inCall, peerNumber, onClose }: CallNotesPanelProps) {
   const [script, setScript] = useLocal(SCRIPT_KEY);
   const [notes, setNotes] = useLocal(NOTES_KEY);
   const [tab, setTab] = useState<"script" | "notes">("script");
@@ -191,7 +189,7 @@ export function CallNotesPanel({
   }
 
   return (
-    <aside className="flex w-full max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm lg:max-w-[340px] lg:self-stretch">
+    <aside className="flex w-full max-w-full flex-col overflow-visible rounded-2xl border border-border bg-card p-3 shadow-sm lg:max-w-[340px] lg:self-stretch lg:overflow-hidden">
       <Tabs
         value={tab}
         onValueChange={(v) => setTab(v as "script" | "notes")}
@@ -344,3 +342,6 @@ export function CallNotesPanel({
     </aside>
   );
 }
+
+export const CallNotesPanel = memo(CallNotesPanelComponent);
+CallNotesPanel.displayName = "CallNotesPanel";

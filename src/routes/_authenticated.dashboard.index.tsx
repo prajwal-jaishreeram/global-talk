@@ -1377,6 +1377,7 @@ function DialerPage() {
     "0": "+",
   };
   const inCall = callState !== "idle";
+  const notesPeerNumber = inCall ? e164 : undefined;
   const registerTimerListener = useMemo(
     () => (fn: (s: number) => void) => {
       timerListenersRef.current.add(fn);
@@ -1427,7 +1428,7 @@ function DialerPage() {
   }
 
   return (
-    <div className="relative flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-6 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:gap-4 md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -1458,7 +1459,7 @@ function DialerPage() {
                     <button
                       type="button"
                       disabled={inCall}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-xs font-medium text-foreground transition hover:bg-white/[0.08] disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-white/[0.08] disabled:opacity-50"
                     >
                       {callFrom.kind === "public" ? (
                         <Globe className="h-3.5 w-3.5 text-primary" />
@@ -1589,7 +1590,7 @@ function DialerPage() {
                   <button
                     type="button"
                     disabled={inCall}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-muted-foreground transition hover:bg-white/[0.08] hover:text-foreground disabled:opacity-30 sm:hidden"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground disabled:opacity-30 sm:hidden"
                     aria-label="Search contacts"
                     title="Search contacts"
                   >
@@ -1618,7 +1619,7 @@ function DialerPage() {
                   <button
                     type="button"
                     disabled={inCall}
-                    className="flex min-w-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.045] px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-white/[0.08] disabled:opacity-50 sm:gap-1.5 sm:px-2.5"
+                    className="flex min-w-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.045] px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.08] disabled:opacity-50 sm:gap-1.5 sm:px-2.5"
                   >
                     <CountryFlag code={country} />
                     <span className="font-mono text-xs font-semibold text-foreground">
@@ -1700,7 +1701,7 @@ function DialerPage() {
                   <button
                     type="button"
                     disabled={inCall}
-                    className="hidden h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30 sm:grid"
+                    className="hidden h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30 sm:grid"
                     aria-label="Search contacts"
                     title="Search contacts"
                   >
@@ -1749,7 +1750,7 @@ function DialerPage() {
               <button
                 onClick={backspace}
                 disabled={inCall || !raw}
-                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30"
+                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30"
                 aria-label="Backspace"
               >
                 <Delete className="h-4 w-4" />
@@ -1772,7 +1773,7 @@ function DialerPage() {
                 type="button"
                 onClick={openAddContactDialog}
                 disabled={!raw}
-                className="mt-3 flex h-7 w-full items-center justify-center gap-1.5 rounded-full bg-white/[0.035] px-3 text-[11px] text-muted-foreground transition hover:bg-white/[0.07] hover:text-foreground disabled:opacity-40 disabled:hover:bg-white/[0.035] disabled:hover:text-muted-foreground"
+                className="mt-3 flex h-7 w-full items-center justify-center gap-1.5 rounded-full bg-white/[0.035] px-3 text-[11px] text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground disabled:opacity-40 disabled:hover:bg-white/[0.035] disabled:hover:text-muted-foreground"
               >
                 <UserPlus className="h-3.5 w-3.5" />
                 <span>Add contact</span>
@@ -1789,7 +1790,7 @@ function DialerPage() {
                   key={k}
                   onClick={() => press(k, sub)}
                   className={cn(
-                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-white/10 bg-white/[0.045] shadow-none transition hover:bg-white/[0.08] active:scale-95 sm:shadow-sm",
+                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-white/10 bg-white/[0.045] shadow-none transition-colors hover:bg-white/[0.08] sm:shadow-sm",
                     !panelOpen && "lg:h-[3.75rem] lg:w-[3.75rem]",
                   )}
                 >
@@ -1827,7 +1828,7 @@ function DialerPage() {
                 onClick={toggleMute}
                 disabled={callState === "connecting" || callState === "ending"}
                 className={cn(
-                  "grid h-12 w-12 place-items-center rounded-full border transition disabled:opacity-40",
+                  "grid h-12 w-12 place-items-center rounded-full border transition-colors disabled:opacity-40",
                   muted
                     ? "border-primary/50 bg-primary/20 text-primary shadow-inner shadow-primary/20 hover:bg-primary/25"
                     : "border-white/10 bg-white/[0.045] text-muted-foreground hover:bg-white/[0.08]",
@@ -1849,7 +1850,7 @@ function DialerPage() {
                   });
                 }}
                 aria-label="Toggle letters"
-                className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-xs font-semibold text-muted-foreground transition hover:bg-white/[0.08]"
+                className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-xs font-semibold text-muted-foreground transition-colors hover:bg-white/[0.08]"
               >
                 {alpha ? "123" : "ABC"}
               </button>
@@ -1858,7 +1859,7 @@ function DialerPage() {
               <button
                 onClick={hangup}
                 aria-label="End call"
-                className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-none transition hover:opacity-90 active:scale-95 sm:shadow-lg sm:shadow-destructive/30"
+                className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-none transition-opacity hover:opacity-90 sm:shadow-lg sm:shadow-destructive/30"
               >
                 {callState === "connecting" || callState === "ending" ? (
                   <Loader2 className="h-7 w-7 animate-spin" />
@@ -1871,7 +1872,7 @@ function DialerPage() {
                 onClick={startCall}
                 disabled={!isValid}
                 aria-label="Call"
-                className="grid h-16 w-16 place-items-center rounded-full bg-call text-call-foreground shadow-none transition hover:opacity-90 active:scale-95 disabled:opacity-40 sm:shadow-lg sm:shadow-call/30"
+                className="grid h-16 w-16 place-items-center rounded-full bg-call text-call-foreground shadow-none transition-opacity hover:opacity-90 disabled:opacity-40 sm:shadow-lg sm:shadow-call/30"
               >
                 <Phone className="h-7 w-7" />
               </button>
@@ -1883,7 +1884,7 @@ function DialerPage() {
                 aria-label={speakerOn ? "Speaker off" : "Speaker on"}
                 title={speakerOn ? "Tap to disable speaker" : "Tap to enable speaker"}
                 className={cn(
-                  "grid h-12 w-12 place-items-center rounded-full border transition disabled:opacity-40",
+                  "grid h-12 w-12 place-items-center rounded-full border transition-colors disabled:opacity-40",
                   speakerOn
                     ? "border-primary/50 bg-primary/20 text-primary shadow-inner shadow-primary/20 hover:bg-primary/25"
                     : "border-white/10 bg-white/[0.045] text-muted-foreground hover:bg-white/[0.08]",
@@ -1896,7 +1897,7 @@ function DialerPage() {
                 onClick={backspace}
                 disabled={!raw}
                 aria-label="Backspace"
-                className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-muted-foreground transition hover:bg-white/[0.08] disabled:opacity-30"
+                className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-muted-foreground transition-colors hover:bg-white/[0.08] disabled:opacity-30"
               >
                 <Delete className="h-5 w-5" />
               </button>
@@ -2197,12 +2198,16 @@ function DialerPage() {
 
       {/* Mobile: panel always visible below the dialer */}
       <div className="relative z-10 w-full max-w-[340px] pb-6 lg:hidden">
-        <CallNotesPanel inCall={inCall} peerNumber={e164} />
+        <CallNotesPanel inCall={inCall} peerNumber={notesPeerNumber} />
       </div>
       {/* Desktop: panel slides in beside the dialer when opened */}
       {panelOpen && (
         <div className="relative z-10 hidden lg:flex lg:items-stretch">
-          <CallNotesPanel inCall={inCall} peerNumber={e164} onClose={() => setPanelOpen(false)} />
+          <CallNotesPanel
+            inCall={inCall}
+            peerNumber={notesPeerNumber}
+            onClose={() => setPanelOpen(false)}
+          />
         </div>
       )}
       {/* Floating toggle: keeps the dialer centered when the panel is closed */}
