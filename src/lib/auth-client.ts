@@ -19,6 +19,27 @@ let snapshot: AuthSnapshot = {
 let initialized = false;
 let initPromise: Promise<AuthSnapshot> | null = null;
 const listeners = new Set<() => void>();
+const AUTH_SESSION_TIMEOUT_MS = 4000;
+const AUTH_VALIDATION_TIMEOUT_MS = 7000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`${label} timed out`));
+    }, ms);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
+}
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -41,6 +62,10 @@ function isRecoverableAuthError(error: unknown) {
       : "";
 
   return /refresh token not found|user.*not.*found|invalid.*jwt|jwt.*expired/i.test(message);
+}
+
+function isAuthTimeout(error: unknown) {
+  return error instanceof Error && /timed out/i.test(error.message);
 }
 
 async function clearInvalidLocalSession() {
@@ -72,8 +97,11 @@ export async function ensureAuthStore() {
 
   void data.subscription;
 
-  initPromise = supabase.auth
-    .getSession()
+  initPromise = withTimeout(
+    supabase.auth.getSession(),
+    AUTH_SESSION_TIMEOUT_MS,
+    "Auth session hydration",
+  )
     .then(async ({ data: sessionData }) => {
       const session = sessionData.session;
 
@@ -82,17 +110,8 @@ export async function ensureAuthStore() {
       }
 
       if (session) {
-        const { data: userData, error } = await supabase.auth.getUser();
-        if (error || !userData.user || userData.user.id !== session.user.id) {
-          if (error && !isRecoverableAuthError(error)) {
-            console.error("Failed to validate auth session", error);
-          }
-          await clearInvalidLocalSession();
-          setSnapshot(null);
-          return snapshot;
-        }
-
-        setSnapshot({ ...session, user: userData.user });
+        setSnapshot(session);
+        void validateAuthSession(session);
         return snapshot;
       }
 
@@ -103,6 +122,8 @@ export async function ensureAuthStore() {
       console.error("Failed to hydrate auth session", error);
 
       if (snapshot.session) {
+        snapshot = { ...snapshot, ready: true };
+        emit();
         return snapshot;
       }
 
@@ -115,6 +136,42 @@ export async function ensureAuthStore() {
     });
 
   return initPromise;
+}
+
+async function validateAuthSession(session: Session) {
+  try {
+    const { data: userData, error } = await withTimeout(
+      supabase.auth.getUser(),
+      AUTH_VALIDATION_TIMEOUT_MS,
+      "Auth session validation",
+    );
+
+    if (error || !userData.user || userData.user.id !== session.user.id) {
+      if (error && !isRecoverableAuthError(error)) {
+        console.error("Failed to validate auth session", error);
+      }
+      await clearInvalidLocalSession();
+      if (snapshot.session?.access_token === session.access_token) {
+        setSnapshot(null);
+      }
+      return;
+    }
+
+    if (snapshot.session?.access_token === session.access_token) {
+      setSnapshot({ ...session, user: userData.user });
+    }
+  } catch (error) {
+    if (isAuthTimeout(error)) {
+      console.warn("Auth session validation timed out; keeping local session", error);
+      return;
+    }
+
+    console.error("Failed to validate auth session", error);
+    if (isRecoverableAuthError(error) && snapshot.session?.access_token === session.access_token) {
+      await clearInvalidLocalSession();
+      setSnapshot(null);
+    }
+  }
 }
 
 function subscribe(listener: () => void) {

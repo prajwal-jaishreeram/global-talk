@@ -78,12 +78,18 @@ function HeroDialer() {
 
 function AuthAwareCTA() {
   const { ready, isAuthenticated } = useAuthState();
-  if (!ready)
+  if (!ready) {
     return (
-      <Button size="lg" disabled className="w-full text-base sm:w-auto">
-        Loading...
-      </Button>
+      <Link to="/dashboard" className="w-full sm:w-auto">
+        <Button
+          size="lg"
+          className="w-full gap-1.5 text-base shadow-lg shadow-primary/15 sm:w-auto"
+        >
+          <PhoneCall className="h-4 w-4" /> Make a call
+        </Button>
+      </Link>
     );
+  }
   if (isAuthenticated) {
     return (
       <Link to="/dashboard" className="w-full sm:w-auto">
