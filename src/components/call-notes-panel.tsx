@@ -191,7 +191,7 @@ export function CallNotesPanel({
   }
 
   return (
-    <aside className="isolate flex w-full max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm [contain:paint] lg:max-w-[340px] lg:self-stretch">
+    <aside className="flex w-full max-w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm lg:max-w-[340px] lg:self-stretch">
       <Tabs
         value={tab}
         onValueChange={(v) => setTab(v as "script" | "notes")}

@@ -294,7 +294,7 @@ function DashboardLayout() {
             </div>
           </div>
         )}
-        <main className="relative isolate flex-1 overflow-x-clip bg-background">
+        <main className="relative flex-1 overflow-x-clip bg-background">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 hidden opacity-[0.1] md:block"

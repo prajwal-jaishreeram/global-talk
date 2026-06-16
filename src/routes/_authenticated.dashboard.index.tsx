@@ -144,11 +144,6 @@ type CallState = "idle" | "connecting" | "ringing" | "active" | "ending";
 
 type VerifiedCallerId = { phone_number: string; status: string };
 
-type WindowWithLegacyAudioContext = Window &
-  typeof globalThis & {
-    webkitAudioContext?: typeof AudioContext;
-  };
-
 type WebrtcCallLike = {
   localStream?: MediaStream;
   remoteStream?: MediaStream;
@@ -186,9 +181,10 @@ const TERMINAL_TELNYX_STATES = new Set([
   "terminated",
 ]);
 
-const HANDSET_VOLUME = 0.48;
-const SPEAKER_VOLUME = 1;
-const SPEAKER_BOOST_GAIN = 2.2;
+const HANDSET_VOLUME = 0.5;
+const SPEAKER_VOLUME = 0.88;
+const HANDSET_TONE_GAIN = 0.08;
+const SPEAKER_TONE_GAIN = 0.14;
 
 function normalizeTelnyxCallState(value: unknown) {
   if (typeof value === "number") return TELNYX_STATE_NAMES[value] ?? String(value);
@@ -345,12 +341,13 @@ function DialerPage() {
   const cleanupRunningRef = useRef(false);
   const callStartLockedRef = useRef(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
-  const ringCtxRef = useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
-  const remoteAudioBoostRef = useRef<{
+  const ringCtxRef = useRef<{
     ctx: AudioContext;
     gain: GainNode;
-    source: MediaStreamAudioSourceNode | null;
-    stream: MediaStream | null;
+    gainValue: { current: number };
+    active: { current: boolean };
+    onEndsAt: { current: number };
+    stop: () => void;
   } | null>(null);
   const heardRemoteAudioRef = useRef(false);
   const remoteTrackBindingsRef = useRef<WeakSet<object>>(new WeakSet());
@@ -561,7 +558,6 @@ function DialerPage() {
       try {
         clientRef.current?.disconnect?.();
       } catch {}
-      stopRemoteAudioBoost();
       stopRingback();
     };
   }, []);
@@ -592,16 +588,6 @@ function DialerPage() {
         await el.setSinkId(id);
       } catch (e) {
         console.warn("setSinkId failed", e);
-      }
-    }
-    const boost = remoteAudioBoostRef.current?.ctx as
-      | (AudioContext & { setSinkId?: (sinkId: string) => Promise<void> })
-      | undefined;
-    if (boost?.setSinkId) {
-      try {
-        await boost.setSinkId(id);
-      } catch (e) {
-        console.warn("AudioContext setSinkId failed", e);
       }
     }
     try {
@@ -636,74 +622,6 @@ function DialerPage() {
     }
   }
 
-  function getRemoteAudioStream() {
-    const src = audioElRef.current?.srcObject;
-    return typeof MediaStream !== "undefined" && src instanceof MediaStream ? src : null;
-  }
-
-  function ensureRemoteAudioBoost(stream?: MediaStream | null) {
-    if (typeof window === "undefined") return false;
-    const remoteStream = stream ?? getRemoteAudioStream();
-    const audioWindow = window as WindowWithLegacyAudioContext;
-    const AudioContextCtor: typeof AudioContext | undefined =
-      audioWindow.AudioContext ?? audioWindow.webkitAudioContext;
-    if (!AudioContextCtor) return false;
-
-    let boost = remoteAudioBoostRef.current;
-    if (!boost || boost.ctx.state === "closed") {
-      const ctx = new AudioContextCtor();
-      const gain = ctx.createGain();
-      gain.gain.value = SPEAKER_BOOST_GAIN;
-      gain.connect(ctx.destination);
-      boost = { ctx, gain, source: null, stream: null };
-      remoteAudioBoostRef.current = boost;
-      void applySpeaker(speakerIdRef.current);
-    }
-
-    boost.gain.gain.value = SPEAKER_BOOST_GAIN;
-    if (remoteStream && boost.stream !== remoteStream) {
-      try {
-        boost.source?.disconnect();
-      } catch (e) {
-        console.warn("Audio boost source disconnect failed", e);
-      }
-      try {
-        boost.source = boost.ctx.createMediaStreamSource(remoteStream);
-        boost.stream = remoteStream;
-        boost.source.connect(boost.gain);
-      } catch (e) {
-        console.warn("Audio boost source setup failed", e);
-        boost.source = null;
-        boost.stream = null;
-      }
-    }
-
-    if (boost.ctx.state === "suspended") {
-      void boost.ctx.resume().catch((e: unknown) => console.warn("Audio boost resume failed", e));
-    }
-
-    return Boolean(boost.source);
-  }
-
-  function stopRemoteAudioBoost() {
-    const boost = remoteAudioBoostRef.current;
-    remoteAudioBoostRef.current = null;
-    if (!boost) return;
-    try {
-      boost.source?.disconnect();
-    } catch (e) {
-      console.warn("Audio boost source disconnect failed", e);
-    }
-    try {
-      boost.gain.disconnect();
-    } catch (e) {
-      console.warn("Audio boost gain disconnect failed", e);
-    }
-    if (boost.ctx.state !== "closed") {
-      void boost.ctx.close().catch((e: unknown) => console.warn("Audio boost close failed", e));
-    }
-  }
-
   function setMutedState(nextMuted: boolean) {
     mutedRef.current = nextMuted;
     setMuted(nextMuted);
@@ -721,9 +639,7 @@ function DialerPage() {
     if (speakerOnRef.current) {
       el.volume = SPEAKER_VOLUME;
       el.muted = false;
-      ensureRemoteAudioBoost();
     } else {
-      stopRemoteAudioBoost();
       el.muted = false;
       el.volume = HANDSET_VOLUME;
     }
@@ -739,8 +655,8 @@ function DialerPage() {
     });
   }
 
-  // Speakerphone toggle: when ON, keep remote audio at max volume and add a
-  // boosted Web Audio path. When OFF, restore normal playback.
+  // Speakerphone toggle: keep one remote audio path and let the SDK/device
+  // route do the speaker change. A second boosted path causes echo on mobile.
   async function toggleSpeaker() {
     const el = audioElRef.current;
     if (!el) {
@@ -749,6 +665,7 @@ function DialerPage() {
     }
     if (speakerOnRef.current) {
       setSpeakerState(false);
+      syncToneVolume();
       void applySpeakerModeToCall(false, "default");
       void applySpeaker("default");
       syncRemoteAudioPlayback();
@@ -756,6 +673,7 @@ function DialerPage() {
       toast.message("Speaker off");
     } else {
       setSpeakerState(true);
+      syncToneVolume();
       void applySpeakerModeToCall(true);
       void applySpeaker(speakerIdRef.current);
       syncRemoteAudioPlayback();
@@ -909,7 +827,32 @@ function DialerPage() {
     });
   }
 
-  function startTone(freqs: number[], onMs: number, offMs: number, gainValue = 0.12) {
+  function currentToneGain() {
+    return speakerOnRef.current ? SPEAKER_TONE_GAIN : HANDSET_TONE_GAIN;
+  }
+
+  function syncToneVolume() {
+    const tone = ringCtxRef.current;
+    if (!tone) return;
+    const nextGain = currentToneGain();
+    tone.gainValue.current = nextGain;
+    try {
+      const now = tone.ctx.currentTime;
+      const offAt = tone.onEndsAt.current;
+      tone.gain.gain.cancelScheduledValues(now);
+      if (!tone.active.current || offAt <= now) {
+        tone.gain.gain.setValueAtTime(0, now);
+        return;
+      }
+      tone.gain.gain.setTargetAtTime(nextGain, now, 0.03);
+      if (offAt - now > 0.04) {
+        tone.gain.gain.setValueAtTime(nextGain, Math.max(now + 0.03, offAt - 0.02));
+      }
+      tone.gain.gain.linearRampToValueAtTime(0, offAt);
+    } catch {}
+  }
+
+  function startTone(freqs: number[], onMs: number, offMs: number, gainValue = currentToneGain()) {
     stopRingback();
     try {
       const Ctx: typeof AudioContext =
@@ -917,6 +860,9 @@ function DialerPage() {
       if (!Ctx) return;
       const ctx = new Ctx();
       const gain = ctx.createGain();
+      const gainValueRef = { current: gainValue };
+      const activeRef = { current: false };
+      const onEndsAtRef = { current: 0 };
       gain.gain.value = 0;
       gain.connect(ctx.destination);
       const oscs = freqs.map((f) => {
@@ -931,16 +877,27 @@ function DialerPage() {
       const loop = () => {
         if (cancelled) return;
         const now = ctx.currentTime;
+        const nextGain = gainValueRef.current;
+        const offAt = now + onMs / 1000;
+        activeRef.current = true;
+        onEndsAtRef.current = offAt;
         gain.gain.cancelScheduledValues(now);
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(gainValue, now + 0.02);
-        gain.gain.setValueAtTime(gainValue, now + onMs / 1000 - 0.02);
-        gain.gain.linearRampToValueAtTime(0, now + onMs / 1000);
+        gain.gain.linearRampToValueAtTime(nextGain, now + 0.02);
+        gain.gain.setValueAtTime(nextGain, offAt - 0.02);
+        gain.gain.linearRampToValueAtTime(0, offAt);
+        window.setTimeout(() => {
+          activeRef.current = false;
+        }, onMs);
         window.setTimeout(loop, onMs + offMs);
       };
       loop();
       ringCtxRef.current = {
         ctx,
+        gain,
+        gainValue: gainValueRef,
+        active: activeRef,
+        onEndsAt: onEndsAtRef,
         stop: () => {
           cancelled = true;
           try {
@@ -1016,7 +973,6 @@ function DialerPage() {
     try {
       client?.disconnect?.();
     } catch {}
-    stopRemoteAudioBoost();
     if (audioElRef.current) {
       audioElRef.current.muted = false;
       audioElRef.current.srcObject = null;
@@ -1471,7 +1427,7 @@ function DialerPage() {
   }
 
   return (
-    <div className="relative isolate flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -1485,8 +1441,8 @@ function DialerPage() {
       />
       <div
         className={cn(
-          "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none [contain:paint] sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
-          "max-w-[calc(100vw-1rem)] sm:max-w-[340px] md:max-w-[380px]",
+          "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
+          "max-w-[340px] md:max-w-[380px]",
           panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
         )}
       >
@@ -2240,7 +2196,7 @@ function DialerPage() {
       </Dialog>
 
       {/* Mobile: panel always visible below the dialer */}
-      <div className="relative z-10 w-full max-w-[calc(100vw-1rem)] pb-6 [contain:paint] lg:hidden">
+      <div className="relative z-10 w-full max-w-[340px] pb-6 lg:hidden">
         <CallNotesPanel inCall={inCall} peerNumber={e164} />
       </div>
       {/* Desktop: panel slides in beside the dialer when opened */}
