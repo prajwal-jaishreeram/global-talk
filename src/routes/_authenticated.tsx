@@ -15,10 +15,25 @@ function AuthGuard() {
     void navigate({ to: "/auth/login", replace: true });
   }, [isAuthenticated, navigate, ready]);
 
+  useEffect(() => {
+    if (ready || isAuthenticated) return;
+
+    const timeout = window.setTimeout(() => {
+      const redirectTo = `${window.location.pathname}${window.location.search}`;
+      void navigate({
+        to: "/auth/login",
+        search: { redirect: redirectTo },
+        replace: true,
+      });
+    }, 2500);
+
+    return () => window.clearTimeout(timeout);
+  }, [isAuthenticated, navigate, ready]);
+
   if (!ready) {
     return (
       <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">
-        Loading…
+        Checking your session…
       </div>
     );
   }
