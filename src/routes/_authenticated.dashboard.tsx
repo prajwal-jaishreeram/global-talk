@@ -101,7 +101,9 @@ function DashboardLayout() {
           collapsed ? "w-16" : "w-60",
         )}
       >
-        <div className={cn("mb-6 flex items-center", collapsed ? "flex-col gap-3" : "justify-between")}>
+        <div
+          className={cn("mb-6 flex items-center", collapsed ? "flex-col gap-3" : "justify-between")}
+        >
           {collapsed ? (
             <Link to="/" className="grid h-9 w-9 place-items-center" title="Ringringa">
               <img src={logoUrl} alt="" className="h-8 w-8 object-contain" />
@@ -201,7 +203,7 @@ function DashboardLayout() {
 
       <div className="flex flex-1 flex-col overflow-x-clip">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
             <span className="text-lg font-bold tracking-tight">Ringringa</span>
@@ -295,7 +297,7 @@ function DashboardLayout() {
         <main className="relative isolate flex-1 overflow-x-clip bg-background">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 opacity-[0.1]"
+            className="pointer-events-none absolute inset-0 z-0 hidden opacity-[0.1] md:block"
             style={{
               backgroundImage:
                 "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
@@ -304,7 +306,7 @@ function DashboardLayout() {
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(255,255,255,0.025))]"
+            className="pointer-events-none absolute inset-0 z-0 hidden bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_36%),linear-gradient(180deg,transparent,rgba(255,255,255,0.025))] md:block"
           />
           <div className="relative z-10 min-h-[calc(100vh-56px)] md:min-h-screen">
             <Outlet />

@@ -186,6 +186,8 @@ const TERMINAL_TELNYX_STATES = new Set([
   "terminated",
 ]);
 
+const HANDSET_VOLUME = 0.48;
+const SPEAKER_VOLUME = 1;
 const SPEAKER_BOOST_GAIN = 2.2;
 
 function normalizeTelnyxCallState(value: unknown) {
@@ -297,7 +299,6 @@ function DialerPage() {
   const [speakerOn, setSpeakerOn] = useState(false);
   const speakerIdRef = useRef("default");
   const speakerOnRef = useRef(false);
-  const lastDefaultVolumeRef = useRef<number>(1);
   const [callFrom, setCallFrom] = useState<{ kind: "public" | "custom"; number?: string }>({
     kind: "public",
   });
@@ -718,13 +719,13 @@ function DialerPage() {
     if (!el) return;
     el.defaultMuted = false;
     if (speakerOnRef.current) {
-      el.volume = 1;
+      el.volume = SPEAKER_VOLUME;
       el.muted = false;
       ensureRemoteAudioBoost();
     } else {
       stopRemoteAudioBoost();
       el.muted = false;
-      if (el.volume == null || el.volume < 0.8) el.volume = 0.9;
+      el.volume = HANDSET_VOLUME;
     }
   }
 
@@ -747,7 +748,6 @@ function DialerPage() {
       return;
     }
     if (speakerOnRef.current) {
-      el.volume = lastDefaultVolumeRef.current;
       setSpeakerState(false);
       void applySpeakerModeToCall(false, "default");
       void applySpeaker("default");
@@ -755,7 +755,6 @@ function DialerPage() {
       playRemoteAudio();
       toast.message("Speaker off");
     } else {
-      lastDefaultVolumeRef.current = el.volume > 0 ? el.volume : 0.9;
       setSpeakerState(true);
       void applySpeakerModeToCall(true);
       void applySpeaker(speakerIdRef.current);
@@ -1175,7 +1174,7 @@ function DialerPage() {
     // need a few moments later when the Telnyx remoteStream attaches.
     if (audioElRef.current) {
       audioElRef.current.muted = false;
-      audioElRef.current.volume = 1;
+      audioElRef.current.volume = speakerOnRef.current ? SPEAKER_VOLUME : HANDSET_VOLUME;
       try {
         const p = audioElRef.current.play?.();
         if (p && typeof (p as Promise<void>).catch === "function") {
@@ -1472,7 +1471,7 @@ function DialerPage() {
   }
 
   return (
-    <div className="relative isolate flex min-h-[calc(100dvh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative isolate flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -1486,12 +1485,12 @@ function DialerPage() {
       />
       <div
         className={cn(
-          "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] p-2.5 shadow-2xl shadow-black/35",
+          "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none [contain:paint] sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
           "max-w-[calc(100vw-1rem)] sm:max-w-[340px] md:max-w-[380px]",
           panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
         )}
       >
-        <div className="rounded-[2rem] border border-white/10 bg-background/95 p-4 shadow-inner shadow-black/20 lg:p-5">
+        <div className="rounded-[2rem] border border-white/10 bg-background p-4 shadow-none sm:bg-background/95 sm:shadow-inner sm:shadow-black/20 lg:p-5">
           <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/15" />
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5">
             {/* Call from picker */}
@@ -1834,7 +1833,7 @@ function DialerPage() {
                   key={k}
                   onClick={() => press(k, sub)}
                   className={cn(
-                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-white/10 bg-white/[0.045] shadow-sm transition hover:bg-white/[0.08] active:scale-95",
+                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-white/10 bg-white/[0.045] shadow-none transition hover:bg-white/[0.08] active:scale-95 sm:shadow-sm",
                     !panelOpen && "lg:h-[3.75rem] lg:w-[3.75rem]",
                   )}
                 >
@@ -1903,7 +1902,7 @@ function DialerPage() {
               <button
                 onClick={hangup}
                 aria-label="End call"
-                className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 transition hover:opacity-90 active:scale-95"
+                className="grid h-16 w-16 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-none transition hover:opacity-90 active:scale-95 sm:shadow-lg sm:shadow-destructive/30"
               >
                 {callState === "connecting" || callState === "ending" ? (
                   <Loader2 className="h-7 w-7 animate-spin" />
@@ -1916,7 +1915,7 @@ function DialerPage() {
                 onClick={startCall}
                 disabled={!isValid}
                 aria-label="Call"
-                className="grid h-16 w-16 place-items-center rounded-full bg-call text-call-foreground shadow-lg shadow-call/30 transition hover:opacity-90 active:scale-95 disabled:opacity-40"
+                className="grid h-16 w-16 place-items-center rounded-full bg-call text-call-foreground shadow-none transition hover:opacity-90 active:scale-95 disabled:opacity-40 sm:shadow-lg sm:shadow-call/30"
               >
                 <Phone className="h-7 w-7" />
               </button>
@@ -2241,7 +2240,7 @@ function DialerPage() {
       </Dialog>
 
       {/* Mobile: panel always visible below the dialer */}
-      <div className="relative z-10 w-full max-w-[calc(100vw-1rem)] pb-6 lg:hidden">
+      <div className="relative z-10 w-full max-w-[calc(100vw-1rem)] pb-6 [contain:paint] lg:hidden">
         <CallNotesPanel inCall={inCall} peerNumber={e164} />
       </div>
       {/* Desktop: panel slides in beside the dialer when opened */}
