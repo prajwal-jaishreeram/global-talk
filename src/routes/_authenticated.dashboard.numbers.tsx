@@ -48,16 +48,16 @@ type Owned = {
   created_at: string;
 };
 
-const COUNTRIES: { code: string; label: string; dial: string }[] = [
-  { code: "US", label: "United States", dial: "+1" },
-  { code: "CA", label: "Canada", dial: "+1" },
-  { code: "GB", label: "United Kingdom", dial: "+44" },
-  { code: "GR", label: "Greece", dial: "+30" },
-  { code: "AU", label: "Australia", dial: "+61" },
-  { code: "DE", label: "Germany", dial: "+49" },
-  { code: "FR", label: "France", dial: "+33" },
-  { code: "NL", label: "Netherlands", dial: "+31" },
-  { code: "IN", label: "India", dial: "+91" },
+const COUNTRIES: { code: string; label: string; dial: string; areaExample: string }[] = [
+  { code: "US", label: "United States", dial: "+1", areaExample: "415" },
+  { code: "CA", label: "Canada", dial: "+1", areaExample: "416" },
+  { code: "GB", label: "United Kingdom", dial: "+44", areaExample: "20" },
+  { code: "GR", label: "Greece", dial: "+30", areaExample: "21" },
+  { code: "AU", label: "Australia", dial: "+61", areaExample: "2" },
+  { code: "DE", label: "Germany", dial: "+49", areaExample: "30" },
+  { code: "FR", label: "France", dial: "+33", areaExample: "1" },
+  { code: "NL", label: "Netherlands", dial: "+31", areaExample: "20" },
+  { code: "IN", label: "India", dial: "+91", areaExample: "11" },
 ];
 
 function NumbersPage() {
@@ -73,6 +73,8 @@ function NumbersPage() {
   const [areaCode, setAreaCode] = useState("");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<Available[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchNote, setSearchNote] = useState<string | null>(null);
   const [buying, setBuying] = useState<string | null>(null);
 
   const [owned, setOwned] = useState<Owned[]>([]);
@@ -98,10 +100,25 @@ function NumbersPage() {
   async function runSearch() {
     setSearching(true);
     setResults([]);
+    setHasSearched(true);
+    setSearchNote(null);
     try {
-      const res = await search({ data: { country, areaCode, limit: 20 } });
+      const trimmedAreaCode = areaCode.trim();
+      const selectedCountry = COUNTRIES.find((c) => c.code === country);
+      const countryLabel = selectedCountry?.label ?? country;
+      const res = await search({ data: { country, areaCode: trimmedAreaCode, limit: 20 } });
       setResults(res.numbers as Available[]);
-      if (res.numbers.length === 0) toast.message("No numbers matched your search");
+      if (res.relaxedAreaCode && res.requestedAreaCode) {
+        const note = `No numbers matched area code ${res.requestedAreaCode}; showing available ${countryLabel} numbers instead.`;
+        setSearchNote(note);
+        toast.message("Showing country-wide results", { description: note });
+      } else if (res.numbers.length === 0) {
+        const note = trimmedAreaCode
+          ? `No ${countryLabel} numbers are currently available for area code ${trimmedAreaCode}. Try clearing the area code.`
+          : `No ${countryLabel} numbers are currently available from the voice provider. Try another country or check again later.`;
+        setSearchNote(note);
+        toast.message("No numbers matched your search", { description: note });
+      }
     } catch (e: any) {
       toast.error(e.message ?? "Search failed");
     } finally {
@@ -182,7 +199,16 @@ function NumbersPage() {
     }
   }
 
-  const selectedDial = COUNTRIES.find((c) => c.code === country)?.dial ?? "+1";
+  const selectedCountry = COUNTRIES.find((c) => c.code === country);
+  const selectedDial = selectedCountry?.dial ?? "+1";
+
+  function handleCountryChange(nextCountry: string) {
+    setCountry(nextCountry);
+    setAreaCode("");
+    setResults([]);
+    setHasSearched(false);
+    setSearchNote(null);
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -198,7 +224,7 @@ function NumbersPage() {
         <div className="grid gap-3 sm:grid-cols-[180px_1fr_auto] sm:items-end">
           <div>
             <Label className="text-xs text-muted-foreground">Country</Label>
-            <Select value={country} onValueChange={setCountry}>
+            <Select value={country} onValueChange={handleCountryChange}>
               <SelectTrigger className="mt-1.5">
                 <SelectValue />
               </SelectTrigger>
@@ -230,7 +256,7 @@ function NumbersPage() {
                 id="area"
                 value={areaCode}
                 onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, ""))}
-                placeholder={`Enter area code (e.g. ${country === "US" ? "415" : "20"})`}
+                placeholder={`Leave blank for widest search (e.g. ${selectedCountry?.areaExample ?? "20"})`}
                 className="pl-9"
                 onKeyDown={(e) => e.key === "Enter" && runSearch()}
               />
@@ -247,35 +273,42 @@ function NumbersPage() {
       </div>
 
       {/* Available results */}
-      {(searching || results.length > 0) && (
+      {(searching || hasSearched) && (
         <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
           <div className="bg-muted/40 px-5 py-3 text-sm font-medium">Available Numbers</div>
           <ul className="divide-y divide-border/60">
             {searching ? (
               <li className="px-5 py-10 text-center text-sm text-muted-foreground">Searching…</li>
+            ) : results.length === 0 ? (
+              <li className="px-5 py-10 text-center text-sm text-muted-foreground">
+                {searchNote ?? "No numbers matched your search."}
+              </li>
             ) : (
-              results.map((n) => (
-                <li
-                  key={n.phone_number}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
-                >
-                  <div>
-                    <div className="font-medium">{formatNumber(n.phone_number)}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">
-                      ${n.monthly_cost.toFixed(2)}/month
-                      {n.region && <> · {n.region}</>}
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => buy(n)}
-                    disabled={buying === n.phone_number}
+              <>
+                {searchNote && (
+                  <li className="bg-muted/20 px-5 py-3 text-xs text-muted-foreground">
+                    {searchNote}
+                  </li>
+                )}
+                {results.map((n) => (
+                  <li
+                    key={n.phone_number}
+                    className="flex items-center justify-between gap-4 px-5 py-4"
                   >
-                    <ShoppingCart />
-                    {buying === n.phone_number ? "Buying…" : "Buy"}
-                  </Button>
-                </li>
-              ))
+                    <div>
+                      <div className="font-medium">{formatNumber(n.phone_number)}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        ${n.monthly_cost.toFixed(2)}/month
+                        {n.region && <> · {n.region}</>}
+                      </div>
+                    </div>
+                    <Button size="sm" onClick={() => buy(n)} disabled={buying === n.phone_number}>
+                      <ShoppingCart />
+                      {buying === n.phone_number ? "Buying…" : "Buy"}
+                    </Button>
+                  </li>
+                ))}
+              </>
             )}
           </ul>
         </div>

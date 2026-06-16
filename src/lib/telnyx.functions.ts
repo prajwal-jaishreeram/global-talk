@@ -68,52 +68,82 @@ async function fetchWholesalePrice(phoneNumber: string): Promise<number> {
   }
 }
 
+type AvailablePhoneNumber = {
+  phone_number: string;
+  region_information?: Array<{ region_type: string; region_name: string }>;
+  cost_information?: { monthly_cost?: string; currency?: string };
+};
+
+type AvailablePhoneNumbersResponse = {
+  data?: AvailablePhoneNumber[];
+  errors?: Array<{ detail?: string; title?: string }>;
+};
+
+async function fetchAvailableNumbers(input: {
+  country: string;
+  areaCode?: string | null;
+  limit: number;
+}) {
+  const params = new URLSearchParams();
+  params.set("filter[country_code]", input.country);
+  params.set("filter[features][]", "voice");
+  params.set("filter[limit]", String(input.limit));
+  params.set("filter[best_effort]", "false");
+  if (input.areaCode) {
+    params.set("filter[national_destination_code]", input.areaCode);
+  }
+
+  const res = await fetch(`${TELNYX_BASE}/available_phone_numbers?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${telnyxKey()}` },
+  });
+  const json = (await res.json()) as AvailablePhoneNumbersResponse;
+  if (!res.ok) {
+    const detail =
+      json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Voice provider ${res.status}`;
+    throw new Error(detail);
+  }
+  return json.data ?? [];
+}
+
+function mapAvailableNumbers(numbers: AvailablePhoneNumber[]) {
+  return numbers.map((n) => {
+    const wholesale = Number(n.cost_information?.monthly_cost ?? 1);
+    return {
+      phone_number: n.phone_number,
+      // Retail price = 2x Telnyx wholesale price (built-in margin).
+      monthly_cost: Math.round(wholesale * NUMBER_PRICE_MARKUP * 100) / 100,
+      currency: n.cost_information?.currency ?? "USD",
+      region:
+        n.region_information?.find((r) => r.region_type === "rate_center")?.region_name ??
+        n.region_information?.[0]?.region_name ??
+        null,
+    };
+  });
+}
+
 export const searchAvailableNumbers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { country: string; areaCode?: string; limit?: number }) => input,
-  )
+  .inputValidator((input: { country: string; areaCode?: string; limit?: number }) => input)
   .handler(async ({ data }) => {
-    const params = new URLSearchParams();
-    params.set("filter[country_code]", data.country.toUpperCase());
-    params.set("filter[features][]", "voice");
-    params.set("filter[limit]", String(Math.min(data.limit ?? 20, 30)));
-    params.set("filter[best_effort]", "false");
-    if (data.areaCode && data.areaCode.trim() !== "") {
-      params.set("filter[national_destination_code]", data.areaCode.trim());
+    const country = data.country.trim().toUpperCase();
+    const areaCode = data.areaCode?.replace(/\D/g, "").trim() || null;
+    const requestedLimit = Number(data.limit ?? 20);
+    const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 20, 1), 30);
+
+    const exactMatches = await fetchAvailableNumbers({ country, areaCode, limit });
+    if (exactMatches.length > 0 || !areaCode) {
+      return {
+        numbers: mapAvailableNumbers(exactMatches),
+        relaxedAreaCode: false,
+        requestedAreaCode: areaCode,
+      };
     }
 
-    const res = await fetch(
-      `${TELNYX_BASE}/available_phone_numbers?${params.toString()}`,
-      { headers: { Authorization: `Bearer ${telnyxKey()}` } },
-    );
-    const json = (await res.json()) as {
-      data?: Array<{
-        phone_number: string;
-        region_information?: Array<{ region_type: string; region_name: string }>;
-        cost_information?: { monthly_cost?: string; currency?: string };
-      }>;
-      errors?: Array<{ detail?: string; title?: string }>;
-    };
-    if (!res.ok) {
-      const detail =
-        json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Voice provider ${res.status}`;
-      throw new Error(detail);
-    }
+    const countryWideMatches = await fetchAvailableNumbers({ country, areaCode: null, limit });
     return {
-      numbers: (json.data ?? []).map((n) => {
-        const wholesale = Number(n.cost_information?.monthly_cost ?? 1);
-        return {
-          phone_number: n.phone_number,
-          // Retail price = 2x Telnyx wholesale price (built-in margin).
-          monthly_cost: Math.round(wholesale * NUMBER_PRICE_MARKUP * 100) / 100,
-          currency: n.cost_information?.currency ?? "USD",
-          region:
-            n.region_information?.find((r) => r.region_type === "rate_center")?.region_name ??
-            n.region_information?.[0]?.region_name ??
-            null,
-        };
-      }),
+      numbers: mapAvailableNumbers(countryWideMatches),
+      relaxedAreaCode: countryWideMatches.length > 0,
+      requestedAreaCode: areaCode,
     };
   });
 
