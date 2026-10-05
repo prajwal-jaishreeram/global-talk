@@ -103,5 +103,9 @@
     "overrides": {
       "entities": "4.5.0"
     }
+  },
+  "overrides": {
+    "@tanstack/start-server-core": "1.169.39",
+    "entities": "4.5.0"
   }
 }
