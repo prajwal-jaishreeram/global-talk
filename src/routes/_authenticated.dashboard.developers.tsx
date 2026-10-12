@@ -12,6 +12,8 @@ import {
   Code2,
   ExternalLink,
   BookOpen,
+  Bot,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +64,7 @@ function DevelopersPage() {
   const [webhookUrl, setWebhookUrl] = useState("");
 
   const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -289,22 +292,82 @@ function DevelopersPage() {
 
           {revealedKey ? (
             <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted p-2.5">
-                <code className="flex-1 font-mono text-xs break-all select-all">{revealedKey}</code>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(revealedKey);
-                    setCopiedKey(true);
-                    setTimeout(() => setCopiedKey(false), 2000);
-                  }}
-                >
-                  {copiedKey ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                </Button>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Your Secret API Key</Label>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted p-2.5">
+                  <code className="flex-1 font-mono text-xs break-all select-all">{revealedKey}</code>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(revealedKey);
+                      setCopiedKey(true);
+                      setTimeout(() => setCopiedKey(false), 2000);
+                    }}
+                  >
+                    {copiedKey ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
+
+              {/* 1-Click Copy Agent Setup Prompt */}
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Copy Agent Setup Prompt</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => {
+                      const agentPrompt = `You are an AI assistant integrated with Ringringa calling API.
+Your goal is to give yourself a phone and place outbound telephone calls to leads and contacts.
+
+Ringringa Configuration:
+- Base API URL: https://ringringa.com/api/v1
+- API Key: ${revealedKey}
+- Documentation: https://ringringa.com/llms.txt
+- OpenAPI Spec: https://ringringa.com/openapi.yaml
+
+How to place a call:
+Make an HTTP POST request to: https://ringringa.com/api/v1/calls
+Headers:
+  Authorization: Bearer ${revealedKey}
+  Content-Type: application/json
+Body JSON:
+{
+  "to": "<E.164 phone number, e.g. +14155552671>",
+  "goal": "<Clear 1-sentence goal for the call>",
+  "script": "<The exact speaking script or talking points for the human caller>",
+  "notes": "<Context, recipient background, or objections to handle>",
+  "consent_attestation": true
+}
+
+Rules:
+1. Always include "consent_attestation": true to certify lawful consent.
+2. In assisted mode, the human operator picks up the call in their Ringringa browser dialer with your script pre-loaded.
+3. You can check call status, duration, and cost with GET https://ringringa.com/api/v1/calls/{id}
+4. You can check available prepaid balance with GET https://ringringa.com/api/v1/balance
+
+Acknowledge that you have loaded this tool and confirm you are ready to queue phone calls through Ringringa!`;
+                      navigator.clipboard.writeText(agentPrompt);
+                      setCopiedPrompt(true);
+                      setTimeout(() => setCopiedPrompt(false), 2000);
+                      toast.success("Agent Prompt copied to clipboard!");
+                    }}
+                  >
+                    {copiedPrompt ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedPrompt ? "Copied Prompt!" : "Copy Agent Prompt"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Paste this directly into Claude, ChatGPT, Cursor, or your autonomous agent. The agent will automatically configure itself with your key, learn the endpoints, and know how to place calls!
+                </p>
+              </div>
+
               <p className="text-xs text-amber-500 flex items-center gap-1.5">
-                <ShieldAlert className="h-4 w-4" /> Keep this secret. Do not expose it in client-side code.
+                <ShieldAlert className="h-4 w-4" /> Keep this key secret. It will not be shown again once you close this dialog.
               </p>
             </div>
           ) : (

@@ -27,20 +27,37 @@ function DocsPage() {
             5-Minute Quickstart
           </h2>
           <p className="text-sm text-muted-foreground">
-            Generate an API key in your dashboard, then place a call request with curl:
-          </p>
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+              <Bot className="h-4 w-4" />
+              <span>Give Your AI Agent a Phone (Auto Setup)</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Want your AI agent (Claude, ChatGPT, Cursor, n8n, Make) to configure itself? Copy the prompt below into your agent:
+            </p>
+            <div className="rounded-lg border border-border bg-background/80 p-3 font-mono text-xs overflow-x-auto select-all">
+              <pre>{`You are integrated with Ringringa calling API.
+Your goal is to place outbound phone calls through Ringringa.
 
-          <div className="rounded-xl border border-border bg-muted/40 p-4 font-mono text-xs overflow-x-auto">
-            <pre>{`curl -X POST https://ringringa.com/api/v1/calls \\
-  -H "Authorization: Bearer rg_live_your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "to": "+14155552671",
-    "goal": "Introduce Ringringa to the founder",
-    "script": "Hi, this is Alex from Ringringa calling about your AI agent setup...",
-    "notes": "Interested in sales automation. Prefers concise calls.",
-    "consent_attestation": true
-  }'`}</pre>
+Configuration:
+- Base API URL: https://ringringa.com/api/v1
+- Documentation: https://ringringa.com/llms.txt
+- OpenAPI Spec: https://ringringa.com/openapi.yaml
+
+How to queue a call:
+POST https://ringringa.com/api/v1/calls
+Headers:
+  Authorization: Bearer <YOUR_API_KEY>
+  Content-Type: application/json
+Body JSON:
+{
+  "to": "+14155552671",
+  "goal": "Introduce our AI product",
+  "script": "Hello! I am calling on behalf of...",
+  "notes": "Follow up on email sent yesterday",
+  "consent_attestation": true
+}`}</pre>
+            </div>
           </div>
         </section>
 
