@@ -26,7 +26,6 @@ function DocsPage() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-sm text-primary">1</span>
             5-Minute Quickstart
           </h2>
-          <p className="text-sm text-muted-foreground">
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
             <div className="flex items-center gap-2 text-primary font-semibold text-sm">
               <Bot className="h-4 w-4" />
