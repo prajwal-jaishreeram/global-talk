@@ -1,0 +1,13 @@
+{
+  "name": "@ringringa/mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for Ringringa calling API",
+  "main": "server.js",
+  "type": "module",
+  "bin": {
+    "ringringa-mcp": "./server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1"
+  }
+}

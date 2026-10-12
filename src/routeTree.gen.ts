@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RatesRouteImport } from './routes/rates'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -20,6 +21,11 @@ import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
+import { Route as ApiV1WebhooksRouteImport } from './routes/api/v1/webhooks'
+import { Route as ApiV1RatesRouteImport } from './routes/api/v1/rates'
+import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
+import { Route as ApiV1CallsRouteImport } from './routes/api/v1/calls'
+import { Route as ApiV1BalanceRouteImport } from './routes/api/v1/balance'
 import { Route as ApiPublicTelnyxSmsWebhookRouteImport } from './routes/api/public/telnyx-sms-webhook'
 import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar-webhook'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
@@ -27,11 +33,13 @@ import { Route as AuthenticatedDashboardRatesRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardNumbersRouteImport } from './routes/_authenticated.dashboard.numbers'
 import { Route as AuthenticatedDashboardMessagesRouteImport } from './routes/_authenticated.dashboard.messages'
 import { Route as AuthenticatedDashboardHistoryRouteImport } from './routes/_authenticated.dashboard.history'
+import { Route as AuthenticatedDashboardDevelopersRouteImport } from './routes/_authenticated.dashboard.developers'
 import { Route as AuthenticatedDashboardCreditsRouteImport } from './routes/_authenticated.dashboard.credits'
 import { Route as AuthenticatedDashboardContactsRouteImport } from './routes/_authenticated.dashboard.contacts'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiV1CallsIdRouteImport } from './routes/api/v1/calls.$id'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicPaymentsRazorpayVerifyRouteImport } from './routes/api/public/payments/razorpay/verify'
 import { Route as ApiPublicPaymentsRazorpayCreateOrderRouteImport } from './routes/api/public/payments/razorpay/create-order'
@@ -54,6 +62,11 @@ const RatesRoute = RatesRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -91,6 +104,31 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const ApiV1WebhooksRoute = ApiV1WebhooksRouteImport.update({
+  id: '/api/v1/webhooks',
+  path: '/api/v1/webhooks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1RatesRoute = ApiV1RatesRouteImport.update({
+  id: '/api/v1/rates',
+  path: '/api/v1/rates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1MeRoute = ApiV1MeRouteImport.update({
+  id: '/api/v1/me',
+  path: '/api/v1/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1CallsRoute = ApiV1CallsRouteImport.update({
+  id: '/api/v1/calls',
+  path: '/api/v1/calls',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1BalanceRoute = ApiV1BalanceRouteImport.update({
+  id: '/api/v1/balance',
+  path: '/api/v1/balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTelnyxSmsWebhookRoute =
   ApiPublicTelnyxSmsWebhookRouteImport.update({
     id: '/api/public/telnyx-sms-webhook',
@@ -132,6 +170,12 @@ const AuthenticatedDashboardHistoryRoute =
     path: '/history',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardDevelopersRoute =
+  AuthenticatedDashboardDevelopersRouteImport.update({
+    id: '/developers',
+    path: '/developers',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardCreditsRoute =
   AuthenticatedDashboardCreditsRouteImport.update({
     id: '/credits',
@@ -160,6 +204,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1CallsIdRoute = ApiV1CallsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiV1CallsRoute,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -182,6 +231,7 @@ const ApiPublicPaymentsRazorpayCreateOrderRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
   '/refund': typeof RefundRoute
@@ -191,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
+  '/dashboard/developers': typeof AuthenticatedDashboardDevelopersRoute
   '/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
   '/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
@@ -198,8 +249,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/v1/balance': typeof ApiV1BalanceRoute
+  '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/rates': typeof ApiV1RatesRoute
+  '/api/v1/webhooks': typeof ApiV1WebhooksRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/v1/calls/$id': typeof ApiV1CallsIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -209,6 +266,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
   '/refund': typeof RefundRoute
@@ -217,6 +275,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
+  '/dashboard/developers': typeof AuthenticatedDashboardDevelopersRoute
   '/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
   '/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
@@ -224,8 +283,14 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/v1/balance': typeof ApiV1BalanceRoute
+  '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/rates': typeof ApiV1RatesRoute
+  '/api/v1/webhooks': typeof ApiV1WebhooksRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/v1/calls/$id': typeof ApiV1CallsIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -237,6 +302,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/contact': typeof ContactRoute
+  '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
   '/rates': typeof RatesRoute
   '/refund': typeof RefundRoute
@@ -246,6 +312,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/_authenticated/dashboard/contacts': typeof AuthenticatedDashboardContactsRoute
   '/_authenticated/dashboard/credits': typeof AuthenticatedDashboardCreditsRoute
+  '/_authenticated/dashboard/developers': typeof AuthenticatedDashboardDevelopersRoute
   '/_authenticated/dashboard/history': typeof AuthenticatedDashboardHistoryRoute
   '/_authenticated/dashboard/messages': typeof AuthenticatedDashboardMessagesRoute
   '/_authenticated/dashboard/numbers': typeof AuthenticatedDashboardNumbersRoute
@@ -253,8 +320,14 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/v1/balance': typeof ApiV1BalanceRoute
+  '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/rates': typeof ApiV1RatesRoute
+  '/api/v1/webhooks': typeof ApiV1WebhooksRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/v1/calls/$id': typeof ApiV1CallsIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -266,6 +339,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/contact'
+    | '/docs'
     | '/privacy'
     | '/rates'
     | '/refund'
@@ -275,6 +349,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/dashboard/contacts'
     | '/dashboard/credits'
+    | '/dashboard/developers'
     | '/dashboard/history'
     | '/dashboard/messages'
     | '/dashboard/numbers'
@@ -282,8 +357,14 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/v1/balance'
+    | '/api/v1/calls'
+    | '/api/v1/me'
+    | '/api/v1/rates'
+    | '/api/v1/webhooks'
     | '/dashboard/'
     | '/api/public/payments/webhook'
+    | '/api/v1/calls/$id'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -293,6 +374,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/contact'
+    | '/docs'
     | '/privacy'
     | '/rates'
     | '/refund'
@@ -301,6 +383,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/dashboard/contacts'
     | '/dashboard/credits'
+    | '/dashboard/developers'
     | '/dashboard/history'
     | '/dashboard/messages'
     | '/dashboard/numbers'
@@ -308,8 +391,14 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/v1/balance'
+    | '/api/v1/calls'
+    | '/api/v1/me'
+    | '/api/v1/rates'
+    | '/api/v1/webhooks'
     | '/dashboard'
     | '/api/public/payments/webhook'
+    | '/api/v1/calls/$id'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -320,6 +409,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/contact'
+    | '/docs'
     | '/privacy'
     | '/rates'
     | '/refund'
@@ -329,6 +419,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/_authenticated/dashboard/contacts'
     | '/_authenticated/dashboard/credits'
+    | '/_authenticated/dashboard/developers'
     | '/_authenticated/dashboard/history'
     | '/_authenticated/dashboard/messages'
     | '/_authenticated/dashboard/numbers'
@@ -336,8 +427,14 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/v1/balance'
+    | '/api/v1/calls'
+    | '/api/v1/me'
+    | '/api/v1/rates'
+    | '/api/v1/webhooks'
     | '/_authenticated/dashboard/'
     | '/api/public/payments/webhook'
+    | '/api/v1/calls/$id'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -349,6 +446,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ContactRoute: typeof ContactRoute
+  DocsRoute: typeof DocsRoute
   PrivacyRoute: typeof PrivacyRoute
   RatesRoute: typeof RatesRoute
   RefundRoute: typeof RefundRoute
@@ -357,6 +455,11 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   ApiPublicPolarWebhookRoute: typeof ApiPublicPolarWebhookRoute
   ApiPublicTelnyxSmsWebhookRoute: typeof ApiPublicTelnyxSmsWebhookRoute
+  ApiV1BalanceRoute: typeof ApiV1BalanceRoute
+  ApiV1CallsRoute: typeof ApiV1CallsRouteWithChildren
+  ApiV1MeRoute: typeof ApiV1MeRoute
+  ApiV1RatesRoute: typeof ApiV1RatesRoute
+  ApiV1WebhooksRoute: typeof ApiV1WebhooksRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -393,6 +496,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -444,6 +554,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/api/v1/webhooks': {
+      id: '/api/v1/webhooks'
+      path: '/api/v1/webhooks'
+      fullPath: '/api/v1/webhooks'
+      preLoaderRoute: typeof ApiV1WebhooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/rates': {
+      id: '/api/v1/rates'
+      path: '/api/v1/rates'
+      fullPath: '/api/v1/rates'
+      preLoaderRoute: typeof ApiV1RatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/me': {
+      id: '/api/v1/me'
+      path: '/api/v1/me'
+      fullPath: '/api/v1/me'
+      preLoaderRoute: typeof ApiV1MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/calls': {
+      id: '/api/v1/calls'
+      path: '/api/v1/calls'
+      fullPath: '/api/v1/calls'
+      preLoaderRoute: typeof ApiV1CallsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/balance': {
+      id: '/api/v1/balance'
+      path: '/api/v1/balance'
+      fullPath: '/api/v1/balance'
+      preLoaderRoute: typeof ApiV1BalanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/telnyx-sms-webhook': {
       id: '/api/public/telnyx-sms-webhook'
       path: '/api/public/telnyx-sms-webhook'
@@ -493,6 +638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardHistoryRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/developers': {
+      id: '/_authenticated/dashboard/developers'
+      path: '/developers'
+      fullPath: '/dashboard/developers'
+      preLoaderRoute: typeof AuthenticatedDashboardDevelopersRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/credits': {
       id: '/_authenticated/dashboard/credits'
       path: '/credits'
@@ -528,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/calls/$id': {
+      id: '/api/v1/calls/$id'
+      path: '/$id'
+      fullPath: '/api/v1/calls/$id'
+      preLoaderRoute: typeof ApiV1CallsIdRouteImport
+      parentRoute: typeof ApiV1CallsRoute
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -555,6 +714,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardContactsRoute: typeof AuthenticatedDashboardContactsRoute
   AuthenticatedDashboardCreditsRoute: typeof AuthenticatedDashboardCreditsRoute
+  AuthenticatedDashboardDevelopersRoute: typeof AuthenticatedDashboardDevelopersRoute
   AuthenticatedDashboardHistoryRoute: typeof AuthenticatedDashboardHistoryRoute
   AuthenticatedDashboardMessagesRoute: typeof AuthenticatedDashboardMessagesRoute
   AuthenticatedDashboardNumbersRoute: typeof AuthenticatedDashboardNumbersRoute
@@ -567,6 +727,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardContactsRoute: AuthenticatedDashboardContactsRoute,
     AuthenticatedDashboardCreditsRoute: AuthenticatedDashboardCreditsRoute,
+    AuthenticatedDashboardDevelopersRoute:
+      AuthenticatedDashboardDevelopersRoute,
     AuthenticatedDashboardHistoryRoute: AuthenticatedDashboardHistoryRoute,
     AuthenticatedDashboardMessagesRoute: AuthenticatedDashboardMessagesRoute,
     AuthenticatedDashboardNumbersRoute: AuthenticatedDashboardNumbersRoute,
@@ -592,10 +754,23 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ApiV1CallsRouteChildren {
+  ApiV1CallsIdRoute: typeof ApiV1CallsIdRoute
+}
+
+const ApiV1CallsRouteChildren: ApiV1CallsRouteChildren = {
+  ApiV1CallsIdRoute: ApiV1CallsIdRoute,
+}
+
+const ApiV1CallsRouteWithChildren = ApiV1CallsRoute._addFileChildren(
+  ApiV1CallsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ContactRoute: ContactRoute,
+  DocsRoute: DocsRoute,
   PrivacyRoute: PrivacyRoute,
   RatesRoute: RatesRoute,
   RefundRoute: RefundRoute,
@@ -604,6 +779,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   ApiPublicPolarWebhookRoute: ApiPublicPolarWebhookRoute,
   ApiPublicTelnyxSmsWebhookRoute: ApiPublicTelnyxSmsWebhookRoute,
+  ApiV1BalanceRoute: ApiV1BalanceRoute,
+  ApiV1CallsRoute: ApiV1CallsRouteWithChildren,
+  ApiV1MeRoute: ApiV1MeRoute,
+  ApiV1RatesRoute: ApiV1RatesRoute,
+  ApiV1WebhooksRoute: ApiV1WebhooksRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

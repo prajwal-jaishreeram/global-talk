@@ -40,6 +40,7 @@ type NavItem = {
     | "/dashboard/history"
     | "/dashboard/credits"
     | "/dashboard/settings"
+    | "/dashboard/developers"
     | "/contact";
   label: string;
   icon: typeof Phone;
@@ -53,6 +54,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard/rates", label: "Rate calculator", icon: Calculator },
   { to: "/dashboard/history", label: "History", icon: History },
   { to: "/dashboard/credits", label: "Credits", icon: CreditCard },
+  { to: "/dashboard/developers", label: "Developers", icon: Calculator },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
   { to: "/contact", label: "Support", icon: Headphones, exact: true },
 ];

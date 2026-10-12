@@ -1,0 +1,10 @@
+{
+  "name": "ringringa",
+  "version": "1.0.0",
+  "description": "Official CLI for Ringringa - Give your AI agent a phone",
+  "bin": {
+    "ringringa": "./bin/ringringa.js"
+  },
+  "type": "module",
+  "dependencies": {}
+}

@@ -296,15 +296,15 @@ function HeroDialerInner() {
           <div className="min-w-0 w-full max-w-[22rem] text-left sm:mx-auto sm:max-w-2xl lg:mx-0">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-call shadow-[0_0_12px_var(--call)]" />
-              Browser-native calling
+              API · MCP Server · Human-in-the-Loop Dialer
             </span>
             <h1 className="mt-9 max-w-3xl text-4xl font-semibold leading-[1.04] text-foreground sm:mt-5 sm:text-5xl lg:text-5xl xl:text-6xl">
-              Low cost international calls from your browser.
+              Give your AI agent a phone.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-              Make clear international calls without apps, SIM swaps, or long-term carrier
-              contracts. Ringringa gives teams a polished dialer, transparent rates, and prepaid
-              control in one secure workspace.
+              Let Claude, ChatGPT, n8n, Make, or custom agents queue calls directly.
+              Your human team speaks in the browser dialer with pre-loaded script and notes.
+              Pay-as-you-go prepaid credits, zero seat fees, and strict privacy by design.
             </p>
             <div className="mt-9 flex w-full flex-col justify-center gap-3 sm:mt-6 sm:flex-row lg:justify-start">
               <AuthAwareCTA />

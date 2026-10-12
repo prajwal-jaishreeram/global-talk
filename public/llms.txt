@@ -1,0 +1,28 @@
+# Ringringa API - LLM Reference Guide
+
+> Give your AI agent a phone.
+
+Ringringa enables autonomous AI agents (Claude, ChatGPT, LangChain, n8n, Make) to trigger phone calls with a human-in-the-loop browser dialer.
+
+## Base URL
+https://ringringa.com/api/v1
+
+## Authentication
+Use Bearer token in the Authorization header:
+`Authorization: Bearer rg_live_...` or `Authorization: Bearer rg_test_...`
+
+Test keys (`rg_test_`) simulate calls safely without charging or dialing out.
+
+## Key Endpoints
+1. `POST /v1/calls`: Create a call task.
+   - Body: `{"to": "+14155552671", "goal": "Pitch service", "script": "Hello...", "consent_attestation": true}`
+2. `GET /v1/calls/:id`: Check call status (`awaiting_human`, `ringing`, `in_progress`, `completed`).
+3. `POST /v1/calls/:id/cancel`: Cancel an unclaimed call.
+4. `GET /v1/balance`: Check prepaid balance.
+5. `GET /v1/rates?to=+14155552671`: Check rate estimate.
+6. `POST /v1/webhooks`: Register a webhook URL for call events.
+
+## Safety & Rules
+- `consent_attestation: true` is strictly required on every call.
+- Emergency numbers (911, 112) and premium-rate prefixes (1-900) are blocked globally.
+- Prepaid credit holds are placed atomically upon call creation.

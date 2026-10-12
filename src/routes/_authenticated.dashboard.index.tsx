@@ -77,6 +77,7 @@ import {
 } from "@/lib/razorpay.functions";
 import { CountryFlag } from "@/components/country-flag";
 import { Trash2 } from "lucide-react";
+import { AgentCallRequestsTray, type AgentCallTask } from "@/components/agent-call-requests";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   head: () => ({ meta: [{ title: "Make a call - Ringringa" }] }),
@@ -297,6 +298,37 @@ function DialerPage() {
   const [telnyxState, setTelnyxState] = useState<string>("");
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
+  const [activeAgentTask, setActiveAgentTask] = useState<AgentCallTask | null>(null);
+
+  function handleAcceptAgentCall(task: AgentCallTask) {
+    setActiveAgentTask(task);
+    // Parse country & number if E.164
+    const parsed = parsePhoneNumberFromString(task.to_number);
+    if (parsed) {
+      if (parsed.country) setCountry(parsed.country);
+      setRaw(parsed.nationalNumber);
+    } else {
+      setRaw(task.to_number.replace(/^\+/, ""));
+    }
+
+    // Auto-fill Script & Notes in localStorage
+    if (task.script) {
+      try {
+        window.localStorage.setItem("ringringa.callScript", task.script);
+      } catch {}
+    }
+    if (task.notes || task.goal) {
+      try {
+        const initialNotes = [task.goal ? `Goal: ${task.goal}` : "", task.notes ?? ""].filter(Boolean).join("\n\n");
+        window.localStorage.setItem("ringringa.callNotes", initialNotes);
+      } catch {}
+    }
+
+    // Open Script & Notes panel
+    setPanelOpen(true);
+    toast.success(`Loaded call for ${task.to_number}. Click Call to begin.`);
+  }
+
   const secondsRef = useRef(0);
   const timerListenersRef = useRef<Set<(s: number) => void>>(new Set());
   const setSeconds = (s: number) => {
@@ -1124,6 +1156,24 @@ function DialerPage() {
           duration_seconds: dur,
           status,
         });
+
+        // If this call was originated from an agent task, finalize the task as well
+        if (activeAgentTask) {
+          const taskCost = res?.cost ?? 0;
+          await supabase
+            .from("call_tasks")
+            .update({
+              status: status === "completed" ? "completed" : "failed",
+              duration_seconds: dur,
+              cost: taskCost,
+              call_id: id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", activeAgentTask.id);
+
+          setActiveAgentTask(null);
+        }
+
         const at = res?.autoTopup;
         if (at && "mode" in at) {
           if (at.mode === "off_session") {
@@ -1581,13 +1631,15 @@ function DialerPage() {
           audioElRef.current = el;
         }}
       />
-      <div
-        className={cn(
-          "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
-          "max-w-[340px] md:max-w-[380px]",
-          panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
-        )}
-      >
+      <div className="flex w-full max-w-[420px] flex-col items-center">
+        <AgentCallRequestsTray onAcceptCall={handleAcceptAgentCall} />
+        <div
+          className={cn(
+            "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
+            "max-w-[340px] md:max-w-[380px]",
+            panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
+          )}
+        >
         <div className="rounded-[2rem] border border-white/10 bg-background p-4 shadow-none sm:bg-background/95 sm:shadow-inner sm:shadow-black/20 lg:p-5">
           <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/15" />
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5">
@@ -2051,6 +2103,7 @@ function DialerPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">

@@ -1,0 +1,175 @@
+openapi: 3.1.0
+info:
+  title: Ringringa Agent Calling API
+  version: 1.0.0
+  description: >
+    Give your AI agent a phone.
+    The Ringringa API allows AI agents (Claude, ChatGPT, n8n, Make, custom agents)
+    to place phone calls with a human-in-the-loop browser dialer.
+servers:
+  - url: https://ringringa.com/api/v1
+    description: Production API
+paths:
+  /calls:
+    post:
+      summary: Create an agent call task
+      description: Queues an outbound call with script, goal, and notes. The human dialer picks it up and speaks.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to
+                - consent_attestation
+              properties:
+                to:
+                  type: string
+                  example: "+14155552671"
+                  description: Destination phone number in E.164 format.
+                from:
+                  type: string
+                  example: "+18887090611"
+                mode:
+                  type: string
+                  enum: [assisted]
+                  default: assisted
+                goal:
+                  type: string
+                  example: "Schedule a product demo with Sarah"
+                script:
+                  type: string
+                  example: "Hi Sarah, this is Alex from Ringringa. I noticed your team is building AI agents..."
+                notes:
+                  type: string
+                  example: "Sarah prefers email follow-ups. Ask about their current tech stack."
+                scheduled_for:
+                  type: string
+                  format: date-time
+                  example: "2026-10-15T14:00:00Z"
+                destination_timezone:
+                  type: string
+                  example: "America/New_York"
+                max_duration_seconds:
+                  type: integer
+                  default: 900
+                consent_attestation:
+                  type: boolean
+                  description: Must be true. Caller certifies lawful basis to call this number.
+      responses:
+        '201':
+          description: Call task created successfully.
+        '400':
+          description: Invalid input or blocked destination.
+        '402':
+          description: Insufficient prepaid credit balance.
+    get:
+      summary: List agent call tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of call tasks.
+
+  /calls/{id}:
+    get:
+      summary: Get call details and status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Call details.
+        '404':
+          description: Call not found.
+
+  /calls/{id}/cancel:
+    post:
+      summary: Cancel a pending or scheduled call
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Call canceled and balance hold released.
+
+  /balance:
+    get:
+      summary: Get prepaid credit balance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Balance details.
+
+  /rates:
+    get:
+      summary: Get rate estimate for a number
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: to
+          in: query
+          schema:
+            type: string
+            example: "+14155552671"
+      responses:
+        '200':
+          description: Rate estimate.
+
+  /webhooks:
+    get:
+      summary: List registered webhook endpoints
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Webhook endpoints.
+    post:
+      summary: Register a new webhook endpoint
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  example: "https://your-server.com/webhooks/ringringa"
+      responses:
+        '201':
+          description: Webhook endpoint registered.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: rg_live_... or rg_test_...
