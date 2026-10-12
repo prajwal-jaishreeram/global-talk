@@ -120,7 +120,7 @@ function LoginPage() {
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2 group">
           <span className="serif text-2xl font-semibold tracking-tighter text-foreground">
-            AGENTCALL<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
+            AGENT CALL<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
           </span>
         </Link>
 

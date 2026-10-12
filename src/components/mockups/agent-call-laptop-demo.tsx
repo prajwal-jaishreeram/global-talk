@@ -34,7 +34,7 @@ export function AgentCallLaptopDemo() {
           {/* Top Status */}
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="flex items-center gap-2">
-              <span className="serif font-semibold text-sm">AGENTCALL</span>
+              <span className="serif font-semibold text-sm">AGENT CALL</span>
               <span className="mono text-[9px] bg-foreground text-background px-1.5 py-0.2 uppercase font-bold">LIVE</span>
             </div>
             <div className="mono text-[10px] text-muted-foreground">

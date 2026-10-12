@@ -15,7 +15,7 @@ export function SiteHeader() {
         <Link to="/" className="flex items-center gap-3">
           <img src={logoUrl} alt="AgentCall" className="h-8 w-8 object-contain" />
           <span className="serif text-2xl font-semibold tracking-tight">
-            AGENTCALL<span className="text-[#8B6B55]">.</span>
+            AGENT CALL<span className="text-[#8B6B55]">.</span>
           </span>
         </Link>
 

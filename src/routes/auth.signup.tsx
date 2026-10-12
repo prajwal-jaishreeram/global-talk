@@ -146,8 +146,8 @@ function SignupPage() {
     <div className="grid min-h-screen place-items-center bg-white dark:bg-[#0D0D11] text-[#1C1C1B] dark:text-[#F3F3F5] transition-colors px-4 py-12">
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2 group">
-          <span className="serif text-2xl font-semibold tracking-tighter text-foreground">
-            AGENTCALL<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
+          <span className="serif text-2xl font-semibold tracking-tight text-foreground">
+            AGENT CALL<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
           </span>
         </Link>
 
