@@ -181,22 +181,25 @@ function CreditsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 text-[#1C1C1B]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-black/10 pb-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Top up your calling credits
+          <div className="mono text-[10px] uppercase tracking-widest text-[#8B6B55] font-semibold mb-2">
+            ◆ SETTLEMENT LEDGER & LIQUIDITY
+          </div>
+          <h1 className="serif text-3xl sm:text-4xl font-light tracking-tight text-[#1C1C1B]">
+            Deposit Calling Credits
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            One-time top-up or never run out with monthly auto top-up.{" "}
-            <a href="/rates" className="text-primary underline-offset-4 hover:underline">
-              View rate calculator →
+          <p className="mt-1 text-xs text-black/60 font-light">
+            Instant micro-settlement for agent-initiated PSTN calls.{" "}
+            <a href="/rates" className="mono text-black underline underline-offset-4 hover:opacity-80">
+              View live rate table →
             </a>
           </p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-card px-4 py-3 text-sm">
-          <div className="text-xs text-muted-foreground">Current balance</div>
-          <div className="text-xl font-bold">
+        <div className="border border-black/10 bg-[#FAF8F5] p-4 text-sm shadow-sm min-w-[200px]">
+          <div className="mono text-[10px] uppercase tracking-wider text-black/50">AVAILABLE BALANCE</div>
+          <div className="text-2xl serif font-light text-[#1C1C1B] mt-0.5">
             {balance === null ? "-" : formatMoneyExact(balance)}
           </div>
           {canGrantTestCredits && (
@@ -204,12 +207,12 @@ function CreditsPage() {
               type="button"
               size="sm"
               variant="outline"
-              className="mt-2 w-full"
+              className="mt-2 w-full border-black/20 mono text-[10px] uppercase tracking-wider"
               onClick={addTestCredits}
               disabled={grantingTestCredits}
             >
-              <Plus className="h-3.5 w-3.5" />
-              {grantingTestCredits ? "Adding..." : "Add $20 test credits"}
+              <Plus className="h-3 w-3 mr-1" />
+              {grantingTestCredits ? "Adding..." : "+$20 Test Liquidity"}
             </Button>
           )}
         </div>
@@ -217,9 +220,11 @@ function CreditsPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <div className="text-sm font-medium">One-time top-up</div>
-            <p className="mt-1 text-xs text-muted-foreground">Pay once, credits never expire.</p>
+          <div className="border border-black/10 bg-[#FAF8F5] p-5 sm:p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-4">
+              <span className="mono text-xs font-semibold uppercase tracking-wider text-black">Prepaid Liquidity Tiers</span>
+              <span className="mono text-[10px] text-black/40">NO_EXPIRATION</span>
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
               {TOPUPS.map((p, index) => {
                 const active = selectedId === p.id;
@@ -231,20 +236,22 @@ function CreditsPage() {
                     type="button"
                     onClick={() => setSelectedId(p.id)}
                     className={cn(
-                      "relative rounded-xl border bg-background px-3 py-4 text-center transition-all",
+                      "relative border px-3 py-4 text-center transition-all",
                       active
-                        ? "border-primary ring-2 ring-primary/30 shadow-sm"
-                        : "border-border hover:border-primary/40",
+                        ? "border-black bg-[#1C1C1B] text-[#F2F0EB] shadow-md"
+                        : "border-black/15 bg-[#F2F0EB] text-[#1C1C1B] hover:border-black/40",
                       centerLastMobile &&
                         "col-span-2 mx-auto w-full max-w-[11rem] sm:col-span-1 sm:mx-0 sm:w-auto sm:max-w-none",
                     )}
                   >
-                    <div className="text-xl font-bold">{p.label}</div>
+                    <div className="serif text-xl font-medium">{p.label}</div>
                     {bonusLabel && (
-                      <div className="mt-1 text-[11px] font-medium text-primary">{bonusLabel}</div>
+                      <div className={cn("mt-1 mono text-[10px] font-bold uppercase", active ? "text-[#D4E157]" : "text-[#8B6B55]")}>
+                        {bonusLabel}
+                      </div>
                     )}
-                    <div className="mt-1 text-[11px] text-muted-foreground">
-                      ${p.credits.toFixed(2)} credits
+                    <div className={cn("mt-1 mono text-[11px]", active ? "text-white/70" : "text-black/50")}>
+                      ${p.credits.toFixed(2)}
                     </div>
                   </button>
                 );
@@ -252,16 +259,16 @@ function CreditsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
+          <div className="border border-black/10 bg-[#FAF8F5] p-5 sm:p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b-2 border-dashed border-black/10 pb-3">
               <label
                 htmlFor="auto-topup-toggle"
-                className="flex cursor-pointer items-center gap-2 text-sm font-medium"
+                className="flex cursor-pointer items-center gap-2 mono text-xs uppercase tracking-wider text-black font-semibold"
               >
-                <Repeat className="h-4 w-4 text-primary" /> Enable Auto Top-up
+                <Repeat className="h-3.5 w-3.5 text-black/70" /> Auto-Replenish Buffer
                 {autoEnabled && (
-                  <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                    Avoid interrupting an important call
+                  <span className="bg-[#2A382E]/10 text-[#2A382E] px-2 py-0.5 text-[9px] mono uppercase">
+                    ACTIVE
                   </span>
                 )}
               </label>
@@ -272,27 +279,22 @@ function CreditsPage() {
                 onCheckedChange={(v) => saveAutoSettings(v)}
               />
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              When your balance drops below the threshold, we automatically charge your saved card
-              and top up your credits. No monthly fees — you only pay when you need credits.
+            <p className="mt-3 text-xs text-black/60 font-light leading-relaxed">
+              When account balance drops below the threshold, auto-charge your saved card to prevent agent calls from failing mid-sequence. No recurring retainer or monthly fees.
             </p>
 
             {!status?.hasSavedCard && (
-              <p className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-                Make at least one one-time top-up first so we can save your payment method for auto
-                top-up.
+              <p className="mt-3 border border-amber-600/20 bg-amber-500/10 p-3 mono text-[11px] text-amber-900">
+                Note: Complete a single one-time deposit first to securely tokenize your card with Polar.
               </p>
             )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="auto-threshold" className="text-xs text-muted-foreground">
-                  Auto Top-up Threshold (recommended at least $2)
+                <Label htmlFor="auto-threshold" className="mono text-[10px] uppercase tracking-wider text-black/60">
+                  Trigger Floor Threshold ($)
                 </Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    $
-                  </span>
                   <Input
                     id="auto-threshold"
                     type="number"
@@ -303,18 +305,15 @@ function CreditsPage() {
                     value={threshold}
                     onChange={(e) => setThreshold(e.target.value)}
                     onBlur={() => autoEnabled && saveAutoSettings(true)}
-                    className="pl-7"
+                    className="bg-[#F2F0EB] border-black/20 mono text-xs"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="auto-amount" className="text-xs text-muted-foreground">
-                  Auto Top-up Amount (recommended at least $10)
+                <Label htmlFor="auto-amount" className="mono text-[10px] uppercase tracking-wider text-black/60">
+                  Replenish Amount ($)
                 </Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    $
-                  </span>
                   <Input
                     id="auto-amount"
                     type="number"
@@ -325,7 +324,7 @@ function CreditsPage() {
                     value={autoAmount}
                     onChange={(e) => setAutoAmount(e.target.value)}
                     onBlur={() => autoEnabled && saveAutoSettings(true)}
-                    className="pl-7"
+                    className="bg-[#F2F0EB] border-black/20 mono text-xs"
                   />
                 </div>
               </div>
@@ -333,56 +332,59 @@ function CreditsPage() {
 
             {status?.hasSavedCard && (
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={managePortal}>
-                  <ExternalLink className="h-3.5 w-3.5" /> Manage saved cards
+                <Button size="sm" variant="outline" onClick={managePortal} className="border-black/20 mono text-[10px] uppercase tracking-wider">
+                  <ExternalLink className="h-3 w-3 mr-1" /> Manage Polar Billing Portal
                 </Button>
               </div>
             )}
           </div>
         </div>
 
-        <aside className="h-fit rounded-2xl border border-border bg-card p-5 sm:p-6 lg:sticky lg:top-6">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" /> Order summary
+        <aside className="h-fit border border-black/10 bg-[#FAF8F5] p-5 sm:p-6 shadow-sm lg:sticky lg:top-6">
+          <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-4">
+            <span className="mono text-xs font-semibold uppercase tracking-wider text-black flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5" /> Order Summary
+            </span>
+            <span className="mono text-[10px] bg-[#D4E157] px-1.5 py-0.2 font-bold text-black">SECURE</span>
           </div>
-          <div className="mt-4 space-y-2 text-sm">
+          <div className="space-y-2 mono text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">You pay</span>
-              <span className="font-medium">${amount.toFixed(2)}</span>
+              <span className="text-black/60">Charge amount</span>
+              <span className="font-semibold text-black">${amount.toFixed(2)}</span>
             </div>
             {bonus > 0 && (
-              <div className="flex items-center justify-between text-primary">
-                <span>Bonus credits</span>
-                <span className="font-medium">+ ${bonus.toFixed(2)}</span>
+              <div className="flex items-center justify-between text-[#2A382E]">
+                <span>Complimentary bonus</span>
+                <span className="font-semibold">+${bonus.toFixed(2)}</span>
               </div>
             )}
-            <div className="my-2 border-t border-border/60" />
-            <div className="flex items-center justify-between text-base">
-              <span className="font-semibold">Total credits</span>
-              <span className="font-bold">${total.toFixed(2)}</span>
+            <div className="my-3 border-t border-black/10" />
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-black">Gross Credits</span>
+              <span className="serif text-xl font-semibold text-black">${total.toFixed(2)}</span>
             </div>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Up to ~{minutesEstimate.toLocaleString()} minutes of international calling.
+          <p className="mt-3 text-[11px] text-black/50 font-light">
+            Estimated capacity: ~{minutesEstimate.toLocaleString()} minutes of live voice routing.
           </p>
-          <Button className="mt-5 w-full" size="lg" onClick={checkout} disabled={loading}>
-            <Lock className="h-4 w-4" />
-            {loading ? "Redirecting…" : `Buy ${selectedPkg.label} credits`}
+          <Button
+            className="mt-5 w-full bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-xs uppercase tracking-wider py-6"
+            onClick={checkout}
+            disabled={loading}
+          >
+            <Lock className="h-3.5 w-3.5 mr-1.5" />
+            {loading ? "INITIALIZING SECURE CHECKOUT…" : `PURCHASE ${selectedPkg.label} →`}
           </Button>
-          <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
+          <ul className="mt-5 space-y-2 mono text-[10px] text-black/60 border-t border-black/10 pt-4">
             <li className="flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              Powered by Polar — international cards supported.
+              <ShieldCheck className="h-3.5 w-3.5 text-black/70 shrink-0" />
+              Powered by Polar (Merchant of Record)
             </li>
             <li className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-primary" /> Credits never expire
+              <Check className="h-3.5 w-3.5 text-black/70 shrink-0" /> Credits never expire
             </li>
             <li className="flex items-center gap-2">
-              <Shield className="h-3.5 w-3.5 text-primary" /> Encrypted, PCI-compliant checkout
-            </li>
-            <li className="flex items-start gap-2">
-              <Info className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
-              <span>VAT/GST handled by Polar (Merchant of Record).</span>
+              <Check className="h-3.5 w-3.5 text-black/70 shrink-0" /> Realtime per-second settlement
             </li>
           </ul>
         </aside>

@@ -3,101 +3,84 @@ import logoUrl from "@/assets/logo and favicon/logo.png";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border/60 bg-card/50">
-      <div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-10">
+    <footer className="border-t border-[#1C1C1B]/10 bg-[#F2F0EB] text-[#1C1C1B]">
+      <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
-              <img src={logoUrl} alt="" className="h-9 w-9 object-contain" />
-              Ringringa
+            <Link to="/" className="flex items-center gap-2.5">
+              <img src={logoUrl} alt="" className="h-8 w-8 object-contain" />
+              <span className="serif text-xl font-semibold tracking-tight">RINGRINGA.</span>
             </Link>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Browser-native international calling for individuals and teams.
+            <p className="mt-3 text-xs text-[#1C1C1B]/70 leading-relaxed font-light">
+              Give your AI agent a phone. Webhook and API-orchestrated telephony with human-in-the-loop connection.
             </p>
           </div>
           <div>
-            <div className="text-sm font-semibold">Quick links</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <div className="mono text-[11px] font-bold uppercase tracking-wider text-[#1C1C1B]/60">Platform</div>
+            <ul className="mt-3 space-y-2 text-xs font-light text-[#1C1C1B]/80">
               <li>
-                <Link to="/" hash="how" className="hover:text-foreground">
-                  How it works
+                <Link to="/" hash="how" className="hover:text-black">
+                  Protocol & Workflow
                 </Link>
               </li>
               <li>
-                <Link to="/rates" className="hover:text-foreground">
-                  Rates
+                <Link to="/rates" className="hover:text-black">
+                  Per-Minute Rates
                 </Link>
               </li>
               <li>
-                <Link to="/" hash="business" className="hover:text-foreground">
-                  For business
-                </Link>
-              </li>
-              <li>
-                <Link to="/" hash="faq" className="hover:text-foreground">
-                  FAQ
+                <Link to="/docs" className="hover:text-black">
+                  Developer API & MCP
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <div className="text-sm font-semibold">Account</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <div className="mono text-[11px] font-bold uppercase tracking-wider text-[#1C1C1B]/60">Access</div>
+            <ul className="mt-3 space-y-2 text-xs font-light text-[#1C1C1B]/80">
               <li>
-                <Link to="/auth/login" className="hover:text-foreground">
-                  Log in
+                <Link to="/auth/login" className="hover:text-black">
+                  Sign In
                 </Link>
               </li>
               <li>
-                <Link to="/auth/signup" className="hover:text-foreground">
-                  Sign up
+                <Link to="/auth/signup" className="hover:text-black">
+                  Create Key
                 </Link>
               </li>
               <li>
-                <Link to="/dashboard" className="hover:text-foreground">
-                  Make a call
+                <Link to="/dashboard" className="hover:text-black">
+                  Agent Dialer
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <div className="text-sm font-semibold">Legal</div>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <div className="mono text-[11px] font-bold uppercase tracking-wider text-[#1C1C1B]/60">Security & Legal</div>
+            <ul className="mt-3 space-y-2 text-xs font-light text-[#1C1C1B]/80">
               <li>
-                <Link to="/terms" className="hover:text-foreground">
-                  Terms
+                <Link to="/terms" className="hover:text-black">
+                  Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="hover:text-foreground">
-                  Privacy
+                <Link to="/privacy" className="hover:text-black">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/refund" className="hover:text-foreground">
-                  Refund Policy
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="hover:text-foreground">
-                  Contact
+                <Link to="/contact" className="hover:text-black">
+                  Support & Dispatch
                 </Link>
               </li>
             </ul>
           </div>
         </div>
-        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
-          <div>© {new Date().getFullYear()} Ringringa. All rights reserved.</div>
-          <div className="flex gap-4">
-            <Link to="/terms" className="hover:text-foreground">
-              Terms
-            </Link>
-            <Link to="/privacy" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <Link to="/refund" className="hover:text-foreground">
-              Refund
-            </Link>
+        <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-[#1C1C1B]/10 pt-6 mono text-[11px] text-[#1C1C1B]/60 md:flex-row md:items-center">
+          <div>© {new Date().getFullYear()} RINGRINGA TELEPHONY. ALL RIGHTS RESERVED.</div>
+          <div className="flex gap-6">
+            <span>ZERO AUDIO RECORDINGS</span>
+            <span>END-TO-END TLS</span>
           </div>
         </div>
       </div>

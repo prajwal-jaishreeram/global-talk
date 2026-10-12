@@ -18,7 +18,7 @@ export const Route = createFileRoute("/rates")({
 
 function RatesPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#F2F0EB] text-[#1C1C1B]">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-16">
         <RateCalculator />

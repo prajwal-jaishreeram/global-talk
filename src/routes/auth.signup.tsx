@@ -143,22 +143,28 @@ function SignupPage() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-4 py-12">
+    <div className="grid min-h-screen place-items-center bg-[#F2F0EB] text-[#1C1C1B] px-4 py-12">
       <div className="w-full max-w-sm">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2 font-semibold">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Phone className="h-4 w-4" />
+        <Link to="/" className="mb-8 flex items-center justify-center gap-2 group">
+          <span className="serif text-2xl font-semibold tracking-tighter">
+            RINGRINGA<span className="text-[#8B6B55]">.</span>
           </span>
-          Ringringa
         </Link>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <h1 className="text-xl font-semibold">Create your account</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Start with $5 in trial credits.</p>
+        <div className="border border-black/10 bg-[#FAF8F5] p-7 shadow-sm">
+          <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-6">
+            <span className="mono text-[10px] uppercase tracking-wider text-black/50">NEW_ACCOUNT</span>
+            <span className="mono text-[10px] bg-[#D4E157] text-[#1C1C1B] px-2 py-0.5 font-bold">$5 TRIAL</span>
+          </div>
+
+          <h1 className="serif text-2xl font-light tracking-tight text-[#1C1C1B]">Create account</h1>
+          <p className="mt-1 text-xs text-black/60 font-light">Start with $5 in trial credits for your AI agent.</p>
 
           <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="mono text-[11px] uppercase tracking-wider text-black/70">
+                Full name
+              </Label>
               <Input
                 id="name"
                 autoComplete="name"
@@ -168,16 +174,19 @@ function SignupPage() {
                 aria-describedby={fieldErrors.fullName ? "name-error" : undefined}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                className="bg-[#F2F0EB] border-black/20 text-[#1C1C1B] focus-visible:ring-black/20"
               />
               {fieldErrors.fullName ? (
-                <p id="name-error" className="text-xs text-destructive">
+                <p id="name-error" className="mono text-[11px] text-red-600">
                   {fieldErrors.fullName}
                 </p>
               ) : null}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="mono text-[11px] uppercase tracking-wider text-black/70">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -189,16 +198,19 @@ function SignupPage() {
                 aria-describedby={fieldErrors.email ? "email-error" : undefined}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-[#F2F0EB] border-black/20 text-[#1C1C1B] focus-visible:ring-black/20"
               />
               {fieldErrors.email ? (
-                <p id="email-error" className="text-xs text-destructive">
+                <p id="email-error" className="mono text-[11px] text-red-600">
                   {fieldErrors.email}
                 </p>
               ) : null}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="mono text-[11px] uppercase tracking-wider text-black/70">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -211,12 +223,12 @@ function SignupPage() {
                   aria-describedby={fieldErrors.password ? "password-error" : "password-hint"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 bg-[#F2F0EB] border-black/20 text-[#1C1C1B] focus-visible:ring-black/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground hover:text-foreground"
+                  className="absolute inset-y-0 right-0 grid w-10 place-items-center text-black/40 hover:text-black"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   tabIndex={-1}
                 >
@@ -224,39 +236,43 @@ function SignupPage() {
                 </button>
               </div>
               {fieldErrors.password ? (
-                <p id="password-error" className="text-xs text-destructive">
+                <p id="password-error" className="mono text-[11px] text-red-600">
                   {fieldErrors.password}
                 </p>
               ) : (
-                <p id="password-hint" className="text-xs text-muted-foreground">
-                  At least 8 characters with upper, lower, and a number.
+                <p id="password-hint" className="mono text-[10px] text-black/50">
+                  Min 8 chars with upper, lower, and digit.
                 </p>
               )}
             </div>
 
             {formError ? (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="border-red-400 bg-red-50 text-red-900">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Couldn&apos;t create account</AlertTitle>
-                <AlertDescription>{formError}</AlertDescription>
+                <AlertTitle className="mono text-xs">Registration Failed</AlertTitle>
+                <AlertDescription className="text-xs">{formError}</AlertDescription>
               </Alert>
             ) : null}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-xs uppercase tracking-wider py-5"
+              disabled={loading}
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating…
+                  CREATING ACCOUNT…
                 </>
               ) : (
-                "Create account"
+                "CREATE ACCOUNT →"
               )}
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="mt-5 text-center text-xs text-black/60 font-light border-t border-black/10 pt-4">
             Have an account?{" "}
-            <Link to="/auth/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            <Link to="/auth/login" className="mono font-medium text-black underline-offset-4 hover:underline">
               Log in
             </Link>
           </p>

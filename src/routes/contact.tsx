@@ -1,17 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { type FormEvent, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Clock3, Mail, MessageSquare, ShieldCheck } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { sendContactSupportEmail } from "@/lib/contact.functions";
+import { CheckCircle2, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact - Ringringa" },
-      { name: "description", content: "Get in touch with the Ringringa team." },
+      { title: "Contact & Dispatch - Ringringa" },
+      { name: "description", content: "Get in touch with the Ringringa telephony engineering team." },
     ],
   }),
   component: ContactPage,
@@ -39,156 +38,115 @@ function ContactPage() {
       setSent(true);
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch (err: any) {
-      setError(err?.message ?? "Could not send your message. Please email support directly.");
+      setError(err?.message ?? "Could not send your message. Please email directly.");
     } finally {
       setSending(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#F2F0EB] text-[#1C1C1B] font-sans flex flex-col justify-between">
       <SiteHeader />
-      <main className="relative overflow-hidden border-b border-border/60">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
-            backgroundSize: "72px 72px",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.045)_44%,transparent_72%)]"
-        />
-        <section className="relative z-10 mx-auto grid max-w-6xl gap-10 px-5 py-8 sm:px-6 md:py-10 lg:grid-cols-[0.86fr_1.14fr] lg:items-start lg:px-10 lg:pb-16 lg:pt-10">
-          <div className="order-2 lg:order-1">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
-              <MessageSquare className="h-3.5 w-3.5" />
-              Contact Ringringa
-            </span>
-            <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-              Get clear answers before your next call.
-            </h1>
-            <p className="mt-4 max-w-lg text-base leading-7 text-muted-foreground">
-              Send a support question, pricing request, or business inquiry. We keep replies direct
-              and account-specific.
-            </p>
 
-            <div className="mt-8 grid gap-3">
-              <a
-                href="mailto:prajwalshindeee@gmail.com"
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-sm transition hover:border-primary/40 hover:bg-white/[0.055]"
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <Mail className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-medium">Support inbox</span>
-                    <span className="block truncate text-sm text-muted-foreground">
-                      prajwalshindeee@gmail.com
-                    </span>
-                  </span>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+      <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-20 flex-1">
+        <div className="mono text-[11px] text-[#8B6B55] uppercase tracking-widest mb-3 font-semibold">
+          ◆ Dispatch & Support
+        </div>
+        <h1 className="serif text-5xl sm:text-6xl font-light mb-6 text-[#1C1C1B]">
+          Direct line to the team.
+        </h1>
+        <p className="text-base text-[#1C1C1B]/70 font-light max-w-xl mb-12 leading-relaxed">
+          Questions about high-volume agent API caps, custom rate cards, or integration questions?
+          Send a transmission below.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+          <div className="space-y-6 md:col-span-1 border-t border-black/10 pt-6">
+            <div>
+              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Direct Email</div>
+              <a href="mailto:prajwalshindeee@gmail.com" className="text-sm font-medium hover:underline flex items-center gap-1.5">
+                <Mail className="h-4 w-4" /> prajwalshindeee@gmail.com
               </a>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-                  <Clock3 className="h-4 w-4 text-primary" />
-                  <div className="mt-3 text-sm font-medium">Response time</div>
-                  <div className="mt-1 text-sm text-muted-foreground">One business day</div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <div className="mt-3 text-sm font-medium">Account help</div>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    Billing, calls, and access
-                  </div>
-                </div>
-              </div>
+            </div>
+            <div>
+              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Response Latency</div>
+              <p className="text-xs text-black/70 font-light">Under 12 hours on business days</p>
+            </div>
+            <div>
+              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Security Model</div>
+              <p className="text-xs text-black/70 font-light">All calls run over encrypted WebRTC SIP trunks with zero recording.</p>
             </div>
           </div>
 
           <form
             onSubmit={submit}
-            className="order-1 rounded-[2rem] border border-white/10 bg-card/80 p-5 shadow-2xl shadow-black/30 backdrop-blur md:p-7 lg:order-2"
+            className="md:col-span-2 bg-[#FAF8F5] border border-black/10 p-6 sm:p-8 space-y-5 shadow-xs"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <h2 className="text-xl font-semibold">Send a message</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Your message goes straight to the support inbox.
-                </p>
-              </div>
-              <span className="hidden rounded-full bg-call/10 px-3 py-1 text-xs font-medium text-call sm:inline-flex">
-                Secure
-              </span>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <label className="block text-sm">
-                <span className="text-foreground">Name</span>
+                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Name</label>
                 <input
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/[0.035] px-3 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary/60"
+                  className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
                   placeholder="Your name"
                 />
-              </label>
-              <label className="block text-sm">
-                <span className="text-foreground">Email</span>
+              </div>
+              <div>
+                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Email</label>
                 <input
                   required
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/[0.035] px-3 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary/60"
-                  placeholder="you@example.com"
+                  className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
+                  placeholder="you@company.com"
                 />
-              </label>
+              </div>
             </div>
 
-            <label className="mt-4 block text-sm">
-              <span className="text-foreground">Subject</span>
+            <div>
+              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Subject</label>
               <input
                 required
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/[0.035] px-3 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary/60"
-                placeholder="Billing, calls, pricing, or account help"
+                className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
+                placeholder="Agent workflow, higher limits, or billing"
               />
-            </label>
+            </div>
 
-            <label className="mt-4 block text-sm">
-              <span className="text-foreground">Message</span>
+            <div>
+              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Message</label>
               <textarea
                 required
-                rows={6}
+                rows={5}
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-white/[0.035] px-3 py-3 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary/60"
-                placeholder="Tell us what you need help with."
+                className="w-full bg-white border border-black/15 p-3 text-sm outline-none focus:border-black font-light resize-none"
+                placeholder="How can we help your team or agent deployment?"
               />
-            </label>
+            </div>
 
-            <Button type="submit" size="lg" className="mt-5 w-full gap-2" disabled={sending}>
-              {sending ? "Sending..." : "Send message"}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            <button
+              type="submit"
+              disabled={sending}
+              className="mono text-xs border border-black bg-black text-[#F2F0EB] px-8 py-3.5 hover:bg-black/80 transition-all font-semibold uppercase tracking-wider disabled:opacity-50"
+            >
+              {sending ? "TRANSMITTING..." : "SEND TRANSMISSION"}
+            </button>
+
             {sent && (
-              <p className="mt-4 flex items-center gap-2 text-xs text-primary">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Message sent. Support will reply by
-                email.
+              <p className="flex items-center gap-2 mono text-xs text-emerald-800">
+                <CheckCircle2 className="h-4 w-4" /> Message received. We will reply via email shortly.
               </p>
             )}
-            {error && <p className="mt-4 text-xs text-destructive">{error}</p>}
+            {error && <p className="mono text-xs text-red-700">{error}</p>}
           </form>
-        </section>
+        </div>
       </main>
+
       <SiteFooter />
     </div>
   );

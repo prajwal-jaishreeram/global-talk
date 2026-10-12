@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, PhoneCall } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useAuthState } from "@/lib/auth-client";
 import logoUrl from "@/assets/logo and favicon/logo.png";
 
@@ -11,85 +9,58 @@ export function SiteHeader() {
   const { ready, isAuthenticated } = useAuthState();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-10">
-        <Link
-          to="/"
-          className="flex min-w-0 flex-1 items-center gap-2 font-semibold sm:flex-none sm:gap-3"
-        >
-          <img src={logoUrl} alt="" className="h-10 w-10 shrink-0 object-contain sm:h-10 sm:w-10" />
-          <span className="whitespace-nowrap text-lg font-bold tracking-tight sm:text-2xl">
-            Ringringa
+    <header className="sticky top-0 z-40 border-b border-[#1C1C1B]/10 bg-[#F2F0EB]/90 backdrop-blur-md text-[#1C1C1B]">
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 sm:px-8">
+        <Link to="/" className="flex items-center gap-3">
+          <img src={logoUrl} alt="Ringringa" className="h-8 w-8 object-contain" />
+          <span className="serif text-2xl font-semibold tracking-tight text-[#1C1C1B]">
+            RINGRINGA.
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.035] p-1 text-sm text-muted-foreground shadow-sm md:flex">
-          <Link
-            to="/"
-            hash="how"
-            className="rounded-full px-3 py-1.5 hover:bg-white/[0.05] hover:text-foreground"
-          >
-            How it works
+
+        <nav className="hidden items-center gap-8 mono text-xs uppercase tracking-wider text-[#1C1C1B]/70 md:flex">
+          <Link to="/" hash="how" className="hover:text-[#1C1C1B] transition-colors">
+            Protocol
           </Link>
-          <Link
-            to="/rates"
-            className="rounded-full px-3 py-1.5 hover:bg-white/[0.05] hover:text-foreground"
-          >
+          <Link to="/rates" className="hover:text-[#1C1C1B] transition-colors">
             Rates
           </Link>
-          <Link
-            to="/"
-            hash="business"
-            className="rounded-full px-3 py-1.5 hover:bg-white/[0.05] hover:text-foreground"
-          >
-            Business
+          <Link to="/docs" className="hover:text-[#1C1C1B] transition-colors">
+            API & MCP
           </Link>
-          <Link
-            to="/"
-            hash="faq"
-            className="rounded-full px-3 py-1.5 hover:bg-white/[0.05] hover:text-foreground"
-          >
-            FAQ
-          </Link>
-          <Link
-            to="/contact"
-            className="rounded-full px-3 py-1.5 hover:bg-white/[0.05] hover:text-foreground"
-          >
+          <Link to="/contact" className="hover:text-[#1C1C1B] transition-colors">
             Contact
           </Link>
         </nav>
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <ThemeToggle className="h-10 w-10 rounded-xl sm:h-9 sm:w-9 sm:rounded-md" />
+
+        <div className="flex items-center gap-3">
           {ready && isAuthenticated ? (
-            <Link to="/dashboard" aria-label="Make a call">
-              <Button
-                size="sm"
-                className="h-10 rounded-xl px-3 text-sm shadow-sm shadow-primary/10 sm:h-8 sm:rounded-md sm:px-3 sm:text-xs"
-                aria-label="Make a call"
-              >
-                <PhoneCall className="h-4 w-4" />
-                <span className="hidden sm:inline">Make a call</span>
-              </Button>
+            <Link
+              to="/dashboard"
+              className="mono text-xs border border-[#1C1C1B] bg-[#1C1C1B] text-[#F2F0EB] px-4 py-2 hover:bg-transparent hover:text-[#1C1C1B] transition-all duration-200 flex items-center gap-1.5"
+            >
+              <span>DASHBOARD</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           ) : (
             <>
-              <Link to="/auth/login" className="hidden sm:block">
-                <Button variant="ghost" size="sm">
-                  Log in
-                </Button>
+              <Link
+                to="/auth/login"
+                className="hidden sm:inline-block mono text-xs text-[#1C1C1B]/80 hover:text-[#1C1C1B] px-3 py-2"
+              >
+                LOGIN
               </Link>
-              <Link to="/auth/signup">
-                <Button
-                  size="sm"
-                  className="h-10 rounded-xl px-3 text-sm shadow-sm shadow-primary/10 sm:h-8 sm:rounded-md sm:px-3 sm:text-xs"
-                >
-                  <span className="hidden min-[390px]:inline">Get started</span>
-                  <span className="min-[390px]:hidden">Start</span>
-                </Button>
+              <Link
+                to="/auth/signup"
+                className="mono text-xs border border-[#1C1C1B] bg-[#1C1C1B] text-[#F2F0EB] px-5 py-2 hover:bg-transparent hover:text-[#1C1C1B] transition-all duration-200"
+              >
+                INITIALIZE
               </Link>
             </>
           )}
+
           <button
-            className="grid h-10 w-10 place-items-center rounded-xl border border-border sm:h-9 sm:w-9 sm:rounded-md md:hidden"
+            className="grid h-9 w-9 place-items-center border border-[#1C1C1B]/20 md:hidden text-[#1C1C1B]"
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
@@ -97,22 +68,23 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
+
       {open && (
-        <div className="flex flex-col gap-3 border-t border-border/60 px-6 py-4 text-sm md:hidden">
-          <Link to="/" hash="how" onClick={() => setOpen(false)}>
-            How it works
+        <div className="flex flex-col gap-3 border-t border-[#1C1C1B]/10 bg-[#F2F0EB] px-8 py-5 mono text-xs uppercase tracking-wider md:hidden">
+          <Link to="/" hash="how" onClick={() => setOpen(false)} className="py-1">
+            Protocol
           </Link>
-          <Link to="/rates" onClick={() => setOpen(false)}>
+          <Link to="/rates" onClick={() => setOpen(false)} className="py-1">
             Rates
           </Link>
-          <Link to="/" hash="business" onClick={() => setOpen(false)}>
-            Business
+          <Link to="/docs" onClick={() => setOpen(false)} className="py-1">
+            API & MCP
           </Link>
-          <Link to="/" hash="faq" onClick={() => setOpen(false)}>
-            FAQ
-          </Link>
-          <Link to="/contact" onClick={() => setOpen(false)}>
+          <Link to="/contact" onClick={() => setOpen(false)} className="py-1">
             Contact
+          </Link>
+          <Link to="/auth/login" onClick={() => setOpen(false)} className="py-1">
+            Login
           </Link>
         </div>
       )}
