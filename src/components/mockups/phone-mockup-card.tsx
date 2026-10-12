@@ -1,0 +1,199 @@
+import {
+  forwardRef,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
+import { cn } from "@/lib/utils";
+
+const phoneFrameVariants = {
+  purple: {
+    frame: "bg-[#4a4254]",
+    button: "bg-[#423d4d]",
+  },
+  orange: {
+    frame: "bg-[#d4845a]",
+    button: "bg-[#cc7a50]",
+  },
+  white: {
+    frame: "bg-[#e4e4e8]",
+    button: "bg-[#d8d8de]",
+  },
+  titanium: {
+    frame: "bg-[#2A2A2E] dark:bg-[#1E1E22]",
+    button: "bg-[#3A3A40] dark:bg-[#2C2C32]",
+  },
+  cherry: {
+    frame: "bg-[#d49aa8]",
+    button: "bg-[#ca90a0]",
+  },
+} as const;
+
+export type PhoneFrameVariant = keyof typeof phoneFrameVariants;
+
+const PHONE_ASPECT = 70.6 / 146.6;
+
+type PhoneMockupCardProps = Readonly<
+  ComponentPropsWithoutRef<"div"> & {
+    variant?: PhoneFrameVariant;
+    visibleRatio?: number;
+    showDynamicIsland?: boolean;
+  }
+>;
+
+const buttonClass = (color: string) =>
+  cn("absolute w-[3px] rounded-l-sm", color);
+
+function PhoneSideButtons({
+  frame,
+}: Readonly<{
+  frame: (typeof phoneFrameVariants)[PhoneFrameVariant];
+}>) {
+  return (
+    <>
+      {/* Mute switch */}
+      <div
+        className={cn(
+          buttonClass(frame.button),
+          "top-[15.5%] -left-[3px] h-[3.2%]",
+        )}
+        aria-hidden="true"
+      />
+      {/* Volume up */}
+      <div
+        className={cn(
+          buttonClass(frame.button),
+          "top-[21%] -left-[3px] h-[7.2%]",
+        )}
+        aria-hidden="true"
+      />
+      {/* Volume down */}
+      <div
+        className={cn(
+          buttonClass(frame.button),
+          "top-[30.5%] -left-[3px] h-[7.2%]",
+        )}
+        aria-hidden="true"
+      />
+      {/* Power button */}
+      <div
+        className={cn(
+          buttonClass(frame.button),
+          "top-[23%] -right-[3px] h-[11.5%] rounded-l-none rounded-r-sm",
+        )}
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
+function PhoneScreen({
+  children,
+  showDynamicIsland,
+}: Readonly<{
+  children: ReactNode;
+  showDynamicIsland: boolean;
+}>) {
+  return (
+    <div className="relative h-full w-full overflow-hidden rounded-[2.5rem] bg-neutral-950 text-foreground">
+      {/* Screen — thin bezel with smooth inner corners */}
+      <div className="absolute inset-[3px] overflow-hidden rounded-[2.35rem] bg-background">
+        <div className="relative h-full w-full">{children}</div>
+
+        {showDynamicIsland ? (
+          <div
+            className="pointer-events-none absolute top-[9px] left-1/2 z-30 h-[22px] w-[72px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end px-2"
+            aria-hidden="true"
+          >
+            <div
+              className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#1b3a57]"
+              aria-hidden="true"
+            />
+          </div>
+        ) : null}
+
+        {/* Home indicator */}
+        <div
+          className="pointer-events-none absolute bottom-[6px] left-1/2 z-30 h-[3.5px] w-[34%] -translate-x-1/2 rounded-full bg-foreground/20"
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
+}
+
+export const PhoneMockupCard = forwardRef<HTMLDivElement, PhoneMockupCardProps>(
+  (
+    {
+      className,
+      children,
+      variant = "titanium",
+      visibleRatio = 1,
+      showDynamicIsland = true,
+      style,
+      ...props
+    },
+    ref,
+  ) => {
+    const frame = phoneFrameVariants[variant];
+    const ratio = Math.min(1, Math.max(0, visibleRatio));
+    const isCropped = ratio < 1;
+
+    const phoneFrameClassName = cn(
+      "relative w-full rounded-[2.65rem] p-[3px] shadow-2xl transition-all",
+      frame.frame,
+    );
+
+    if (!isCropped) {
+      return (
+        <div
+          ref={ref}
+          data-slot="phone-mockup-card"
+          data-variant={variant}
+          className={cn(phoneFrameClassName, "aspect-[70.6/146.6]", className)}
+          style={style}
+          {...props}
+        >
+          <PhoneSideButtons frame={frame} />
+          <PhoneScreen showDynamicIsland={showDynamicIsland}>
+            {children}
+          </PhoneScreen>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        ref={ref}
+        data-slot="phone-mockup-card"
+        data-variant={variant}
+        data-visible-ratio={ratio}
+        className={cn("relative overflow-hidden", className)}
+        style={{
+          aspectRatio: PHONE_ASPECT / ratio,
+          ...style,
+        }}
+        {...props}
+      >
+        <div className="absolute inset-0 right-[3px] left-[3px] overflow-hidden">
+          <div
+            className={cn(phoneFrameClassName, "w-full shrink-0")}
+            style={{ height: `${100 / ratio}%` }}
+          >
+            <PhoneScreen showDynamicIsland={showDynamicIsland}>
+              {children}
+            </PhoneScreen>
+          </div>
+        </div>
+
+        <div
+          className="pointer-events-none absolute top-0 left-[3px] z-10 w-full shrink-0"
+          style={{ height: `${100 / ratio}%` }}
+        >
+          <PhoneSideButtons frame={frame} />
+        </div>
+      </div>
+    );
+  },
+);
+
+PhoneMockupCard.displayName = "PhoneMockupCard";

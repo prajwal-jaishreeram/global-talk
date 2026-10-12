@@ -42,7 +42,7 @@ function Landing() {
   }, [hash]);
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB] text-[#1C1C1B] font-sans antialiased selection:bg-black selection:text-white flex flex-col">
+    <div className="min-h-screen bg-[#F2F0EB] text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] font-sans antialiased selection:bg-foreground selection:text-background flex flex-col transition-colors">
       <SiteHeader />
       <HeroSection />
       <AgentSetupCommandSection />
@@ -60,16 +60,16 @@ function HeroSection() {
 
   return (
     <section className="flex flex-col items-center justify-center px-6 pt-16 pb-12 sm:pt-24 sm:pb-16 text-center max-w-4xl mx-auto">
-      <div className="mono text-[11px] mb-6 text-[#8B6B55] font-bold uppercase tracking-widest inline-flex items-center gap-2 border border-[#8B6B55]/30 bg-[#8B6B55]/10 px-3 py-1 rounded-full">
+      <div className="mono text-[11px] mb-6 text-[#8B6B55] dark:text-[#C9A690] font-bold uppercase tracking-widest inline-flex items-center gap-2 border border-[#8B6B55]/30 bg-[#8B6B55]/10 px-3 py-1 rounded-full">
         <span>◆</span> AGENTIC TELEPHONY · HUMAN-IN-THE-LOOP
       </div>
 
-      <h1 className="serif text-6xl sm:text-7xl md:text-8xl leading-[0.88] mb-8 font-light text-[#1C1C1B]">
+      <h1 className="serif text-6xl sm:text-7xl md:text-8xl leading-[0.88] mb-8 font-light text-foreground">
         Give your AI agent<br />
-        <span className="italic text-[#2A382E]">a phone</span>.
+        <span className="italic text-[#2A382E] dark:text-[#88C090]">a phone</span>.
       </h1>
 
-      <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-[#1C1C1B]/75 font-light leading-relaxed">
+      <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-muted-foreground font-light leading-relaxed">
         Autonomous agents can research and write, but they cannot dial phone numbers.
         Ringringa gives Claude, ChatGPT, n8n, and custom agents an API, an MCP server, and a CLI.
         The agent queues the call; your team picks up and talks in the browser.
@@ -78,13 +78,13 @@ function HeroSection() {
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
         <Link
           to={ready && isAuthenticated ? "/dashboard" : "/auth/signup"}
-          className="w-full sm:w-auto bg-[#1C1C1B] text-[#F2F0EB] px-8 py-4 mono text-xs font-semibold hover:bg-black/80 transition-all text-center tracking-wider"
+          className="w-full sm:w-auto bg-foreground text-background px-8 py-4 mono text-xs font-semibold hover:opacity-90 transition-all text-center tracking-wider"
         >
           {ready && isAuthenticated ? "ENTER DIALER" : "GET API KEY"}
         </Link>
         <Link
           to="/docs"
-          className="w-full sm:w-auto border border-[#1C1C1B] px-8 py-4 mono text-xs font-semibold hover:bg-[#1C1C1B] hover:text-[#F2F0EB] transition-all text-center tracking-wider"
+          className="w-full sm:w-auto border border-foreground text-foreground px-8 py-4 mono text-xs font-semibold hover:bg-foreground hover:text-background transition-all text-center tracking-wider"
         >
           VIEW PROTOCOL
         </Link>
@@ -124,28 +124,28 @@ Body JSON:
 
   return (
     <section className="w-full max-w-3xl mx-auto px-6 py-6">
-      <div className="bg-[#FAF8F5] border border-black/10 p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-dashed border-black/15 gap-2">
+      <div className="bg-[#FAF8F5] dark:bg-[#16161B] border border-border p-5 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-dashed border-border gap-2">
           <div className="flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-[#8B6B55]" />
-            <span className="mono text-xs font-bold uppercase tracking-wider text-[#1C1C1B]">
+            <Terminal className="h-4 w-4 text-[#8B6B55] dark:text-[#C9A690]" />
+            <span className="mono text-xs font-bold uppercase tracking-wider text-foreground">
               Prompt: Setup In Your AI Agent
             </span>
           </div>
           <button
             onClick={handleCopy}
-            className="mono text-[11px] border border-black/20 px-3 py-1 bg-white hover:bg-black hover:text-white transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+            className="mono text-[11px] border border-border px-3 py-1 bg-background text-foreground hover:bg-foreground hover:text-background transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
           >
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
             <span>{copied ? "COPIED TO CLIPBOARD" : "COPY PROMPT"}</span>
           </button>
         </div>
 
-        <p className="text-xs text-[#1C1C1B]/70 font-light mb-3">
+        <p className="text-xs text-muted-foreground font-light mb-3">
           Paste this prompt into Claude, ChatGPT, Cursor, or your autonomous agent. The agent will immediately learn the protocol and start placing calls.
         </p>
 
-        <pre className="mono text-[11px] bg-black/5 p-3.5 rounded border border-black/5 overflow-x-auto text-[#1C1C1B]/90 whitespace-pre leading-relaxed select-all">
+        <pre className="mono text-[11px] bg-black/5 dark:bg-white/5 p-3.5 rounded border border-border overflow-x-auto text-foreground whitespace-pre leading-relaxed select-all">
           {setupPrompt}
         </pre>
       </div>
@@ -193,23 +193,23 @@ function ProtocolWorkflowSection() {
   ];
 
   return (
-    <section id="how" className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-black/10">
-      <div className="mono text-[11px] text-[#8B6B55] uppercase tracking-widest mb-2 font-semibold">
+    <section id="how" className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-border">
+      <div className="mono text-[11px] text-[#8B6B55] dark:text-[#C9A690] uppercase tracking-widest mb-2 font-semibold">
         ◆ Operational Architecture
       </div>
-      <h2 className="serif text-4xl sm:text-5xl font-light mb-12">
+      <h2 className="serif text-4xl sm:text-5xl font-light mb-12 text-foreground">
         How the protocol works.
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {steps.map((s) => (
-          <div key={s.num} className="bg-[#FAF8F5] border border-black/10 p-6 flex flex-col justify-between">
+          <div key={s.num} className="bg-[#FAF8F5] dark:bg-[#16161B] border border-border p-6 flex flex-col justify-between">
             <div>
-              <div className="mono text-2xl font-light text-black/30 mb-4">{s.num}</div>
-              <h3 className="serif text-xl font-semibold mb-2">{s.title}</h3>
-              <p className="text-xs text-[#1C1C1B]/70 font-light leading-relaxed mb-6">{s.desc}</p>
+              <div className="mono text-2xl font-light text-muted-foreground/50 mb-4">{s.num}</div>
+              <h3 className="serif text-xl font-semibold mb-2 text-foreground">{s.title}</h3>
+              <p className="text-xs text-muted-foreground font-light leading-relaxed mb-6">{s.desc}</p>
             </div>
-            <div className="mono text-[10px] text-black/50 border-t border-black/10 pt-3">
+            <div className="mono text-[10px] text-muted-foreground border-t border-border pt-3">
               {s.tag}
             </div>
           </div>
@@ -221,56 +221,56 @@ function ProtocolWorkflowSection() {
 
 function PricingAndRatesSection() {
   return (
-    <section className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-black/10">
+    <section className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-border">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
         <div>
-          <div className="mono text-[11px] text-[#8B6B55] uppercase tracking-widest mb-2 font-semibold">
+          <div className="mono text-[11px] text-[#8B6B55] dark:text-[#C9A690] uppercase tracking-widest mb-2 font-semibold">
             ◆ Economics
           </div>
-          <h2 className="serif text-4xl sm:text-5xl font-light mb-6">
+          <h2 className="serif text-4xl sm:text-5xl font-light mb-6 text-foreground">
             Zero seat fees.<br />
-            <span className="italic text-[#2A382E]">Prepaid credits</span>.
+            <span className="italic text-[#2A382E] dark:text-[#88C090]">Prepaid credits</span>.
           </h2>
-          <p className="text-sm text-[#1C1C1B]/75 font-light leading-relaxed mb-6">
+          <p className="text-sm text-muted-foreground font-light leading-relaxed mb-6">
             Legacy dialers charge $50–$150/user/month just to connect an API. Ringringa has no recurring seat license.
             Top up prepaid credits, let your AI agents place calls, and pay strictly for elapsed call minutes.
           </p>
           <div className="flex gap-4">
             <Link
               to="/rates"
-              className="mono text-xs border border-black bg-black text-[#F2F0EB] px-6 py-3 hover:bg-black/80 transition-colors"
+              className="mono text-xs border border-foreground bg-foreground text-background px-6 py-3 hover:opacity-90 transition-colors"
             >
               RATE CALCULATOR
             </Link>
           </div>
         </div>
 
-        <div className="bg-[#FAF8F5] border border-black/10 p-6 shadow-sm">
-          <div className="mono text-[11px] text-black/50 pb-3 mb-4 border-b border-black/10 flex justify-between">
+        <div className="bg-[#FAF8F5] dark:bg-[#16161B] border border-border p-6 shadow-sm">
+          <div className="mono text-[11px] text-muted-foreground pb-3 mb-4 border-b border-border flex justify-between">
             <span>DESTINATION TIERS</span>
             <span>RATES (USD/MIN)</span>
           </div>
 
           <div className="space-y-3 mono text-xs">
-            <div className="flex justify-between py-1 border-b border-dashed border-black/10">
+            <div className="flex justify-between py-1 border-b border-dashed border-border">
               <span>United States & Canada</span>
-              <span className="font-semibold text-emerald-800">$0.020 / min</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">$0.020 / min</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-dashed border-black/10">
+            <div className="flex justify-between py-1 border-b border-dashed border-border">
               <span>United Kingdom & EU Landlines</span>
-              <span className="font-semibold text-emerald-800">$0.024 / min</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">$0.024 / min</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-dashed border-black/10">
+            <div className="flex justify-between py-1 border-b border-dashed border-border">
               <span>India Mobile</span>
-              <span className="font-semibold text-emerald-800">$0.025 / min</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">$0.025 / min</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-dashed border-black/10">
+            <div className="flex justify-between py-1 border-b border-dashed border-border">
               <span>Australia & Japan</span>
-              <span className="font-semibold text-emerald-800">$0.035 / min</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">$0.035 / min</span>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-black/10 mono text-[10px] text-black/50 text-center">
+          <div className="mt-6 pt-4 border-t border-border mono text-[10px] text-muted-foreground text-center">
             PER-SECOND BILLING AFTER FIRST MINUTE · NO CONTRACT REQUIRED
           </div>
         </div>
@@ -281,30 +281,30 @@ function PricingAndRatesSection() {
 
 function ComplianceAndSafetySection() {
   return (
-    <section className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-black/10 mb-8">
-      <div className="mono text-[11px] text-[#8B6B55] uppercase tracking-widest mb-2 font-semibold">
+    <section className="w-full max-w-5xl mx-auto px-6 py-16 border-t border-border mb-8">
+      <div className="mono text-[11px] text-[#8B6B55] dark:text-[#C9A690] uppercase tracking-widest mb-2 font-semibold">
         ◆ Safety & Governance
       </div>
-      <h2 className="serif text-3xl sm:text-4xl font-light mb-8">
+      <h2 className="serif text-3xl sm:text-4xl font-light mb-8 text-foreground">
         Built for legal compliance.
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-light">
-        <div className="border border-black/10 p-5 bg-[#FAF8F5]">
-          <div className="mono font-bold text-xs mb-2">Consent Attestation</div>
-          <p className="text-black/70 leading-relaxed">
+        <div className="border border-border p-5 bg-[#FAF8F5] dark:bg-[#16161B]">
+          <div className="mono font-bold text-xs mb-2 text-foreground">Consent Attestation</div>
+          <p className="text-muted-foreground leading-relaxed">
             Every API call requires <code>consent_attestation: true</code>, certifying you possess lawful authority to dial the destination.
           </p>
         </div>
-        <div className="border border-black/10 p-5 bg-[#FAF8F5]">
-          <div className="mono font-bold text-xs mb-2">Global Denylist</div>
-          <p className="text-black/70 leading-relaxed">
+        <div className="border border-border p-5 bg-[#FAF8F5] dark:bg-[#16161B]">
+          <div className="mono font-bold text-xs mb-2 text-foreground">Global Denylist</div>
+          <p className="text-muted-foreground leading-relaxed">
             Emergency lines (911, 112) and high-fraud premium-rate prefixes are permanently blocked by database policy.
           </p>
         </div>
-        <div className="border border-black/10 p-5 bg-[#FAF8F5]">
-          <div className="mono font-bold text-xs mb-2">Zero Audio Recordings</div>
-          <p className="text-black/70 leading-relaxed">
+        <div className="border border-border p-5 bg-[#FAF8F5] dark:bg-[#16161B]">
+          <div className="mono font-bold text-xs mb-2 text-foreground">Zero Audio Recordings</div>
+          <p className="text-muted-foreground leading-relaxed">
             We never record phone audio. Calls travel over encrypted WebRTC and carrier trunks with absolute privacy.
           </p>
         </div>

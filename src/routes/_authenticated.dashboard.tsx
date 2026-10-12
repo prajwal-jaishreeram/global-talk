@@ -96,10 +96,10 @@ function DashboardLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F2F0EB] text-[#1C1C1B]">
+    <div className="flex min-h-screen bg-[#F2F0EB] text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] transition-colors">
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-black/10 bg-[#FAF8F5] p-3 transition-[width] duration-200 md:flex",
+          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-[#FAF8F5] dark:bg-[#131317] p-3 transition-[width] duration-200 md:flex",
           collapsed ? "w-16" : "w-60",
         )}
       >
@@ -111,13 +111,13 @@ function DashboardLayout() {
               R<span className="text-[#8B6B55]">.</span>
             </Link>
           ) : (
-            <Link to="/" className="serif text-xl font-semibold tracking-tighter text-[#1C1C1B]">
+            <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
               RINGRINGA<span className="text-[#8B6B55]">.</span>
             </Link>
           )}
           <button
             onClick={() => setCollapsed((c) => !c)}
-            className="grid h-8 w-8 place-items-center rounded-none text-black/50 hover:bg-black/5 hover:text-black"
+            className="grid h-8 w-8 place-items-center rounded-none text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-label="Toggle sidebar"
           >
@@ -141,8 +141,8 @@ function DashboardLayout() {
                   "flex items-center gap-3 px-3 py-2 text-xs mono uppercase tracking-wider transition-colors",
                   collapsed && "justify-center px-0",
                   active
-                    ? "bg-[#1C1C1B] text-[#F2F0EB]"
-                    : "text-black/70 hover:bg-black/5 hover:text-black",
+                    ? "bg-foreground text-background font-semibold"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
                 title={collapsed ? item.label : undefined}
               >
@@ -156,15 +156,15 @@ function DashboardLayout() {
           <div className="mt-4 flex shrink-0 flex-col items-center gap-2">
             <Link
               to="/dashboard/credits"
-              className="grid h-9 w-9 place-items-center rounded-none text-black/60 hover:bg-black/5 hover:text-black"
+              className="grid h-9 w-9 place-items-center rounded-none text-muted-foreground hover:bg-muted hover:text-foreground"
               title={balance === null ? "Balance" : `Balance ${formatMoneyExact(balance)}`}
             >
               <Wallet className="h-4 w-4" />
             </Link>
-            <ThemeToggle className="h-9 w-9 rounded-none" />
+            <ThemeToggle className="h-9 w-9 rounded-none border-border" />
             <button
               onClick={signOut}
-              className="grid h-9 w-9 place-items-center rounded-none text-black/60 hover:bg-black/5 hover:text-black"
+              className="grid h-9 w-9 place-items-center rounded-none text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />
@@ -172,26 +172,27 @@ function DashboardLayout() {
           </div>
         ) : (
           <>
-            <div className="mt-4 shrink-0 border border-black/10 bg-[#F2F0EB] p-3">
-              <div className="flex items-center justify-between mono text-[10px] text-black/50 uppercase tracking-wider">
+            <div className="mt-4 shrink-0 border border-border bg-[#F2F0EB] dark:bg-[#1A1A20] p-3">
+              <div className="flex items-center justify-between mono text-[10px] text-muted-foreground uppercase tracking-wider">
                 <span className="flex items-center gap-1.5"><Wallet className="h-3 w-3" /> BALANCE</span>
-                <span className="bg-[#2A382E]/10 text-[#2A382E] px-1 py-0.2">ACTIVE</span>
+                <span className="bg-[#2A382E]/10 dark:bg-[#88C090]/15 text-[#2A382E] dark:text-[#88C090] px-1 py-0.2">ACTIVE</span>
               </div>
-              <div className="mt-1 text-lg serif font-light text-[#1C1C1B]">
+              <div className="mt-1 text-lg serif font-light text-foreground">
                 {balance === null ? "-" : formatMoneyExact(balance)}
               </div>
               <Link to="/dashboard/credits">
-                <Button size="sm" className="mt-2 w-full bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-[10px] uppercase tracking-wider h-7">
+                <Button size="sm" className="mt-2 w-full bg-foreground text-background hover:opacity-90 mono text-[10px] uppercase tracking-wider h-7">
                   Top up credits
                 </Button>
               </Link>
             </div>
-            <div className="mt-3 flex shrink-0 items-center justify-between gap-2 mono text-[10px] text-black/50">
+            <div className="mt-3 flex shrink-0 items-center justify-between gap-2 mono text-[10px] text-muted-foreground">
               <span className="truncate">{email}</span>
               <div className="flex items-center gap-1">
+                <ThemeToggle className="h-7 w-7 rounded-none border-transparent p-0 hover:bg-muted text-muted-foreground" />
                 <button
                   onClick={signOut}
-                  className="p-1 hover:bg-black/5 hover:text-black text-black/60"
+                  className="p-1 hover:bg-muted hover:text-foreground text-muted-foreground cursor-pointer"
                   title="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -202,23 +203,23 @@ function DashboardLayout() {
         )}
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-x-clip bg-[#F2F0EB]">
+      <div className="flex flex-1 flex-col overflow-x-clip bg-[#F2F0EB] dark:bg-[#0D0D11] transition-colors">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-black/10 bg-[#FAF8F5] px-4 md:hidden">
-          <Link to="/" className="serif text-xl font-semibold tracking-tighter text-[#1C1C1B]">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-[#FAF8F5] dark:bg-[#131317] px-4 md:hidden">
+          <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
             RINGRINGA<span className="text-[#8B6B55]">.</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link
               to="/dashboard/credits"
-              className="flex items-center gap-1.5 border border-black/10 bg-[#F2F0EB] px-2.5 py-1 mono text-xs text-black"
+              className="flex items-center gap-1.5 border border-border bg-background px-2.5 py-1 mono text-xs text-foreground"
             >
-              <Wallet className="h-3.5 w-3.5 text-black/60" />
+              <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
               {balance === null ? "-" : formatMoneyExact(balance)}
             </Link>
             <button
               onClick={() => setMobileOpen(true)}
-              className="grid h-9 w-9 place-items-center border border-black/10 bg-[#FAF8F5] text-black"
+              className="grid h-9 w-9 place-items-center border border-border bg-background text-foreground cursor-pointer"
               aria-label="Open menu"
             >
               <Menu className="h-4 w-4" />
@@ -227,10 +228,10 @@ function DashboardLayout() {
         </header>
         {mobileOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <div className="absolute inset-y-0 left-0 w-72 bg-[#FAF8F5] p-4 shadow-xl flex flex-col border-r border-black/10">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
+            <div className="absolute inset-y-0 left-0 w-72 bg-[#FAF8F5] dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
               <div className="mb-6 flex items-center justify-between">
-                <Link to="/" className="serif text-xl font-semibold tracking-tighter text-[#1C1C1B]">
+                <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
                   RINGRINGA<span className="text-[#8B6B55]">.</span>
                 </Link>
                 <button

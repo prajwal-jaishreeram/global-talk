@@ -78,6 +78,7 @@ import {
 import { CountryFlag } from "@/components/country-flag";
 import { Trash2 } from "lucide-react";
 import { AgentCallRequestsTray, type AgentCallTask } from "@/components/agent-call-requests";
+import { PhoneMockupCard } from "@/components/mockups/phone-mockup-card";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   head: () => ({ meta: [{ title: "Make a call - Ringringa" }] }),
@@ -1633,16 +1634,16 @@ function DialerPage() {
       />
       <div className="flex w-full max-w-[420px] flex-col items-center">
         <AgentCallRequestsTray onAcceptCall={handleAcceptAgentCall} />
-        <div
+        <PhoneMockupCard
+          variant="titanium"
+          showDynamicIsland={true}
           className={cn(
-            "relative z-10 w-full shrink-0 self-center rounded-[2.35rem] border border-white/10 bg-card p-2.5 shadow-none sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035))] sm:shadow-2xl sm:shadow-black/35",
-            "max-w-[340px] md:max-w-[380px]",
-            panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[420px]",
+            "relative z-10 w-full shrink-0 self-center max-w-[340px] sm:max-w-[380px] shadow-2xl transition-all",
+            panelOpen ? "lg:max-w-[360px]" : "lg:max-w-[390px]",
           )}
         >
-        <div className="rounded-[2rem] border border-white/10 bg-background p-4 shadow-none sm:bg-background/95 sm:shadow-inner sm:shadow-black/20 lg:p-5">
-          <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/15" />
-          <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3.5">
+          <div className="flex flex-col h-full w-full justify-between p-4 pt-10 sm:p-5 sm:pt-11 bg-background text-foreground select-none">
+            <div className="rounded-2xl border border-border/40 bg-card/60 p-3.5 backdrop-blur-sm">
             {/* Call from picker */}
             <div className="mb-3 flex items-center justify-between gap-2 text-xs">
               <div className="flex min-w-0 items-center gap-2">
@@ -1983,7 +1984,7 @@ function DialerPage() {
                   key={k}
                   onClick={() => press(k, sub)}
                   className={cn(
-                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-white/10 bg-white/[0.045] shadow-none transition-colors hover:bg-white/[0.08] sm:shadow-sm",
+                    "flex h-14 w-14 flex-col items-center justify-center rounded-full border border-border/50 bg-muted/40 text-foreground shadow-xs transition-colors hover:bg-muted active:scale-95 cursor-pointer",
                     !panelOpen && "lg:h-[3.75rem] lg:w-[3.75rem]",
                   )}
                 >
@@ -2098,12 +2099,12 @@ function DialerPage() {
           </div>
 
           {telnyxState && inCall && (
-            <div className="mt-3 rounded-full border border-white/10 bg-white/[0.03] py-2 text-center text-[10px] uppercase tracking-wider text-muted-foreground/70">
+            <div className="mt-3 rounded-full border border-border/40 bg-muted/20 py-2 text-center text-[10px] uppercase tracking-wider text-muted-foreground/70">
               call: {telnyxState}
             </div>
           )}
         </div>
-      </div>
+      </PhoneMockupCard>
       </div>
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">
