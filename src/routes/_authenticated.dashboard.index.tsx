@@ -1653,7 +1653,7 @@ function DialerPage() {
                     <button
                       type="button"
                       disabled={inCall}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
                     >
                       {callFrom.kind === "public" ? (
                         <Globe className="h-3.5 w-3.5 text-primary" />
@@ -1670,7 +1670,7 @@ function DialerPage() {
                   </PopoverTrigger>
                   <PopoverContent
                     align="start"
-                    className="w-[260px] border-white/10 bg-card/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur"
+                    className="w-[260px] border border-border bg-card p-1.5 shadow-2xl backdrop-blur"
                   >
                     <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
                       Default options
@@ -1681,7 +1681,7 @@ function DialerPage() {
                         setCallFrom({ kind: "public" });
                         setCallFromOpen(false);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-muted"
                     >
                       <Globe className="h-4 w-4 text-primary" />
                       <span className="flex-1">Public number</span>
@@ -1697,7 +1697,7 @@ function DialerPage() {
                           .map((v) => (
                             <div
                               key={v.phone_number}
-                              className="group flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                              className="group flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-muted"
                             >
                               <Megaphone className="h-4 w-4 text-primary" />
                               <button
@@ -1754,7 +1754,7 @@ function DialerPage() {
                         setVerifyCode("");
                         setVerifyOpen(true);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-muted"
                     >
                       <Megaphone className="h-4 w-4 text-primary" />
                       <span className="flex-1">Verify a new number</span>
@@ -1768,7 +1768,7 @@ function DialerPage() {
                         setCallFromOpen(false);
                         setBuyOpen(true);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition hover:bg-muted"
                     >
                       <Smartphone className="h-4 w-4 text-primary" />
                       <span className="flex-1">Buy phone number</span>
@@ -1784,7 +1784,7 @@ function DialerPage() {
                   <button
                     type="button"
                     disabled={inCall}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[0.045] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground disabled:opacity-30 sm:hidden"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 sm:hidden"
                     aria-label="Search contacts"
                     title="Search contacts"
                   >
@@ -1793,7 +1793,7 @@ function DialerPage() {
                 </PopoverTrigger>
                 <PopoverContent
                   align="end"
-                  className="w-[300px] border-white/10 bg-card/95 p-0 shadow-2xl shadow-black/40 backdrop-blur"
+                  className="w-[300px] border border-border bg-card p-0 shadow-2xl backdrop-blur"
                 >
                   {renderContactSearchCommand()}
                 </PopoverContent>
@@ -1813,7 +1813,7 @@ function DialerPage() {
                   <button
                     type="button"
                     disabled={inCall}
-                    className="flex min-w-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.045] px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.08] disabled:opacity-50 sm:gap-1.5 sm:px-2.5"
+                    className="flex min-w-0 items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50 sm:gap-1.5 sm:px-2.5"
                   >
                     <CountryFlag code={country} />
                     <span className="font-mono text-xs font-semibold text-foreground">
@@ -1888,14 +1888,14 @@ function DialerPage() {
                 placeholder={alpha ? "Type letters" : "Phone number"}
                 inputMode={alpha ? "text" : "tel"}
                 disabled={inCall}
-                className="h-8 min-w-0 border-0 border-b border-white/10 bg-transparent px-0 font-mono text-base tracking-wide shadow-none focus-visible:border-primary focus-visible:ring-0"
+                className="h-8 min-w-0 border-0 border-b border-border bg-transparent px-0 font-mono text-base tracking-wide shadow-none focus-visible:border-primary focus-visible:ring-0"
               />
               <Popover open={contactSearchOpen} onOpenChange={setContactSearchOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
                     disabled={inCall}
-                    className="hidden h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30 sm:grid"
+                    className="hidden h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 sm:grid"
                     aria-label="Search contacts"
                     title="Search contacts"
                   >
@@ -1904,7 +1904,7 @@ function DialerPage() {
                 </PopoverTrigger>
                 <PopoverContent
                   align="end"
-                  className="w-[300px] border-white/10 bg-card/95 p-0 shadow-2xl shadow-black/40 backdrop-blur"
+                  className="w-[300px] border-border bg-card p-0 shadow-2xl backdrop-blur"
                 >
                   <Command
                     filter={(value, search) => {
@@ -1944,7 +1944,7 @@ function DialerPage() {
               <button
                 onClick={backspace}
                 disabled={inCall || !raw}
-                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-30"
+                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
                 aria-label="Backspace"
               >
                 <Delete className="h-4 w-4" />
@@ -1953,7 +1953,7 @@ function DialerPage() {
 
             {/* Status line */}
             {inCall ? (
-              <div className="mt-3 flex h-7 items-center justify-between rounded-full bg-white/[0.035] px-3 text-[11px] text-muted-foreground">
+              <div className="mt-3 flex h-7 items-center justify-between rounded-full bg-muted/40 px-3 text-[11px] text-muted-foreground">
                 <span className="uppercase tracking-wider">
                   {callState === "connecting" && "Connecting…"}
                   {callState === "ringing" && "Ringing…"}
@@ -2105,7 +2105,7 @@ function DialerPage() {
       </PhoneMockupCard>
       </div>
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-        <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">
+        <DialogContent className="border-border bg-card shadow-2xl sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle>Add contact</DialogTitle>
             <DialogDescription>
@@ -2162,7 +2162,7 @@ function DialerPage() {
           }
         }}
       >
-        <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:rounded-2xl">
+        <DialogContent className="border-border bg-card shadow-2xl sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle>
               {verifyStep === "enter" ? "Verify your phone number" : "Enter the code"}
@@ -2190,7 +2190,7 @@ function DialerPage() {
                     "flex-1 rounded-md border px-3 py-2 text-xs font-medium transition",
                     verifyMethod === "sms"
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-white/10 text-muted-foreground hover:bg-white/[0.04]",
+                      : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   Send SMS code
@@ -2202,7 +2202,7 @@ function DialerPage() {
                     "flex-1 rounded-md border px-3 py-2 text-xs font-medium transition",
                     verifyMethod === "call"
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-white/10 text-muted-foreground hover:bg-white/[0.04]",
+                      : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   Call me with code
@@ -2302,7 +2302,7 @@ function DialerPage() {
 
       {/* Buy phone number */}
       <Dialog open={buyOpen} onOpenChange={setBuyOpen}>
-        <DialogContent className="border-white/10 bg-card/95 shadow-2xl shadow-black/40 sm:max-w-lg sm:rounded-2xl">
+        <DialogContent className="border-border bg-card shadow-2xl sm:max-w-lg sm:rounded-2xl">
           <DialogHeader>
             <DialogTitle>Purchase a new phone number to make and receive calls.</DialogTitle>
             <DialogDescription>
@@ -2311,7 +2311,7 @@ function DialerPage() {
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-[150px_1fr]">
             <Select value={buyCountry} onValueChange={setBuyCountry}>
-              <SelectTrigger className="h-10 border-white/10 bg-white/[0.045] text-sm font-medium">
+              <SelectTrigger className="h-10 border-border bg-background text-sm font-medium">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2346,11 +2346,11 @@ function DialerPage() {
           </div>
 
           {(buySearching || buyResults.length > 0) && (
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.025]">
-              <div className="border-b border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-muted-foreground">
+            <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
+              <div className="border-b border-border bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground">
                 Available Numbers
               </div>
-              <ul className="max-h-[260px] divide-y divide-white/10 overflow-y-auto">
+              <ul className="max-h-[260px] divide-y divide-border overflow-y-auto">
                 {buySearching ? (
                   <li className="px-4 py-8 text-center text-xs text-muted-foreground">
                     Searching…
@@ -2407,7 +2407,7 @@ function DialerPage() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="group fixed right-6 top-6 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-card/80 px-3 py-2 text-xs font-medium text-muted-foreground shadow-lg shadow-black/20 backdrop-blur transition hover:bg-card hover:text-foreground lg:inline-flex"
+          className="group fixed right-6 top-6 z-30 hidden items-center gap-2 rounded-full border border-border bg-card/90 px-3 py-2 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur transition hover:bg-card hover:text-foreground lg:inline-flex"
           aria-label="Open script and notes"
           title="Open script & notes"
         >

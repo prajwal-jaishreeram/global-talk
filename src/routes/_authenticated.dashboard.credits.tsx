@@ -381,10 +381,10 @@ function CreditsPage() {
               Powered by Polar (Merchant of Record)
             </li>
             <li className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-black/70 shrink-0" /> Credits never expire
+              <Check className="h-3.5 w-3.5 text-foreground/70 shrink-0" /> Credits never expire
             </li>
             <li className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-black/70 shrink-0" /> Realtime per-second settlement
+              <Check className="h-3.5 w-3.5 text-foreground/70 shrink-0" /> Realtime per-second settlement
             </li>
           </ul>
         </aside>

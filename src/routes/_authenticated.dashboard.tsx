@@ -236,7 +236,7 @@ function DashboardLayout() {
                 </Link>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="grid h-8 w-8 place-items-center text-black/60 hover:bg-black/5 hover:text-black"
+                  className="grid h-8 w-8 place-items-center text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
                   aria-label="Close menu"
                 >
                   <X className="h-4 w-4" />

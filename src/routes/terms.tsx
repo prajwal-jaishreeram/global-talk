@@ -5,8 +5,12 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms and Conditions - Ringringa" },
-      { name: "description", content: "The terms that govern your use of Ringringa." },
+      { title: "Terms of Service — Ringringa AI Telephony Protocol" },
+      {
+        name: "description",
+        content:
+          "Terms and conditions governing the Ringringa AI agent telephony protocol, API, dialer infrastructure, and prepaid micro-settlements.",
+      },
     ],
   }),
   component: TermsPage,
@@ -16,179 +20,264 @@ function TermsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-4xl font-bold tracking-tight">Terms and Conditions</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Last updated: May 28, 2026</p>
+      <main className="mx-auto max-w-4xl px-6 py-16">
+        <div className="border-b border-border pb-8">
+          <div className="font-mono text-xs uppercase tracking-widest text-primary">
+            Protocol Governance &amp; Developer Terms
+          </div>
+          <h1 className="mt-2 text-4xl font-light tracking-tight sm:text-5xl">
+            Terms of Service
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Effective Date: May 28, 2026 · Version 2.4 (Autonomous Agent Telephony Pivot)
+          </p>
+        </div>
 
-        <div className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground">
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">1. Agreement to These Terms</h2>
+        <div className="mt-10 space-y-10 text-sm leading-relaxed text-muted-foreground">
+          {/* Section 1 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              1. Agreement to Terms &amp; Scope of Service
+            </h2>
             <p>
-              These Terms and Conditions govern your access to and use of Ringringa, including our
-              browser-based calling service, calling credits, phone number features, account tools,
-              and related support. By creating an account, buying credits, purchasing a phone
-              number, enabling auto top-up, or using Ringringa, you agree to these Terms.
+              These Terms of Service ("Terms") constitute a legally binding agreement between you
+              (whether as an individual developer, organization, or software agent operator,
+              hereinafter "Developer" or "User") and Ringringa ("Ringringa," "we," "us," or "our").
+            </p>
+            <p>
+              Ringringa provides an autonomous AI agent telephony infrastructure, programmable voice
+              API, operator WebRTC dialer, virtual number provisioning, and prepaid per-second
+              micro-settlement protocol (collectively, the "Service" or "Protocol"). By accessing the
+              API, provisioning an API key (<code className="font-mono text-foreground">rg_live_*</code>),
+              purchasing prepaid credits, embedding our dialer, or transmitting dispatch payloads,
+              you agree to be bound unconditionally by these Terms.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">2. Service Description</h2>
+          {/* Section 2 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              2. Autonomous Agent Calling &amp; Mandatory Consent Attestation
+            </h2>
             <p>
-              Ringringa provides internet-based voice calling and related telecom tools. Calls are
-              routed through third-party telecommunications providers, and call availability,
-              quality, rates, and supported destinations may vary by carrier, country, network
-              conditions, regulation, and destination number.
+              Ringringa is purpose-built for legitimate autonomous AI agent workflows (e.g., customer
+              service dispatch, booking confirmations, logistics verification, and interactive voice
+              agents). Because our infrastructure enables programmable call dispatch, you agree to
+              the following non-negotiable compliance rules:
             </p>
-            <p className="mt-2">
-              Ringringa is a digital service. We do not ship physical goods. Account access, credits,
-              call features, and any purchased phone number functionality are delivered online after
-              payment confirmation and any required provider checks.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">3. Accounts and Eligibility</h2>
-            <p>
-              You are responsible for keeping your login credentials secure and for all activity on
-              your account. You must provide accurate information and keep your contact and billing
-              details current. We may ask for additional information before enabling certain phone
-              number, business, compliance, or high-risk calling features.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">4. Acceptable Use</h2>
-            <p>You agree not to use Ringringa for:</p>
-            <ul className="ml-5 mt-2 list-disc space-y-1">
-              <li>Illegal activity, fraud, scams, impersonation, harassment, or abuse.</li>
-              <li>Spam, robocalling, mass calling, or traffic that violates telecom rules.</li>
-              <li>Emergency calls or any use where uninterrupted access is required.</li>
-              <li>Interfering with the service, carriers, payment systems, or other users.</li>
+            <ul className="ml-5 list-disc space-y-2">
+              <li>
+                <strong className="text-foreground">Mandatory Consent Attestation:</strong> Every
+                automated dispatch payload passed to the Ringringa API must include an explicit
+                attestation (<code className="font-mono text-foreground">consent_attestation: true</code>
+                ) verifying that you hold verified prior express consent or an established business
+                relationship with the target party.
+              </li>
+              <li>
+                <strong className="text-foreground">Anti-Spam &amp; Anti-Robocall Compliance:</strong>{" "}
+                You strictly agree to comply with all applicable local, national, and international
+                telemarketing, anti-spam, and privacy regulations, including the US Telephone Consumer
+                Protection Act (TCPA), FCC STIR/SHAKEN standards, the European Union General Data
+                Protection Regulation (GDPR) and ePrivacy Directive, and the Telecom Regulatory
+                Authority of India (TRAI) regulations.
+              </li>
+              <li>
+                <strong className="text-foreground">Prohibition of Voice Cloning Fraud:</strong> You
+                shall not utilize Ringringa to generate synthetic voice scams, impersonate public
+                officials, banks, or emergency authorities, or conduct fraudulent phishing
+                ("vishing") campaigns.
+              </li>
+              <li>
+                <strong className="text-foreground">Calling Hours Enforcement:</strong> Programmatic
+                agent calls to consumers must adhere to legal local calling time windows (e.g.,
+                between 8:00 AM and 9:00 PM local time of the recipient).
+              </li>
             </ul>
-            <p className="mt-2">
-              We may suspend, limit, or close accounts and withhold service where we reasonably
-              believe these Terms, applicable laws, carrier rules, or payment-provider rules have
-              been violated.
+          </section>
+
+          {/* Section 3 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              3. Strict Emergency Services Denylist
+            </h2>
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">
+              <strong>CRITICAL NOTICE:</strong> Ringringa is an IP-based voice trunking and agent API
+              service. It is NEVER a replacement for traditional wireline or wireless emergency
+              telephony.
+            </div>
+            <p>
+              Our SIP trunks strictly block and refuse dispatch to emergency services numbers worldwide,
+              including but not limited to <strong>911</strong> (US/Canada), <strong>112</strong> (EU/UK),
+              <strong> 999</strong> (UK), <strong>000</strong> (Australia), and <strong>100/112</strong>
+              (India). You must never configure autonomous agents to contact emergency responder lines,
+              crisis hotlines, or critical infrastructure emergency systems.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">
-              5. Pricing, Credits, and Billing
+          {/* Section 4 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              4. Zero Voice Audio Recording Guarantee
             </h2>
             <p>
-              Calling is billed from your prepaid credit balance based on the rate displayed in the
-              app or on our{" "}
-              <Link to="/rates" className="text-primary hover:underline">
-                Rates
-              </Link>{" "}
-              page. Rates may change because of carrier costs, destination changes, taxes, currency
-              changes, or regulatory costs. We aim to show applicable pricing before you place a
-              call or complete a purchase.
+              Ringringa operates with a fundamental zero-knowledge privacy architecture for voice
+              audio streams:
             </p>
-            <p className="mt-2">
-              Credits are digital account credits for Ringringa services. Credits do not earn interest,
-              cannot be transferred outside Ringringa, and are not redeemable for cash except where our
-              Refund Policy or applicable law requires a refund.
-            </p>
-            <p className="mt-2">
-              If you enable auto top-up, you authorize us and our payment processors to charge your
-              saved payment method when your balance reaches the threshold you selected. You can
-              disable auto top-up from your billing settings before a future charge is created.
-            </p>
+            <ul className="ml-5 list-disc space-y-1.5">
+              <li>
+                All live call audio is routed via encrypted WebRTC and TLS/SRTP SIP media trunks directly
+                through telecommunications carrier interconnects.
+              </li>
+              <li>
+                Ringringa <strong>does not record, tap, save, transcribe, or retain audio stream payloads</strong>
+                on our servers.
+              </li>
+              <li>
+                We never feed customer audio or conversational voice data into foundational AI training
+                datasets.
+              </li>
+            </ul>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">6. Phone Numbers</h2>
-            <p>
-              If Ringringa offers phone number purchase, rental, or inbound calling features, numbers
-              remain subject to carrier availability, regional rules, documentation requirements,
-              and provider approval. A number is not guaranteed until payment is verified and the
-              provider confirms provisioning. Releasing a number may be permanent and may stop
-              future access to that number.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">
-              7. Call Quality and Availability
+          {/* Section 5 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              5. API Keys, Security &amp; Rate Limits
             </h2>
             <p>
-              We work to provide reliable call service, but internet connectivity, browser support,
-              carrier routing, destination networks, local regulation, and device settings can
-              affect call completion and audio quality. We do not guarantee that the service will be
-              uninterrupted, error-free, or available in every destination at all times.
+              Access to the Ringringa Agent Dispatch API requires authenticated API tokens:
+            </p>
+            <ul className="ml-5 list-disc space-y-1.5">
+              <li>
+                <code className="font-mono text-foreground">rg_live_*</code> keys initiate actual carrier
+                SIP trunks and incur micro-settlement deductions against your balance.
+              </li>
+              <li>
+                <code className="font-mono text-foreground">rg_test_*</code> keys operate in a sandboxed
+                environment simulating carrier states without placing live PSTN calls.
+              </li>
+            </ul>
+            <p>
+              You are entirely responsible for securing your API keys. Any call originated with your API
+              key is deemed authorized by you. Ringringa implements rate limits (e.g., maximum concurrent
+              call trunks and calls-per-minute caps) to protect downstream carrier networks against
+              runaway loops.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">8. Emergency Calls</h2>
+          {/* Section 6 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              6. Prepaid Balances, Per-Second Settlement &amp; Billing
+            </h2>
             <p>
-              Ringringa is not a replacement for a traditional phone line and must not be used for
-              emergency calls. We cannot guarantee access to emergency services, accurate location
-              routing, or uninterrupted emergency connectivity. Use a traditional phone service for
-              emergencies.
+              Ringringa operates on an atomic prepaid micro-settlement model:
+            </p>
+            <ul className="ml-5 list-disc space-y-1.5">
+              <li>
+                <strong className="text-foreground">Atomic Micro-Billing:</strong> Calls are billed on an
+                exact per-second basis rounded to six decimal places, calculated using the transparent
+                destination rate card displayed on our{" "}
+                <Link to="/rates" className="text-primary hover:underline">
+                  Rates
+                </Link>{" "}
+                page.
+              </li>
+              <li>
+                <strong className="text-foreground">Prepaid Balances:</strong> Usage is decremented
+                in real-time from your prepaid balance. If your balance reaches $0.00, active calls will
+                be terminated gracefully and subsequent API requests will receive a{" "}
+                <code className="font-mono text-foreground">402 Payment Required</code> response.
+              </li>
+              <li>
+                <strong className="text-foreground">Merchant of Record:</strong> Payment processing and
+                invoicing are securely managed via our merchant of record partner, Polar, with support
+                for cards, Apple Pay, Google Pay, and automatic balance top-ups.
+              </li>
+              <li>
+                <strong className="text-foreground">Auto Top-Up:</strong> If you configure auto top-up,
+                you authorize automated credit card charges when your balance drops below your specified
+                trigger threshold. You may disable this at any time in your{" "}
+                <Link to="/dashboard/settings" className="text-primary hover:underline">
+                  Settings
+                </Link>
+                .
+              </li>
+            </ul>
+          </section>
+
+          {/* Section 7 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              7. Virtual Numbers &amp; Caller ID Verification
+            </h2>
+            <p>
+              Virtual phone numbers purchased via Ringringa are provisioned through licensed Tier-1
+              telecommunications carriers (such as Telnyx). Numbers remain active provided monthly lease
+              fees are covered by your balance. Carrier regulations may require submission of
+              identity verification (Know Your Customer / KYC) or business registration documents for
+              specific country prefixes.
+            </p>
+            <p>
+              Custom outbound caller ID spoofing is strictly prohibited. You may only present outbound
+              caller IDs that have completed our automated two-step SMS or voice verification challenge.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">9. Refunds and Cancellations</h2>
+          {/* Section 8 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              8. Suspension &amp; Abuse Termination
+            </h2>
             <p>
-              Refund eligibility, failed-call credits, duplicate payment handling, and cancellation
-              timelines are described in our{" "}
-              <Link to="/refund" className="text-primary hover:underline">
-                Refund Policy
-              </Link>
-              . By purchasing credits or other services, you agree to that policy.
+              Ringringa reserves the absolute right to instantly revoke API keys, terminate active call
+              trunks, and suspend accounts without prior notice if we detect:
+            </p>
+            <ul className="ml-5 list-disc space-y-1.5">
+              <li>High carrier dispute or spam-complaint rates (&gt;0.1% answer threshold).</li>
+              <li>Unattested automated robodialing loops or brute-force sequential dialing.</li>
+              <li>Telephony fraud, toll fraud, or unauthorized artificial traffic inflation (AIT).</li>
+              <li>Failure to provide required regulatory KYC documentation upon carrier request.</li>
+            </ul>
+          </section>
+
+          {/* Section 9 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              9. Disclaimer of Warranties &amp; Limitation of Liability
+            </h2>
+            <p>
+              THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. RINGRINGA AND ITS CARRIER
+              PARTNERS EXPRESSLY DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY,
+              INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+              NON-INFRINGEMENT.
+            </p>
+            <p>
+              IN NO EVENT SHALL RINGRINGA BE LIABLE FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR
+              PUNITIVE DAMAGES, INCLUDING LOSS OF REVENUE, LOST AGENT OPPORTUNITY, MISSED CALLS, OR
+              CARRIER DROPS. OUR AGGREGATE LIABILITY ARISING OUT OF THESE TERMS SHALL NOT EXCEED THE TOTAL
+              FEES PAID BY YOU TO RINGRINGA IN THE THIRTY (30) DAYS PRECEDING THE CLAIM.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">10. Privacy</h2>
+          {/* Section 10 */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
+              10. Governing Law &amp; Contact
+            </h2>
             <p>
-              Our{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              explains what information we collect, how we use it, how we share it with service
-              providers, and how you can contact us about privacy requests. We do not record or
-              store call audio as part of normal calling service.
+              These Terms shall be governed by and construed in accordance with the laws of the
+              applicable jurisdiction, without regard to conflict of law principles.
             </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">11. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, Ringringa is not liable for indirect, incidental,
-              special, consequential, or punitive damages, loss of profits, loss of data, missed
-              calls, carrier failures, destination blocking, or losses caused by your misuse of the
-              service. Our total liability for a claim is limited to the amount you paid to Ringringa
-              for the affected service in the 30 days before the claim, except where law requires a
-              different limit.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">12. Changes to These Terms</h2>
-            <p>
-              We may update these Terms when our service, pricing, providers, regulations, or
-              business requirements change. Updates will be posted on this page with a new last
-              updated date. Continued use of Ringringa after an update means you accept the updated
-              Terms.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground">13. Contact</h2>
-            <p>
-              For questions about these Terms, billing, refunds, or service access, contact Ringringa
-              support at{" "}
+              For legal compliance inquiries, enterprise volume contracts, or custom rate inquiries,
+              contact our infrastructure team at{" "}
               <a href="mailto:prajwalshindeee@gmail.com" className="text-primary hover:underline">
                 prajwalshindeee@gmail.com
               </a>{" "}
-              or use our{" "}
+              or via our{" "}
               <Link to="/contact" className="text-primary hover:underline">
-                Contact
+                Contact &amp; Transmissions
               </Link>{" "}
               page.
             </p>

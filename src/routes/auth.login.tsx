@@ -219,9 +219,9 @@ function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-black/60 font-light border-t border-black/10 pt-4">
+          <p className="mt-5 text-center text-xs text-muted-foreground font-light border-t border-border pt-4">
             No account?{" "}
-            <Link to="/auth/signup" className="mono font-medium text-black underline-offset-4 hover:underline">
+            <Link to="/auth/signup" className="mono font-medium text-foreground underline-offset-4 hover:underline">
               Sign up
             </Link>
           </p>

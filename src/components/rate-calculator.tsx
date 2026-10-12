@@ -56,7 +56,7 @@ export function RateCalculator({
   return (
     <>
       <div className="text-center max-w-2xl mx-auto">
-        <div className="mono text-[11px] mb-4 text-[#8B6B55] font-bold uppercase tracking-widest">
+        <div className="mono text-[11px] mb-4 text-[#8B6B55] dark:text-[#C9A690] font-bold uppercase tracking-widest">
           ◆ REALTIME ROUTING INDEX
         </div>
         <h1 className="serif text-4xl sm:text-5xl font-light tracking-tight text-foreground">{title}</h1>
@@ -158,7 +158,7 @@ export function RateCalculator({
           </div>
         </div>
 
-        <div className="flex min-w-[240px] flex-col items-center justify-center border border-border bg-white dark:bg-[#0D0D11] p-6 text-center shadow-2xs">
+        <div className="flex min-w-[240px] flex-col items-center justify-center border border-border bg-card dark:bg-[#0D0D11] p-6 text-center shadow-2xs">
           <div className="mono text-[10px] uppercase tracking-wider text-muted-foreground">ESTIMATED RATE</div>
           <div className="mt-2 text-4xl serif font-light text-foreground">
             ${rate.toFixed(rate < 0.1 ? 3 : 2)}
