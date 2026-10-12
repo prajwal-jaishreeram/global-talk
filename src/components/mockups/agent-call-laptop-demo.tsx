@@ -24,7 +24,7 @@ export function AgentCallLaptopDemo() {
             <div className="h-2.5 w-2.5 rounded-full bg-[#27C93F]/80" />
           </div>
           <div className="mono text-[10px] text-muted-foreground bg-background px-3 py-0.5 rounded border border-border truncate max-w-[180px]">
-            ringringa.com/dashboard
+            agentcall.org/dashboard
           </div>
           <div className="mono text-[10px] text-muted-foreground">TLS 1.3</div>
         </div>
@@ -34,7 +34,7 @@ export function AgentCallLaptopDemo() {
           {/* Top Status */}
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div className="flex items-center gap-2">
-              <span className="serif font-semibold text-sm">RINGRINGA</span>
+              <span className="serif font-semibold text-sm">AGENTCALL</span>
               <span className="mono text-[9px] bg-foreground text-background px-1.5 py-0.2 uppercase font-bold">LIVE</span>
             </div>
             <div className="mono text-[10px] text-muted-foreground">

@@ -31,9 +31,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Ringringa"
+const SITE_NAME = "AgentCall"
 const SENDER_DOMAIN = "gmail.com"
-const ROOT_DOMAIN = "ringringa.com"
+const ROOT_DOMAIN = "agentcall.org"
 const FROM_EMAIL = "prajwalshindeee@gmail.com"
 
 function hasTrustedLovableToken(request: Request, apiKey: string): boolean {

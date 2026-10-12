@@ -67,7 +67,7 @@ export const createCreditsCheckout = createServerFn({ method: "POST" })
             currency: "usd",
             unit_amount: Math.round(amount * 100),
             product_data: {
-              name: `Ringringa credits — $${creditsAdded.toFixed(2)}`,
+              name: `AgentCall credits — $${creditsAdded.toFixed(2)}`,
               description: bonus
                 ? `$${amount.toFixed(2)} purchase + $${bonus.toFixed(2)} bonus credits`
                 : `$${amount.toFixed(2)} prepaid calling credits`,

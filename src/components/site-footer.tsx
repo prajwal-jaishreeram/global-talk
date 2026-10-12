@@ -10,7 +10,7 @@ export function SiteFooter() {
             <Link to="/" className="flex items-center gap-2.5">
               <img src={logoUrl} alt="" className="h-8 w-8 object-contain" />
               <span className="serif text-xl font-semibold tracking-tight">
-                RINGRINGA<span className="text-[#8B6B55]">.</span>
+                AGENTCALL<span className="text-[#8B6B55]">.</span>
               </span>
             </Link>
             <p className="mt-3 text-xs text-muted-foreground leading-relaxed font-light">
@@ -79,7 +79,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border/40 pt-6 mono text-[11px] text-muted-foreground md:flex-row md:items-center">
-          <div>© {new Date().getFullYear()} RINGRINGA TELEPHONY. ALL RIGHTS RESERVED.</div>
+          <div>© {new Date().getFullYear()} AGENTCALL TELEPHONY. ALL RIGHTS RESERVED.</div>
           <div className="flex gap-6">
             <span>ZERO AUDIO RECORDINGS</span>
             <span>END-TO-END TLS</span>

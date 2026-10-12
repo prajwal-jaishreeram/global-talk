@@ -18,8 +18,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Ringringa"
-const ROOT_DOMAIN = "ringringa.com"
+const SITE_NAME = "AgentCall"
+const ROOT_DOMAIN = "agentcall.org"
 
 function isAuthorizedPreviewRequest(request: Request, apiKey: string): boolean {
   const url = new URL(request.url)

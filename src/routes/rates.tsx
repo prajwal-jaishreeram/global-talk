@@ -6,10 +6,10 @@ import { RateCalculator } from "@/components/rate-calculator";
 export const Route = createFileRoute("/rates")({
   head: () => ({
     meta: [
-      { title: "Rate Calculator - Ringringa" },
+      { title: "Rate Calculator — AgentCall" },
       {
         name: "description",
-        content: "Calculate per-minute rates for international calls with Ringringa.",
+        content: "Calculate per-minute rates for international calls with AgentCall.",
       },
     ],
   }),

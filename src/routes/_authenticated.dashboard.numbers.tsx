@@ -28,7 +28,7 @@ import { ConfirmAction } from "@/components/confirm-action";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/numbers")({
-  head: () => ({ meta: [{ title: "Phone numbers - Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Phone numbers - AgentCall" }] }),
   component: NumbersPage,
 });
 
@@ -146,7 +146,7 @@ function NumbersPage() {
           amount: order.amount,
           currency: order.currency,
           order_id: order.orderId,
-          name: "Ringringa",
+          name: "AgentCall",
           description: `Phone number ${num.phone_number}`,
           prefill: { email: order.prefillEmail },
           theme: { color: "#3b82f6" },

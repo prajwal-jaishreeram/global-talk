@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Ringringa Agent Calling API
+  title: AgentCall Agent Telephony API
   version: 1.0.0
   description: >
     Give your AI agent a phone.
-    The Ringringa API allows AI agents (Claude, ChatGPT, n8n, Make, custom agents)
+    The AgentCall API allows AI agents (Claude, ChatGPT, n8n, Make, custom agents)
     to place phone calls with a human-in-the-loop browser dialer.
 servers:
-  - url: https://ringringa.com/api/v1
+  - url: https://agentcall.org/api/v1
     description: Production API
 paths:
   /calls:
@@ -42,7 +42,7 @@ paths:
                   example: "Schedule a product demo with Sarah"
                 script:
                   type: string
-                  example: "Hi Sarah, this is Alex from Ringringa. I noticed your team is building AI agents..."
+                  example: "Hi Sarah, this is Alex from AgentCall. I noticed your team is building AI agents..."
                 notes:
                   type: string
                   example: "Sarah prefers email follow-ups. Ask about their current tech stack."
@@ -162,7 +162,7 @@ paths:
               properties:
                 url:
                   type: string
-                  example: "https://your-server.com/webhooks/ringringa"
+                  example: "https://your-server.com/webhooks/agentcall"
       responses:
         '201':
           description: Webhook endpoint registered.

@@ -5,23 +5,23 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/docs")({
-  head: () => ({ meta: [{ title: "Developer API & Documentation - Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Developer API & Documentation — AgentCall" }] }),
   component: DocsPage,
 });
 
 function DocsPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
-  const quickPrompt = `You are integrated with Ringringa calling API.
-Your goal is to place outbound phone calls through Ringringa.
+  const quickPrompt = `You are integrated with AgentCall calling API.
+Your goal is to place outbound phone calls through AgentCall.
 
 Configuration:
-- Base API URL: https://ringringa.com/api/v1
-- Documentation: https://ringringa.com/llms.txt
-- OpenAPI Spec: https://ringringa.com/openapi.yaml
+- Base API URL: https://agentcall.org/api/v1
+- Documentation: https://agentcall.org/llms.txt
+- OpenAPI Spec: https://agentcall.org/openapi.yaml
 
 How to queue a call:
-POST https://ringringa.com/api/v1/calls
+POST https://agentcall.org/api/v1/calls
 Headers:
   Authorization: Bearer <YOUR_API_KEY>
   Content-Type: application/json
@@ -51,7 +51,7 @@ Body JSON:
             ◆ DEVELOPER PROTOCOL & SPECIFICATIONS
           </div>
           <h1 className="serif text-4xl sm:text-5xl font-light tracking-tight text-foreground">
-            Ringringa Agent API
+            AgentCall Protocol API
           </h1>
           <p className="mt-3 text-base text-muted-foreground font-light leading-relaxed max-w-2xl">
             Give your AI agent a phone. Trigger telephone calls programmatically from Claude, ChatGPT, n8n, Make, or custom python scripts with human-in-the-loop connection.

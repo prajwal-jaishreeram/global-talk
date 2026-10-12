@@ -5,11 +5,11 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — Ringringa AI Telephony Protocol" },
+      { title: "Terms of Service — AgentCall AI Telephony Protocol" },
       {
         name: "description",
         content:
-          "Terms and conditions governing the Ringringa AI agent telephony protocol, API, dialer infrastructure, and prepaid micro-settlements.",
+          "Terms and conditions governing the AgentCall AI agent telephony protocol, API, dialer infrastructure, and prepaid micro-settlements.",
       },
     ],
   }),
@@ -29,7 +29,7 @@ function TermsPage() {
             Terms of Service
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Effective Date: May 28, 2026 · Version 2.4 (Autonomous Agent Telephony Pivot)
+            Effective Date: May 28, 2026 · Version 2.4 (Autonomous Agent Telephony Protocol)
           </p>
         </div>
 
@@ -42,10 +42,10 @@ function TermsPage() {
             <p>
               These Terms of Service ("Terms") constitute a legally binding agreement between you
               (whether as an individual developer, organization, or software agent operator,
-              hereinafter "Developer" or "User") and Ringringa ("Ringringa," "we," "us," or "our").
+              hereinafter "Developer" or "User") and AgentCall ("AgentCall," "we," "us," or "our").
             </p>
             <p>
-              Ringringa provides an autonomous AI agent telephony infrastructure, programmable voice
+              AgentCall provides an autonomous AI agent telephony infrastructure, programmable voice
               API, operator WebRTC dialer, virtual number provisioning, and prepaid per-second
               micro-settlement protocol (collectively, the "Service" or "Protocol"). By accessing the
               API, provisioning an API key (<code className="font-mono text-foreground">rg_live_*</code>),
@@ -60,7 +60,7 @@ function TermsPage() {
               2. Autonomous Agent Calling &amp; Mandatory Consent Attestation
             </h2>
             <p>
-              Ringringa is purpose-built for legitimate autonomous AI agent workflows (e.g., customer
+              AgentCall is purpose-built for legitimate autonomous AI agent workflows (e.g., customer
               service dispatch, booking confirmations, logistics verification, and interactive voice
               agents). Because our infrastructure enables programmable call dispatch, you agree to
               the following non-negotiable compliance rules:
@@ -68,7 +68,7 @@ function TermsPage() {
             <ul className="ml-5 list-disc space-y-2">
               <li>
                 <strong className="text-foreground">Mandatory Consent Attestation:</strong> Every
-                automated dispatch payload passed to the Ringringa API must include an explicit
+                automated dispatch payload passed to the AgentCall API must include an explicit
                 attestation (<code className="font-mono text-foreground">consent_attestation: true</code>
                 ) verifying that you hold verified prior express consent or an established business
                 relationship with the target party.
@@ -83,7 +83,7 @@ function TermsPage() {
               </li>
               <li>
                 <strong className="text-foreground">Prohibition of Voice Cloning Fraud:</strong> You
-                shall not utilize Ringringa to generate synthetic voice scams, impersonate public
+                shall not utilize AgentCall to generate synthetic voice scams, impersonate public
                 officials, banks, or emergency authorities, or conduct fraudulent phishing
                 ("vishing") campaigns.
               </li>
@@ -101,7 +101,7 @@ function TermsPage() {
               3. Strict Emergency Services Denylist
             </h2>
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">
-              <strong>CRITICAL NOTICE:</strong> Ringringa is an IP-based voice trunking and agent API
+              <strong>CRITICAL NOTICE:</strong> AgentCall is an IP-based voice trunking and agent API
               service. It is NEVER a replacement for traditional wireline or wireless emergency
               telephony.
             </div>
@@ -120,7 +120,7 @@ function TermsPage() {
               4. Zero Voice Audio Recording Guarantee
             </h2>
             <p>
-              Ringringa operates with a fundamental zero-knowledge privacy architecture for voice
+              AgentCall operates with a fundamental zero-knowledge privacy architecture for voice
               audio streams:
             </p>
             <ul className="ml-5 list-disc space-y-1.5">
@@ -129,7 +129,7 @@ function TermsPage() {
                 through telecommunications carrier interconnects.
               </li>
               <li>
-                Ringringa <strong>does not record, tap, save, transcribe, or retain audio stream payloads</strong>
+                AgentCall <strong>does not record, tap, save, transcribe, or retain audio stream payloads</strong>
                 on our servers.
               </li>
               <li>
@@ -145,7 +145,7 @@ function TermsPage() {
               5. API Keys, Security &amp; Rate Limits
             </h2>
             <p>
-              Access to the Ringringa Agent Dispatch API requires authenticated API tokens:
+              Access to the AgentCall Agent Dispatch API requires authenticated API tokens:
             </p>
             <ul className="ml-5 list-disc space-y-1.5">
               <li>
@@ -159,7 +159,7 @@ function TermsPage() {
             </ul>
             <p>
               You are entirely responsible for securing your API keys. Any call originated with your API
-              key is deemed authorized by you. Ringringa implements rate limits (e.g., maximum concurrent
+              key is deemed authorized by you. AgentCall implements rate limits (e.g., maximum concurrent
               call trunks and calls-per-minute caps) to protect downstream carrier networks against
               runaway loops.
             </p>
@@ -171,7 +171,7 @@ function TermsPage() {
               6. Prepaid Balances, Per-Second Settlement &amp; Billing
             </h2>
             <p>
-              Ringringa operates on an atomic prepaid micro-settlement model:
+              AgentCall operates on an atomic prepaid micro-settlement model:
             </p>
             <ul className="ml-5 list-disc space-y-1.5">
               <li>
@@ -212,7 +212,7 @@ function TermsPage() {
               7. Virtual Numbers &amp; Caller ID Verification
             </h2>
             <p>
-              Virtual phone numbers purchased via Ringringa are provisioned through licensed Tier-1
+              Virtual phone numbers purchased via AgentCall are provisioned through licensed Tier-1
               telecommunications carriers (such as Telnyx). Numbers remain active provided monthly lease
               fees are covered by your balance. Carrier regulations may require submission of
               identity verification (Know Your Customer / KYC) or business registration documents for
@@ -230,7 +230,7 @@ function TermsPage() {
               8. Suspension &amp; Abuse Termination
             </h2>
             <p>
-              Ringringa reserves the absolute right to instantly revoke API keys, terminate active call
+              AgentCall reserves the absolute right to instantly revoke API keys, terminate active call
               trunks, and suspend accounts without prior notice if we detect:
             </p>
             <ul className="ml-5 list-disc space-y-1.5">
@@ -247,16 +247,16 @@ function TermsPage() {
               9. Disclaimer of Warranties &amp; Limitation of Liability
             </h2>
             <p>
-              THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. RINGRINGA AND ITS CARRIER
+              THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. AGENTCALL AND ITS CARRIER
               PARTNERS EXPRESSLY DISCLAIM ALL WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY,
               INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
               NON-INFRINGEMENT.
             </p>
             <p>
-              IN NO EVENT SHALL RINGRINGA BE LIABLE FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR
+              IN NO EVENT SHALL AGENTCALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR
               PUNITIVE DAMAGES, INCLUDING LOSS OF REVENUE, LOST AGENT OPPORTUNITY, MISSED CALLS, OR
               CARRIER DROPS. OUR AGGREGATE LIABILITY ARISING OUT OF THESE TERMS SHALL NOT EXCEED THE TOTAL
-              FEES PAID BY YOU TO RINGRINGA IN THE THIRTY (30) DAYS PRECEDING THE CLAIM.
+              FEES PAID BY YOU TO AGENTCALL IN THE THIRTY (30) DAYS PRECEDING THE CLAIM.
             </p>
           </section>
 

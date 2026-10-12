@@ -1,11 +1,11 @@
-# Ringringa API - LLM Reference Guide
+# AgentCall API - LLM Reference Guide
 
 > Give your AI agent a phone.
 
-Ringringa enables autonomous AI agents (Claude, ChatGPT, LangChain, n8n, Make) to trigger phone calls with a human-in-the-loop browser dialer.
+AgentCall enables autonomous AI agents (Claude, ChatGPT, LangChain, n8n, Make) to trigger phone calls with a human-in-the-loop browser dialer.
 
 ## Base URL
-https://ringringa.com/api/v1
+https://agentcall.org/api/v1
 
 ## Authentication
 Use Bearer token in the Authorization header:

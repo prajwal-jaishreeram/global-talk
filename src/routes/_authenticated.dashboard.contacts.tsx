@@ -30,7 +30,7 @@ import { PaginationFooter } from "@/components/pagination-footer";
 import { ConfirmAction } from "@/components/confirm-action";
 
 export const Route = createFileRoute("/_authenticated/dashboard/contacts")({
-  head: () => ({ meta: [{ title: "Contacts — Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Contacts — AgentCall" }] }),
   component: ContactsPage,
 });
 
@@ -324,7 +324,7 @@ function ContactsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Contacts</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your Ringringa call list and tag people by group.
+            Manage your AgentCall call list and tag people by group.
           </p>
         </div>
       </div>

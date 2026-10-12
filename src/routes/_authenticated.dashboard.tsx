@@ -107,12 +107,12 @@ function DashboardLayout() {
           className={cn("mb-6 flex items-center", collapsed ? "flex-col gap-3" : "justify-between")}
         >
           {collapsed ? (
-            <Link to="/" className="serif text-xl font-bold tracking-tighter" title="RINGRINGA">
-              R<span className="text-[#8B6B55]">.</span>
+            <Link to="/" className="serif text-xl font-bold tracking-tighter" title="AGENTCALL">
+              A<span className="text-[#8B6B55]">.</span>
             </Link>
           ) : (
             <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
-              RINGRINGA<span className="text-[#8B6B55]">.</span>
+              AGENTCALL<span className="text-[#8B6B55]">.</span>
             </Link>
           )}
           <button
@@ -207,7 +207,7 @@ function DashboardLayout() {
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-white dark:bg-[#131317] px-4 md:hidden">
           <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
-            RINGRINGA<span className="text-[#8B6B55]">.</span>
+            AGENTCALL<span className="text-[#8B6B55]">.</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link
@@ -232,7 +232,7 @@ function DashboardLayout() {
             <div className="absolute inset-y-0 left-0 w-72 bg-white dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
               <div className="mb-6 flex items-center justify-between">
                 <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
-                  RINGRINGA<span className="text-[#8B6B55]">.</span>
+                  AGENTCALL<span className="text-[#8B6B55]">.</span>
                 </Link>
                 <button
                   onClick={() => setMobileOpen(false)}

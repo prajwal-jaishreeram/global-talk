@@ -22,7 +22,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/auth/login")({
-  head: () => ({ meta: [{ title: "Log in - Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Log in — AgentCall" }] }),
   validateSearch: (search) => searchSchema.parse(search),
   component: LoginPage,
 });
@@ -120,7 +120,7 @@ function LoginPage() {
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2 group">
           <span className="serif text-2xl font-semibold tracking-tighter text-foreground">
-            RINGRINGA<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
+            AGENTCALL<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
           </span>
         </Link>
 

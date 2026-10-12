@@ -34,7 +34,7 @@ import { grantTestCredits } from "@/lib/credits.functions";
 import { useAuthState } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authenticated/dashboard/credits")({
-  head: () => ({ meta: [{ title: "Buy credits — Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Buy credits — AgentCall" }] }),
   component: CreditsPage,
 });
 

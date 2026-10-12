@@ -5,11 +5,11 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Ringringa AI Telephony Protocol" },
+      { title: "Privacy Policy — AgentCall AI Telephony Protocol" },
       {
         name: "description",
         content:
-          "Privacy policy explaining Ringringa's zero audio recording policy, agent task payload handling, and carrier metadata compliance.",
+          "Privacy policy explaining AgentCall's zero audio recording policy, agent task payload handling, and carrier metadata compliance.",
       },
     ],
   }),
@@ -40,7 +40,7 @@ function PrivacyPage() {
               1. Our Privacy Commitment
             </h2>
             <p>
-              Ringringa ("we," "our," or "us") provides low-latency telephony infrastructure designed
+              AgentCall ("we," "our," or "us") provides low-latency telephony infrastructure designed
               for autonomous AI agents, automated software dispatchers, and human operators. We
               firmly believe that programmatic agent telephony must maintain rigorous privacy
               guarantees.
@@ -58,7 +58,7 @@ function PrivacyPage() {
             </h2>
             <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-foreground">
               <strong className="block mb-1 text-sm font-medium">Zero-Knowledge Voice Streams:</strong>
-              Ringringa does NOT record, tap, store, transcribe, or retain live voice audio from your calls.
+              AgentCall does NOT record, tap, store, transcribe, or retain live voice audio from your calls.
             </div>
             <p>
               When an agent or browser operator initiates a call:
@@ -216,7 +216,7 @@ function PrivacyPage() {
               carrier traceback cooperation, please contact:
             </p>
             <div className="rounded-xl border border-border bg-card p-4 font-mono text-xs text-muted-foreground">
-              <div>Ringringa Privacy &amp; Telecom Compliance</div>
+              <div>AgentCall Privacy &amp; Telecom Compliance</div>
               <div>Direct Email: <a href="mailto:prajwalshindeee@gmail.com" className="text-primary hover:underline">prajwalshindeee@gmail.com</a></div>
               <div>Response Latency: Under 12 hours on business days</div>
             </div>

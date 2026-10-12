@@ -9,8 +9,8 @@ import { CheckCircle2, Mail } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact & Dispatch - Ringringa" },
-      { name: "description", content: "Get in touch with the Ringringa telephony engineering team." },
+      { title: "Contact & Dispatch — AgentCall" },
+      { name: "description", content: "Get in touch with the AgentCall telephony engineering team." },
     ],
   }),
   component: ContactPage,

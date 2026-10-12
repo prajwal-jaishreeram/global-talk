@@ -1,10 +1,11 @@
 {
-  "name": "@ringringa/mcp",
+  "name": "@agentcall/mcp",
   "version": "1.0.0",
-  "description": "Model Context Protocol (MCP) server for Ringringa calling API",
+  "description": "Model Context Protocol (MCP) server for AgentCall telephony API",
   "main": "server.js",
   "type": "module",
   "bin": {
+    "agentcall-mcp": "./server.js",
     "ringringa-mcp": "./server.js"
   },
   "dependencies": {

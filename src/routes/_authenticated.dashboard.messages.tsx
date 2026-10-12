@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/messages")({
-  head: () => ({ meta: [{ title: "Messages — Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Messages — AgentCall" }] }),
   component: MessagesPage,
 });
 

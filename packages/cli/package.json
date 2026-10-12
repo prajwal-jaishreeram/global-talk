@@ -1,9 +1,10 @@
 {
-  "name": "ringringa",
+  "name": "agentcall",
   "version": "1.0.0",
-  "description": "Official CLI for Ringringa - Give your AI agent a phone",
+  "description": "Official CLI for AgentCall - Give your AI agent a phone",
   "bin": {
-    "ringringa": "./bin/ringringa.js"
+    "agentcall": "./bin/agentcall.js",
+    "ringringa": "./bin/agentcall.js"
   },
   "type": "module",
   "dependencies": {}

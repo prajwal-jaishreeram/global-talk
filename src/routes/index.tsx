@@ -19,7 +19,7 @@ import { AgentCallLaptopDemo } from "@/components/mockups/agent-call-laptop-demo
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ringringa - Give Your AI Agent a Phone" },
+      { title: "AgentCall — Give Your AI Agent a Phone" },
       {
         name: "description",
         content:
@@ -71,7 +71,7 @@ function HeroSection() {
 
       <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-muted-foreground font-light leading-relaxed">
         Autonomous agents can research and write, but they cannot dial phone numbers.
-        Ringringa gives Claude, ChatGPT, n8n, and custom agents an API, an MCP server, and a CLI.
+        AgentCall gives Claude, ChatGPT, n8n, and custom agents an API, an MCP server, and a CLI.
         The agent queues the call; your team picks up and talks in the browser.
       </p>
 
@@ -96,14 +96,14 @@ function HeroSection() {
 function AgentSetupCommandSection() {
   const [copied, setCopied] = useState(false);
 
-  const setupPrompt = `You are integrated with Ringringa calling API.
-Your goal is to place phone calls through Ringringa.
+  const setupPrompt = `You are integrated with AgentCall calling API.
+Your goal is to place phone calls through AgentCall.
 
-Base URL: https://ringringa.com/api/v1
-Docs: https://ringringa.com/llms.txt
-OpenAPI: https://ringringa.com/openapi.yaml
+Base URL: https://agentcall.org/api/v1
+Docs: https://agentcall.org/llms.txt
+OpenAPI: https://agentcall.org/openapi.yaml
 
-To queue a call, POST https://ringringa.com/api/v1/calls
+To queue a call, POST https://agentcall.org/api/v1/calls
 Headers:
   Authorization: Bearer <YOUR_API_KEY>
   Content-Type: application/json
@@ -181,7 +181,7 @@ function ProtocolWorkflowSection() {
     {
       num: "02",
       title: "Browser Dialer Alerts Human",
-      desc: "The call request appears live in the Ringringa browser dialer with the phone number and script already populated.",
+      desc: "The call request appears live in the AgentCall browser dialer with the phone number and script already populated.",
       tag: "REALTIME WEBRTC",
     },
     {
@@ -232,7 +232,7 @@ function PricingAndRatesSection() {
             <span className="italic text-[#2A382E] dark:text-[#88C090]">Prepaid credits</span>.
           </h2>
           <p className="text-sm text-muted-foreground font-light leading-relaxed mb-6">
-            Legacy dialers charge $50–$150/user/month just to connect an API. Ringringa has no recurring seat license.
+            Legacy dialers charge $50–$150/user/month just to connect an API. AgentCall has no recurring seat license.
             Top up prepaid credits, let your AI agents place calls, and pay strictly for elapsed call minutes.
           </p>
           <div className="flex gap-4">

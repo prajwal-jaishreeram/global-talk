@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 
-const SCRIPT_KEY = "ringringa.callScript";
-const NOTES_KEY = "ringringa.callNotes";
+const SCRIPT_KEY = "agentcall.callScript";
+const NOTES_KEY = "agentcall.callNotes";
 
 type NavigatorWithShare = Navigator & {
   canShare?: (data?: ShareData) => boolean;
@@ -138,7 +138,7 @@ function CallNotesPanelComponent({ inCall, peerNumber, onClose }: CallNotesPanel
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ringringa-${kind}-${stamp}.txt`;
+    a.download = `agentcall-${kind}-${stamp}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`${kind === "script" ? "Script" : "Notes"} downloaded`);

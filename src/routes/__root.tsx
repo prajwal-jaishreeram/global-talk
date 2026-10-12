@@ -86,16 +86,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ringringa" },
+      { title: "AgentCall — Autonomous AI Agent Telephony Protocol" },
       {
         name: "description",
-        content: "Browser-native international calling for individuals and teams.",
+        content: "Programmable telephony protocol and voice infrastructure for autonomous AI agents.",
       },
-      { name: "author", content: "Ringringa" },
-      { property: "og:title", content: "Ringringa" },
+      { name: "author", content: "AgentCall" },
+      { property: "og:title", content: "AgentCall — Autonomous AI Agent Telephony Protocol" },
       {
         property: "og:description",
-        content: "Browser-native international calling for individuals and teams.",
+        content: "Programmable telephony protocol and voice infrastructure for autonomous AI agents.",
       },
       { property: "og:image", content: logoUrl },
       { property: "og:type", content: "website" },

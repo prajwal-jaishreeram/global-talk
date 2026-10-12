@@ -81,7 +81,7 @@ import { AgentCallRequestsTray, type AgentCallTask } from "@/components/agent-ca
 import { PhoneMockupCard } from "@/components/mockups/phone-mockup-card";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
-  head: () => ({ meta: [{ title: "Make a call - Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Agent Dialer — AgentCall" }] }),
   component: DialerPage,
 });
 
@@ -315,13 +315,13 @@ function DialerPage() {
     // Auto-fill Script & Notes in localStorage
     if (task.script) {
       try {
-        window.localStorage.setItem("ringringa.callScript", task.script);
+        window.localStorage.setItem("agentcall.callScript", task.script);
       } catch {}
     }
     if (task.notes || task.goal) {
       try {
         const initialNotes = [task.goal ? `Goal: ${task.goal}` : "", task.notes ?? ""].filter(Boolean).join("\n\n");
-        window.localStorage.setItem("ringringa.callNotes", initialNotes);
+        window.localStorage.setItem("agentcall.callNotes", initialNotes);
       } catch {}
     }
 
@@ -536,7 +536,7 @@ function DialerPage() {
           amount: order.amount,
           currency: order.currency,
           order_id: order.orderId,
-          name: "Ringringa",
+          name: "AgentCall",
           description: `Phone number ${num.phone_number}`,
           prefill: { email: order.prefillEmail },
           theme: { color: "#3b82f6" },
@@ -2109,7 +2109,7 @@ function DialerPage() {
           <DialogHeader>
             <DialogTitle>Add contact</DialogTitle>
             <DialogDescription>
-              Save this dialed number to your Ringringa contacts.
+              Save this dialed number to your AgentCall contacts.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">

@@ -55,8 +55,9 @@ export async function dispatchWebhookEvent(input: {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "AgentCall-Signature": signatureHeader,
             "Ringringa-Signature": signatureHeader,
-            "User-Agent": "Ringringa-Webhooks/1.0",
+            "User-Agent": "AgentCall-Webhooks/1.0",
           },
           body: payloadString,
           signal: AbortSignal.timeout(6000),

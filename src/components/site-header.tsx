@@ -13,9 +13,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/90 backdrop-blur-md text-foreground transition-colors">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 sm:px-8">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logoUrl} alt="Ringringa" className="h-8 w-8 object-contain" />
+          <img src={logoUrl} alt="AgentCall" className="h-8 w-8 object-contain" />
           <span className="serif text-2xl font-semibold tracking-tight">
-            RINGRINGA<span className="text-[#8B6B55]">.</span>
+            AGENTCALL<span className="text-[#8B6B55]">.</span>
           </span>
         </Link>
 

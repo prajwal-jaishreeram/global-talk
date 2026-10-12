@@ -38,7 +38,7 @@ import {
 } from "@/lib/developer.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/developers")({
-  head: () => ({ meta: [{ title: "Developer API & Webhooks - Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Developer API & Webhooks — AgentCall" }] }),
   component: DevelopersPage,
 });
 
@@ -135,7 +135,7 @@ function DevelopersPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Developer API & Agents</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Empower AI agents (Claude, ChatGPT, n8n, Make, custom scripts) to place phone calls via Ringringa.
+            Empower AI agents (Claude, ChatGPT, n8n, Make, custom scripts) to place phone calls via AgentCall.
           </p>
         </div>
         <div className="flex gap-2">
@@ -321,17 +321,17 @@ function DevelopersPage() {
                     size="sm"
                     className="h-7 text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
                     onClick={() => {
-                      const agentPrompt = `You are an AI assistant integrated with Ringringa calling API.
+                      const agentPrompt = `You are an AI assistant integrated with AgentCall calling API.
 Your goal is to give yourself a phone and place outbound telephone calls to leads and contacts.
 
-Ringringa Configuration:
-- Base API URL: https://ringringa.com/api/v1
+AgentCall Configuration:
+- Base API URL: https://agentcall.org/api/v1
 - API Key: ${revealedKey}
-- Documentation: https://ringringa.com/llms.txt
-- OpenAPI Spec: https://ringringa.com/openapi.yaml
+- Documentation: https://agentcall.org/llms.txt
+- OpenAPI Spec: https://agentcall.org/openapi.yaml
 
 How to place a call:
-Make an HTTP POST request to: https://ringringa.com/api/v1/calls
+Make an HTTP POST request to: https://agentcall.org/api/v1/calls
 Headers:
   Authorization: Bearer ${revealedKey}
   Content-Type: application/json
@@ -346,11 +346,11 @@ Body JSON:
 
 Rules:
 1. Always include "consent_attestation": true to certify lawful consent.
-2. In assisted mode, the human operator picks up the call in their Ringringa browser dialer with your script pre-loaded.
-3. You can check call status, duration, and cost with GET https://ringringa.com/api/v1/calls/{id}
-4. You can check available prepaid balance with GET https://ringringa.com/api/v1/balance
+2. In assisted mode, the human operator picks up the call in their AgentCall browser dialer with your script pre-loaded.
+3. You can check call status, duration, and cost with GET https://agentcall.org/api/v1/calls/{id}
+4. You can check available prepaid balance with GET https://agentcall.org/api/v1/balance
 
-Acknowledge that you have loaded this tool and confirm you are ready to queue phone calls through Ringringa!`;
+Acknowledge that you have loaded this tool and confirm you are ready to queue phone calls through AgentCall!`;
                       navigator.clipboard.writeText(agentPrompt);
                       setCopiedPrompt(true);
                       setTimeout(() => setCopiedPrompt(false), 2000);
@@ -437,7 +437,7 @@ Acknowledge that you have loaded this tool and confirm you are ready to queue ph
             <Label htmlFor="webhook-url">Endpoint URL</Label>
             <Input
               id="webhook-url"
-              placeholder="https://your-server.com/api/webhooks/ringringa"
+              placeholder="https://your-server.com/api/webhooks/agentcall"
               value={webhookUrl}
               onChange={(e) => setWebhookUrl(e.target.value)}
             />

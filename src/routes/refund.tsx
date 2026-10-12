@@ -5,10 +5,10 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/refund")({
   head: () => ({
     meta: [
-      { title: "Refund Policy - Ringringa" },
+      { title: "Refund Policy — AgentCall" },
       {
         name: "description",
-        content: "Refund, cancellation, and failed-call credit policy for Ringringa.",
+        content: "Refund, cancellation, and failed-call credit policy for AgentCall.",
       },
     ],
   }),
@@ -27,9 +27,9 @@ function RefundPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">1. Overview</h2>
             <p>
-              This Refund Policy explains when Ringringa provides refunds, replacement credits, or
+              This Refund Policy explains when AgentCall provides refunds, replacement credits, or
               cancellations for prepaid calling credits, failed calls, auto top-up charges, and
-              phone number purchases. Ringringa is a digital calling service, so there are no physical
+              phone number purchases. AgentCall is a digital calling service, so there are no physical
               goods to return and no shipping charges.
             </p>
           </section>
@@ -39,7 +39,7 @@ function RefundPage() {
             <p>
               You may request a refund for unused prepaid credits within 14 days of the original
               purchase date. Refund requests received after 14 days may be denied unless required by
-              applicable law or approved by Ringringa because of a verified service issue.
+              applicable law or approved by AgentCall because of a verified service issue.
             </p>
           </section>
 
@@ -56,7 +56,7 @@ function RefundPage() {
               <li>
                 A payment is captured but the related credits or phone number are not delivered.
               </li>
-              <li>A call fails because of a verified Ringringa, carrier, or routing error.</li>
+              <li>A call fails because of a verified AgentCall, carrier, or routing error.</li>
               <li>Applicable law requires a refund.</li>
             </ul>
             <p className="mt-2">
@@ -128,7 +128,7 @@ function RefundPage() {
               We review refund requests within one business day where possible. Approved refunds are
               submitted to the original payment method within 5 to 7 business days. Your bank, card
               issuer, wallet, or payment processor may take additional time to post the refund.
-              Ringringa does not charge a refund fee, but payment processors or banks may apply their
+              AgentCall does not charge a refund fee, but payment processors or banks may apply their
               own rules.
             </p>
           </section>

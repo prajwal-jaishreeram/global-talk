@@ -6,17 +6,17 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-const API_BASE = process.env.RINGRINGA_API_URL || "https://ringringa.com/api/v1";
-const API_KEY = process.env.RINGRINGA_API_KEY;
+const API_BASE = process.env.AGENTCALL_API_URL || process.env.RINGRINGA_API_URL || "https://agentcall.org/api/v1";
+const API_KEY = process.env.AGENTCALL_API_KEY || process.env.RINGRINGA_API_KEY;
 
 if (!API_KEY) {
-  console.error("Error: RINGRINGA_API_KEY environment variable is required.");
+  console.error("Error: AGENTCALL_API_KEY (or RINGRINGA_API_KEY) environment variable is required.");
   process.exit(1);
 }
 
 const server = new Server(
   {
-    name: "ringringa-mcp",
+    name: "agentcall-mcp",
     version: "1.0.0",
   },
   {
