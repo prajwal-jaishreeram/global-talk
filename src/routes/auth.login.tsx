@@ -116,26 +116,26 @@ function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[#F2F0EB] text-[#1C1C1B] px-4 py-12">
+    <div className="grid min-h-screen place-items-center bg-white dark:bg-[#0D0D11] text-[#1C1C1B] dark:text-[#F3F3F5] transition-colors px-4 py-12">
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2 group">
-          <span className="serif text-2xl font-semibold tracking-tighter">
-            RINGRINGA<span className="text-[#8B6B55]">.</span>
+          <span className="serif text-2xl font-semibold tracking-tighter text-foreground">
+            RINGRINGA<span className="text-[#8B6B55] dark:text-[#C9A690]">.</span>
           </span>
         </Link>
 
-        <div className="border border-black/10 bg-[#FAF8F5] p-7 shadow-sm">
-          <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-6">
-            <span className="mono text-[10px] uppercase tracking-wider text-black/50">SYSTEM_AUTH</span>
-            <span className="mono text-[10px] bg-[#2A382E]/10 text-[#2A382E] px-2 py-0.5">AGENT_DIALER</span>
+        <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-7 shadow-xs">
+          <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-6">
+            <span className="mono text-[10px] uppercase tracking-wider text-muted-foreground">SYSTEM_AUTH</span>
+            <span className="mono text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5">AGENT_DIALER</span>
           </div>
 
-          <h1 className="serif text-2xl font-light tracking-tight text-[#1C1C1B]">Log in</h1>
-          <p className="mt-1 text-xs text-black/60 font-light">Access your dialer, call tasks & API keys.</p>
+          <h1 className="serif text-2xl font-light tracking-tight text-foreground">Log in</h1>
+          <p className="mt-1 text-xs text-muted-foreground font-light">Access your dialer, call tasks & API keys.</p>
 
           <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="mono text-[11px] uppercase tracking-wider text-black/70">
+              <Label htmlFor="email" className="mono text-[11px] uppercase tracking-wider text-muted-foreground">
                 Email
               </Label>
               <Input
@@ -150,10 +150,10 @@ function LoginPage() {
                 aria-describedby={fieldErrors.email ? "email-error" : undefined}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#F2F0EB] border-black/20 text-[#1C1C1B] focus-visible:ring-black/20"
+                className="bg-background border-border text-foreground focus-visible:ring-foreground/20"
               />
               {fieldErrors.email ? (
-                <p id="email-error" className="mono text-[11px] text-red-600">
+                <p id="email-error" className="mono text-[11px] text-destructive">
                   {fieldErrors.email}
                 </p>
               ) : null}
@@ -161,7 +161,7 @@ function LoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="mono text-[11px] uppercase tracking-wider text-black/70">
+                <Label htmlFor="password" className="mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Password
                 </Label>
               </div>
@@ -176,12 +176,12 @@ function LoginPage() {
                   aria-describedby={fieldErrors.password ? "password-error" : undefined}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10 bg-[#F2F0EB] border-black/20 text-[#1C1C1B] focus-visible:ring-black/20"
+                  className="pr-10 bg-background border-border text-foreground focus-visible:ring-foreground/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 grid w-10 place-items-center text-black/40 hover:text-black"
+                  className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground hover:text-foreground cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   tabIndex={-1}
                 >
@@ -189,14 +189,14 @@ function LoginPage() {
                 </button>
               </div>
               {fieldErrors.password ? (
-                <p id="password-error" className="mono text-[11px] text-red-600">
+                <p id="password-error" className="mono text-[11px] text-destructive">
                   {fieldErrors.password}
                 </p>
               ) : null}
             </div>
 
             {formError ? (
-              <Alert variant="destructive" className="border-red-400 bg-red-50 text-red-900">
+              <Alert variant="destructive" className="border-red-400 bg-red-50 text-red-900 dark:bg-red-950/50 dark:text-red-200">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="mono text-xs">Auth Failed</AlertTitle>
                 <AlertDescription className="text-xs">{formError}</AlertDescription>
@@ -205,7 +205,7 @@ function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-xs uppercase tracking-wider py-5"
+              className="w-full bg-foreground text-background hover:opacity-90 mono text-xs uppercase tracking-wider py-5 cursor-pointer"
               disabled={loading}
             >
               {loading ? (

@@ -45,86 +45,86 @@ function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB] text-[#1C1C1B] font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-white text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] transition-colors font-sans flex flex-col justify-between">
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-20 flex-1">
-        <div className="mono text-[11px] text-[#8B6B55] uppercase tracking-widest mb-3 font-semibold">
+        <div className="mono text-[11px] text-[#8B6B55] dark:text-[#C9A690] uppercase tracking-widest mb-3 font-semibold">
           ◆ Dispatch & Support
         </div>
-        <h1 className="serif text-5xl sm:text-6xl font-light mb-6 text-[#1C1C1B]">
+        <h1 className="serif text-5xl sm:text-6xl font-light mb-6 text-foreground">
           Direct line to the team.
         </h1>
-        <p className="text-base text-[#1C1C1B]/70 font-light max-w-xl mb-12 leading-relaxed">
+        <p className="text-base text-muted-foreground font-light max-w-xl mb-12 leading-relaxed">
           Questions about high-volume agent API caps, custom rate cards, or integration questions?
           Send a transmission below.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          <div className="space-y-6 md:col-span-1 border-t border-black/10 pt-6">
+          <div className="space-y-6 md:col-span-1 border-t border-border pt-6">
             <div>
-              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Direct Email</div>
-              <a href="mailto:prajwalshindeee@gmail.com" className="text-sm font-medium hover:underline flex items-center gap-1.5">
+              <div className="mono text-[11px] uppercase font-bold text-muted-foreground mb-1">Direct Email</div>
+              <a href="mailto:prajwalshindeee@gmail.com" className="text-sm font-medium hover:underline flex items-center gap-1.5 text-foreground">
                 <Mail className="h-4 w-4" /> prajwalshindeee@gmail.com
               </a>
             </div>
             <div>
-              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Response Latency</div>
-              <p className="text-xs text-black/70 font-light">Under 12 hours on business days</p>
+              <div className="mono text-[11px] uppercase font-bold text-muted-foreground mb-1">Response Latency</div>
+              <p className="text-xs text-muted-foreground font-light">Under 12 hours on business days</p>
             </div>
             <div>
-              <div className="mono text-[11px] uppercase font-bold text-black/50 mb-1">Security Model</div>
-              <p className="text-xs text-black/70 font-light">All calls run over encrypted WebRTC SIP trunks with zero recording.</p>
+              <div className="mono text-[11px] uppercase font-bold text-muted-foreground mb-1">Security Model</div>
+              <p className="text-xs text-muted-foreground font-light">All calls run over encrypted WebRTC SIP trunks with zero recording.</p>
             </div>
           </div>
 
           <form
             onSubmit={submit}
-            className="md:col-span-2 bg-[#FAF8F5] border border-black/10 p-6 sm:p-8 space-y-5 shadow-xs"
+            className="md:col-span-2 bg-[#F8F9FA] dark:bg-[#16161B] border border-border p-6 sm:p-8 space-y-5 shadow-xs"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Name</label>
+                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-muted-foreground font-medium">Name</label>
                 <input
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
+                  className="w-full bg-background border border-border px-3 py-2 text-sm outline-none focus:border-foreground text-foreground font-light"
                   placeholder="Your name"
                 />
               </div>
               <div>
-                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Email</label>
+                <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-muted-foreground font-medium">Email</label>
                 <input
                   required
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
+                  className="w-full bg-background border border-border px-3 py-2 text-sm outline-none focus:border-foreground text-foreground font-light"
                   placeholder="you@company.com"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Subject</label>
+              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-muted-foreground font-medium">Subject</label>
               <input
                 required
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className="w-full bg-white border border-black/15 px-3 py-2 text-sm outline-none focus:border-black font-light"
+                className="w-full bg-background border border-border px-3 py-2 text-sm outline-none focus:border-foreground text-foreground font-light"
                 placeholder="Agent workflow, higher limits, or billing"
               />
             </div>
 
             <div>
-              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-black/70 font-medium">Message</label>
+              <label className="mono text-[11px] uppercase tracking-wider block mb-1 text-muted-foreground font-medium">Message</label>
               <textarea
                 required
                 rows={5}
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="w-full bg-white border border-black/15 p-3 text-sm outline-none focus:border-black font-light resize-none"
+                className="w-full bg-background border border-border p-3 text-sm outline-none focus:border-foreground text-foreground font-light resize-none"
                 placeholder="How can we help your team or agent deployment?"
               />
             </div>
@@ -132,17 +132,17 @@ function ContactPage() {
             <button
               type="submit"
               disabled={sending}
-              className="mono text-xs border border-black bg-black text-[#F2F0EB] px-8 py-3.5 hover:bg-black/80 transition-all font-semibold uppercase tracking-wider disabled:opacity-50"
+              className="mono text-xs border border-foreground bg-foreground text-background px-8 py-3.5 hover:opacity-90 transition-all font-semibold uppercase tracking-wider disabled:opacity-50 cursor-pointer"
             >
               {sending ? "TRANSMITTING..." : "SEND TRANSMISSION"}
             </button>
 
             {sent && (
-              <p className="flex items-center gap-2 mono text-xs text-emerald-800">
+              <p className="flex items-center gap-2 mono text-xs text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-4 w-4" /> Message received. We will reply via email shortly.
               </p>
             )}
-            {error && <p className="mono text-xs text-red-700">{error}</p>}
+            {error && <p className="mono text-xs text-red-600">{error}</p>}
           </form>
         </div>
       </main>

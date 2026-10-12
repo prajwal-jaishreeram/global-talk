@@ -96,10 +96,10 @@ function DashboardLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F2F0EB] text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] transition-colors">
+    <div className="flex min-h-screen bg-white text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] transition-colors">
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-[#FAF8F5] dark:bg-[#131317] p-3 transition-[width] duration-200 md:flex",
+          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-[#F8F9FA] dark:bg-[#131317] p-3 transition-[width] duration-200 md:flex",
           collapsed ? "w-16" : "w-60",
         )}
       >
@@ -172,16 +172,16 @@ function DashboardLayout() {
           </div>
         ) : (
           <>
-            <div className="mt-4 shrink-0 border border-border bg-[#F2F0EB] dark:bg-[#1A1A20] p-3">
+            <div className="mt-4 shrink-0 border border-border bg-white dark:bg-[#1A1A20] p-3 shadow-2xs">
               <div className="flex items-center justify-between mono text-[10px] text-muted-foreground uppercase tracking-wider">
                 <span className="flex items-center gap-1.5"><Wallet className="h-3 w-3" /> BALANCE</span>
-                <span className="bg-[#2A382E]/10 dark:bg-[#88C090]/15 text-[#2A382E] dark:text-[#88C090] px-1 py-0.2">ACTIVE</span>
+                <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-1 py-0.2">ACTIVE</span>
               </div>
               <div className="mt-1 text-lg serif font-light text-foreground">
                 {balance === null ? "-" : formatMoneyExact(balance)}
               </div>
               <Link to="/dashboard/credits">
-                <Button size="sm" className="mt-2 w-full bg-foreground text-background hover:opacity-90 mono text-[10px] uppercase tracking-wider h-7">
+                <Button size="sm" className="mt-2 w-full bg-foreground text-background hover:opacity-90 mono text-[10px] uppercase tracking-wider h-7 cursor-pointer">
                   Top up credits
                 </Button>
               </Link>
@@ -203,9 +203,9 @@ function DashboardLayout() {
         )}
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-x-clip bg-[#F2F0EB] dark:bg-[#0D0D11] transition-colors">
+      <div className="flex flex-1 flex-col overflow-x-clip bg-white dark:bg-[#0D0D11] transition-colors">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-[#FAF8F5] dark:bg-[#131317] px-4 md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-[#F8F9FA] dark:bg-[#131317] px-4 md:hidden">
           <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
             RINGRINGA<span className="text-[#8B6B55]">.</span>
           </Link>
@@ -229,7 +229,7 @@ function DashboardLayout() {
         {mobileOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-            <div className="absolute inset-y-0 left-0 w-72 bg-[#FAF8F5] dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
+            <div className="absolute inset-y-0 left-0 w-72 bg-[#F8F9FA] dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
               <div className="mb-6 flex items-center justify-between">
                 <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
                   RINGRINGA<span className="text-[#8B6B55]">.</span>

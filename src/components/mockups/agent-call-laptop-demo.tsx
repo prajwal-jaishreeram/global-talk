@@ -35,7 +35,7 @@ export function AgentCallLaptopDemo() {
           <div className="flex items-center justify-between border-b border-black/10 pb-3">
             <div className="flex items-center gap-2">
               <span className="serif font-semibold text-sm">RINGRINGA</span>
-              <span className="mono text-[9px] bg-black text-[#F2F0EB] px-1.5 py-0.2 uppercase">LIVE</span>
+              <span className="mono text-[9px] bg-black text-white px-1.5 py-0.2 uppercase">LIVE</span>
             </div>
             <div className="mono text-[10px] text-black/60">
               BALANCE: <span className="font-bold text-black">$48.50 USD</span>
@@ -84,7 +84,7 @@ export function AgentCallLaptopDemo() {
                     Script loaded: "Hi Sarah, our AI found your team is looking to automate outbound calling..."
                   </p>
                   <div className="flex items-center justify-end gap-2 pt-1">
-                    <button className="mono text-[10px] bg-[#1C1C1B] text-[#F2F0EB] px-3 py-1 font-semibold flex items-center gap-1">
+                    <button className="mono text-[10px] bg-[#1C1C1B] text-white px-3 py-1 font-semibold flex items-center gap-1">
                       <Phone className="h-3 w-3" /> CONNECT CALL
                     </button>
                   </div>

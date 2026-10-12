@@ -30,7 +30,7 @@ const phoneFrameVariants = {
 
 export type PhoneFrameVariant = keyof typeof phoneFrameVariants;
 
-const PHONE_ASPECT = 70.6 / 146.6;
+const PHONE_ASPECT = 71 / 138;
 
 type PhoneMockupCardProps = Readonly<
   ComponentPropsWithoutRef<"div"> & {
@@ -94,18 +94,18 @@ function PhoneScreen({
   showDynamicIsland: boolean;
 }>) {
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[2.5rem] bg-neutral-950 text-foreground">
-      {/* Screen — thin bezel with smooth inner corners */}
-      <div className="absolute inset-[3px] overflow-hidden rounded-[2.35rem] bg-background">
-        <div className="relative h-full w-full">{children}</div>
+    <div className="relative h-full w-full overflow-hidden rounded-[2.35rem] bg-neutral-950 text-foreground">
+      {/* Screen — thin bezel */}
+      <div className="absolute inset-[3px] overflow-hidden rounded-[2.2rem] bg-card flex flex-col">
+        <div className="relative flex-1 w-full flex flex-col">{children}</div>
 
         {showDynamicIsland ? (
           <div
-            className="pointer-events-none absolute top-[9px] left-1/2 z-30 h-[22px] w-[72px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end px-2"
+            className="pointer-events-none absolute top-[8px] left-1/2 z-30 h-[20px] w-[68px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end px-2 shadow-xs"
             aria-hidden="true"
           >
             <div
-              className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#1b3a57]"
+              className="h-[6.5px] w-[6.5px] shrink-0 rounded-full bg-[#1b3a57]"
               aria-hidden="true"
             />
           </div>
@@ -113,7 +113,7 @@ function PhoneScreen({
 
         {/* Home indicator */}
         <div
-          className="pointer-events-none absolute bottom-[6px] left-1/2 z-30 h-[3.5px] w-[34%] -translate-x-1/2 rounded-full bg-foreground/20"
+          className="pointer-events-none absolute bottom-[5px] left-1/2 z-30 h-[3px] w-[30%] -translate-x-1/2 rounded-full bg-foreground/20"
           aria-hidden="true"
         />
       </div>
@@ -139,7 +139,7 @@ export const PhoneMockupCard = forwardRef<HTMLDivElement, PhoneMockupCardProps>(
     const isCropped = ratio < 1;
 
     const phoneFrameClassName = cn(
-      "relative w-full rounded-[2.65rem] p-[3px] shadow-2xl transition-all",
+      "relative w-full rounded-[2.5rem] p-[3px] shadow-2xl transition-all",
       frame.frame,
     );
 
@@ -149,7 +149,7 @@ export const PhoneMockupCard = forwardRef<HTMLDivElement, PhoneMockupCardProps>(
           ref={ref}
           data-slot="phone-mockup-card"
           data-variant={variant}
-          className={cn(phoneFrameClassName, "aspect-[70.6/146.6]", className)}
+          className={cn(phoneFrameClassName, className)}
           style={style}
           {...props}
         >

@@ -59,16 +59,16 @@ export function RateCalculator({
         <div className="mono text-[11px] mb-4 text-[#8B6B55] font-bold uppercase tracking-widest">
           ◆ REALTIME ROUTING INDEX
         </div>
-        <h1 className="serif text-4xl sm:text-5xl font-light tracking-tight text-[#1C1C1B]">{title}</h1>
-        <p className="mt-3 text-base text-black/60 font-light leading-relaxed">{description}</p>
+        <h1 className="serif text-4xl sm:text-5xl font-light tracking-tight text-foreground">{title}</h1>
+        <p className="mt-3 text-base text-muted-foreground font-light leading-relaxed">{description}</p>
       </div>
 
       {showTeamCta && (
         <div className="mt-8 flex justify-center">
-          <div className="flex items-center gap-3 border border-black/10 bg-[#FAF8F5] px-4 py-2">
-            <span className="mono text-xs text-black/70">Need programmatic high-volume capacity?</span>
+          <div className="flex items-center gap-3 border border-border bg-[#F8F9FA] dark:bg-[#16161B] px-4 py-2 shadow-2xs">
+            <span className="mono text-xs text-muted-foreground">Need programmatic high-volume capacity?</span>
             <Link to="/contact">
-              <Button size="sm" className="bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-[11px] uppercase tracking-wider h-7">
+              <Button size="sm" className="bg-foreground text-background hover:opacity-90 mono text-[11px] uppercase tracking-wider h-7 cursor-pointer">
                 API Concierge →
               </Button>
             </Link>
@@ -76,50 +76,50 @@ export function RateCalculator({
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 border border-black/10 bg-[#FAF8F5] p-6 md:grid-cols-[1fr_auto] md:p-8 shadow-sm">
+      <div className="mt-8 grid gap-6 border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6 md:grid-cols-[1fr_auto] md:p-8 shadow-xs">
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="mono text-xs uppercase tracking-wider text-black/60 w-24">Destination</span>
+            <span className="mono text-xs uppercase tracking-wider text-muted-foreground w-24">Destination</span>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
-                <button className="flex min-w-[260px] items-center justify-between gap-2 border-b border-black/30 bg-transparent px-2 py-2 text-left text-base hover:border-black transition-colors">
+                <button className="flex min-w-[260px] items-center justify-between gap-2 border-b border-border bg-transparent px-2 py-2 text-left text-base hover:border-foreground transition-colors cursor-pointer">
                   <span className="flex min-w-0 items-center gap-2">
                     <CountryFlag code={current.code} />
-                    <span className="mono text-xs font-semibold text-black">
+                    <span className="mono text-xs font-semibold text-foreground">
                       {current.code}
                     </span>
-                    <span className="truncate font-medium text-black">{current.name}</span>
-                    <span className="mono text-xs text-black/60">
+                    <span className="truncate font-medium text-foreground">{current.name}</span>
+                    <span className="mono text-xs text-muted-foreground">
                       +{current.dial}
                     </span>
                   </span>
-                  <ChevronDown className="h-4 w-4 shrink-0 text-black/50" />
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-[320px] p-0 border-black/10 bg-[#FAF8F5]" align="start">
-                <Command className="bg-[#FAF8F5]">
+              <PopoverContent className="w-[320px] p-0 border-border bg-card" align="start">
+                <Command className="bg-card">
                   <CommandInput placeholder="Search country..." className="mono text-xs" />
                   <CommandList>
-                    <CommandEmpty className="mono text-xs p-3 text-black/60">No country found.</CommandEmpty>
+                    <CommandEmpty className="mono text-xs p-3 text-muted-foreground">No country found.</CommandEmpty>
                     <CommandGroup>
                       {countries.map((c) => (
                         <CommandItem
                           key={c.code}
                           value={`${c.name} ${c.code} +${c.dial}`}
-                          className="group cursor-pointer hover:bg-black/5"
+                          className="group cursor-pointer hover:bg-muted"
                           onSelect={() => {
                             setCountry(c.code);
                             setOpen(false);
                           }}
                         >
                           <CountryFlag code={c.code} className="mr-2" />
-                          <span className="mono w-6 text-xs font-semibold text-black">
+                          <span className="mono w-6 text-xs font-semibold text-foreground">
                             {c.code}
                           </span>
-                          <span className="mono text-xs text-black/60">
+                          <span className="mono text-xs text-muted-foreground">
                             +{c.dial}
                           </span>
-                          <span className="ml-3 flex-1 truncate text-xs font-medium text-black">
+                          <span className="ml-3 flex-1 truncate text-xs font-medium text-foreground">
                             {c.name}
                           </span>
                         </CommandItem>
@@ -132,14 +132,14 @@ export function RateCalculator({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="mono text-xs uppercase tracking-wider text-black/60 w-24">Line Type</span>
+            <span className="mono text-xs uppercase tracking-wider text-muted-foreground w-24">Line Type</span>
             <button
               onClick={() => setType("mobile")}
               className={cn(
-                "inline-flex items-center gap-2 px-4 py-2 mono text-xs uppercase tracking-wider transition border",
+                "inline-flex items-center gap-2 px-4 py-2 mono text-xs uppercase tracking-wider transition border cursor-pointer",
                 type === "mobile"
-                  ? "bg-[#1C1C1B] text-[#F2F0EB] border-[#1C1C1B]"
-                  : "bg-transparent text-black border-black/20 hover:border-black",
+                  ? "bg-foreground text-background border-foreground font-semibold"
+                  : "bg-transparent text-foreground border-border hover:border-foreground",
               )}
             >
               <Smartphone className="h-3.5 w-3.5" /> Mobile
@@ -147,10 +147,10 @@ export function RateCalculator({
             <button
               onClick={() => setType("landline")}
               className={cn(
-                "inline-flex items-center gap-2 px-4 py-2 mono text-xs uppercase tracking-wider transition border",
+                "inline-flex items-center gap-2 px-4 py-2 mono text-xs uppercase tracking-wider transition border cursor-pointer",
                 type === "landline"
-                  ? "bg-[#1C1C1B] text-[#F2F0EB] border-[#1C1C1B]"
-                  : "bg-transparent text-black border-black/20 hover:border-black",
+                  ? "bg-foreground text-background border-foreground font-semibold"
+                  : "bg-transparent text-foreground border-border hover:border-foreground",
               )}
             >
               <Phone className="h-3.5 w-3.5" /> Landline
@@ -158,24 +158,24 @@ export function RateCalculator({
           </div>
         </div>
 
-        <div className="flex min-w-[240px] flex-col items-center justify-center border border-black/10 bg-[#F2F0EB] p-6 text-center">
-          <div className="mono text-[10px] uppercase tracking-wider text-black/60">ESTIMATED RATE</div>
-          <div className="mt-2 text-4xl serif font-light text-[#1C1C1B]">
+        <div className="flex min-w-[240px] flex-col items-center justify-center border border-border bg-white dark:bg-[#0D0D11] p-6 text-center shadow-2xs">
+          <div className="mono text-[10px] uppercase tracking-wider text-muted-foreground">ESTIMATED RATE</div>
+          <div className="mt-2 text-4xl serif font-light text-foreground">
             ${rate.toFixed(rate < 0.1 ? 3 : 2)}
           </div>
-          <span className="mono text-[11px] text-black/50 mt-1">USD per minute</span>
+          <span className="mono text-[11px] text-muted-foreground mt-1">USD per minute</span>
         </div>
       </div>
 
       <div className="mt-8 flex justify-center">
         <a href={primaryHref}>
-          <Button size="lg" className="bg-[#1C1C1B] text-[#F2F0EB] hover:bg-black mono text-xs uppercase tracking-widest px-8 py-6">
+          <Button size="lg" className="bg-foreground text-background hover:opacity-90 mono text-xs uppercase tracking-widest px-8 py-6 cursor-pointer">
             {primaryLabel(current.name)} →
           </Button>
         </a>
       </div>
 
-      <div className="mt-14 border border-black/10 bg-[#FAF8F5] p-6 md:p-8">
+      <div className="mt-14 border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6 md:p-8">
         <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-6">
           <h2 className="mono text-xs uppercase tracking-widest text-black/70 flex items-center gap-2">
             <HelpCircle className="h-4 w-4" /> Routing & Billing Specifications
