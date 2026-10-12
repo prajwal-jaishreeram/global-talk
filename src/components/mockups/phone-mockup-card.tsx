@@ -19,8 +19,8 @@ const phoneFrameVariants = {
     button: "bg-[#d8d8de]",
   },
   titanium: {
-    frame: "bg-[#2A2A2E] dark:bg-[#1E1E22]",
-    button: "bg-[#3A3A40] dark:bg-[#2C2C32]",
+    frame: "bg-[#1F1F23] dark:bg-[#1A1A1E] ring-1 ring-black/10 dark:ring-white/10",
+    button: "bg-[#333338] dark:bg-[#2A2A30]",
   },
   cherry: {
     frame: "bg-[#d49aa8]",
@@ -94,26 +94,26 @@ function PhoneScreen({
   showDynamicIsland: boolean;
 }>) {
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[2.35rem] bg-neutral-950 text-foreground">
-      {/* Screen — thin bezel */}
-      <div className="absolute inset-[3px] overflow-hidden rounded-[2.2rem] bg-card flex flex-col">
-        <div className="relative flex-1 w-full flex flex-col">{children}</div>
-
+    <div className="relative w-full rounded-[2.35rem] bg-neutral-950 p-[3px] text-foreground">
+      {/* Screen container */}
+      <div className="relative w-full overflow-hidden rounded-[2.2rem] bg-card flex flex-col">
         {showDynamicIsland ? (
           <div
-            className="pointer-events-none absolute top-[8px] left-1/2 z-30 h-[20px] w-[68px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end px-2 shadow-xs"
+            className="pointer-events-none absolute top-[7px] left-1/2 z-30 h-[18px] w-[64px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end px-2 shadow-xs"
             aria-hidden="true"
           >
             <div
-              className="h-[6.5px] w-[6.5px] shrink-0 rounded-full bg-[#1b3a57]"
+              className="h-[5.5px] w-[5.5px] shrink-0 rounded-full bg-[#1b3a57]"
               aria-hidden="true"
             />
           </div>
         ) : null}
 
+        <div className="relative w-full flex flex-col">{children}</div>
+
         {/* Home indicator */}
         <div
-          className="pointer-events-none absolute bottom-[5px] left-1/2 z-30 h-[3px] w-[30%] -translate-x-1/2 rounded-full bg-foreground/20"
+          className="pointer-events-none absolute bottom-[5px] left-1/2 z-30 h-[3px] w-[30%] -translate-x-1/2 rounded-full bg-foreground/25"
           aria-hidden="true"
         />
       </div>

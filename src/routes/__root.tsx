@@ -42,7 +42,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#0D0D11] text-[#1C1C1B] dark:text-[#F3F3F5] transition-colors px-4">
-      <div className="max-w-lg border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-8 text-center shadow-xs">
+      <div className="max-w-lg border border-border bg-card dark:bg-[#16161B] p-8 text-center shadow-xs">
         <div className="mono text-[10px] text-destructive uppercase tracking-widest mb-3">
           RUNTIME_EXCEPTION
         </div>

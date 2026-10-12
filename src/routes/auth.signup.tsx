@@ -151,7 +151,7 @@ function SignupPage() {
           </span>
         </Link>
 
-        <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-7 shadow-xs">
+        <div className="border border-border bg-card dark:bg-[#16161B] p-7 shadow-xs">
           <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-6">
             <span className="mono text-[10px] uppercase tracking-wider text-muted-foreground">NEW_ACCOUNT</span>
             <span className="mono text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-bold">$5 TRIAL</span>

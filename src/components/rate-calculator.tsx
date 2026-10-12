@@ -65,7 +65,7 @@ export function RateCalculator({
 
       {showTeamCta && (
         <div className="mt-8 flex justify-center">
-          <div className="flex items-center gap-3 border border-border bg-[#F8F9FA] dark:bg-[#16161B] px-4 py-2 shadow-2xs">
+          <div className="flex items-center gap-3 border border-border bg-card dark:bg-[#16161B] px-4 py-2 shadow-2xs">
             <span className="mono text-xs text-muted-foreground">Need programmatic high-volume capacity?</span>
             <Link to="/contact">
               <Button size="sm" className="bg-foreground text-background hover:opacity-90 mono text-[11px] uppercase tracking-wider h-7 cursor-pointer">
@@ -76,7 +76,7 @@ export function RateCalculator({
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6 md:grid-cols-[1fr_auto] md:p-8 shadow-xs">
+      <div className="mt-8 grid gap-6 border border-border bg-card dark:bg-[#16161B] p-6 md:grid-cols-[1fr_auto] md:p-8 shadow-xs">
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-4">
             <span className="mono text-xs uppercase tracking-wider text-muted-foreground w-24">Destination</span>
@@ -175,35 +175,35 @@ export function RateCalculator({
         </a>
       </div>
 
-      <div className="mt-14 border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6 md:p-8">
-        <div className="flex items-center justify-between border-b-2 border-dashed border-black/10 pb-3 mb-6">
-          <h2 className="mono text-xs uppercase tracking-widest text-black/70 flex items-center gap-2">
+      <div className="mt-14 border border-border bg-card dark:bg-[#16161B] p-6 md:p-8">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-6">
+          <h2 className="mono text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
             <HelpCircle className="h-4 w-4" /> Routing & Billing Specifications
           </h2>
-          <span className="mono text-[10px] text-black/40">AUDITED_PSTN</span>
+          <span className="mono text-[10px] text-muted-foreground">AUDITED_PSTN</span>
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           <div>
-            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-black">Per-Second Micro-Settlement</h3>
-            <p className="mt-1.5 text-xs text-black/60 font-light leading-relaxed">
+            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-foreground">Per-Second Micro-Settlement</h3>
+            <p className="mt-1.5 text-xs text-muted-foreground font-light leading-relaxed">
               No minute rounding penalties. Exact duration is calculated in seconds and deducted directly from your account balance with cryptographic audit log verification.
             </p>
           </div>
           <div>
-            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-black">Direct Carrier Routing</h3>
-            <p className="mt-1.5 text-xs text-black/60 font-light leading-relaxed">
+            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-foreground">Direct Carrier Routing</h3>
+            <p className="mt-1.5 text-xs text-muted-foreground font-light leading-relaxed">
               Traffic is handled via premium Telnyx tier-1 PSTN interconnects to guarantee immediate setup, crystal audio quality, and ultra-low latency.
             </p>
           </div>
           <div>
-            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-black">Safety & Blocklists</h3>
-            <p className="mt-1.5 text-xs text-black/60 font-light leading-relaxed">
+            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-foreground">Safety & Blocklists</h3>
+            <p className="mt-1.5 text-xs text-muted-foreground font-light leading-relaxed">
               Emergency numbers (911, 112, 999) and premium extortion-rate destinations are blocked at the engine gateway to keep your AI agents completely compliant.
             </p>
           </div>
           <div>
-            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-black">Mobile vs. Landline Pricing</h3>
-            <p className="mt-1.5 text-xs text-black/60 font-light leading-relaxed">
+            <h3 className="mono text-xs font-semibold uppercase tracking-wider text-foreground">Mobile vs. Landline Pricing</h3>
+            <p className="mt-1.5 text-xs text-muted-foreground font-light leading-relaxed">
               Mobile termination varies by local telecom tariffs. Our real-time engine maps your destination number and locks the lowest available wholesale route.
             </p>
           </div>

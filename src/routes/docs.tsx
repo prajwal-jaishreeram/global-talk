@@ -81,7 +81,7 @@ Body JSON:
 
         <div className="space-y-12">
           {/* Quickstart */}
-          <section className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6 shadow-sm">
+          <section className="border border-border bg-card dark:bg-[#16161B] p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-dashed border-border gap-2">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-[#8B6B55] dark:text-[#C9A690]" />
@@ -118,7 +118,7 @@ Body JSON:
               Authorization: Bearer rg_live_9a7f3e82c1...
             </pre>
             <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-5">
+              <div className="border border-border bg-card dark:bg-[#16161B] p-5">
                 <div className="flex items-center justify-between mb-2">
                   <span className="mono text-xs font-bold text-emerald-600 dark:text-emerald-400">rg_live_</span>
                   <span className="mono text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 font-bold">REAL PSTN</span>
@@ -128,7 +128,7 @@ Body JSON:
                   Triggers real PSTN calls to carriers globally. Deducts per-second usage from prepaid balance with atomic holds.
                 </p>
               </div>
-              <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-5">
+              <div className="border border-border bg-card dark:bg-[#16161B] p-5">
                 <div className="flex items-center justify-between mb-2">
                   <span className="mono text-xs font-bold text-blue-600 dark:text-blue-400">rg_test_</span>
                   <span className="mono text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2 py-0.5 font-bold">SANDBOX</span>
@@ -148,7 +148,7 @@ Body JSON:
               <h2 className="serif text-2xl font-light text-foreground">Core REST Endpoints</h2>
             </div>
 
-            <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] divide-y divide-border overflow-hidden text-xs mono">
+            <div className="border border-border bg-card dark:bg-[#16161B] divide-y divide-border overflow-hidden text-xs mono">
               <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">POST /api/v1/calls</span>
                 <span className="text-muted-foreground">Queue call task with number, goal, script & consent attestation</span>
@@ -177,7 +177,7 @@ Body JSON:
           </section>
 
           {/* Safety & Compliance */}
-          <section className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-6">
+          <section className="border border-border bg-card dark:bg-[#16161B] p-6">
             <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-4">
               <h3 className="mono text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-[#8B6B55] dark:text-[#C9A690]" /> Legal Compliance & Safeguards

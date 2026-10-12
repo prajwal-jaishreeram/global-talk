@@ -80,7 +80,7 @@ function ContactPage() {
 
           <form
             onSubmit={submit}
-            className="md:col-span-2 bg-[#F8F9FA] dark:bg-[#16161B] border border-border p-6 sm:p-8 space-y-5 shadow-xs"
+            className="md:col-span-2 bg-card dark:bg-[#16161B] border border-border p-6 sm:p-8 space-y-5 shadow-xs"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

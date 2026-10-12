@@ -124,7 +124,7 @@ Body JSON:
 
   return (
     <section className="w-full max-w-3xl mx-auto px-6 py-6">
-      <div className="bg-[#F8F9FA] dark:bg-[#16161B] border border-border p-5 sm:p-6 shadow-xs">
+      <div className="bg-card dark:bg-[#16161B] border border-border p-5 sm:p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-dashed border-border gap-2">
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-[#8B6B55] dark:text-[#C9A690]" />
@@ -203,7 +203,7 @@ function ProtocolWorkflowSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {steps.map((s) => (
-          <div key={s.num} className="bg-[#F8F9FA] dark:bg-[#16161B] border border-border p-6 flex flex-col justify-between">
+          <div key={s.num} className="bg-card dark:bg-[#16161B] border border-border p-6 flex flex-col justify-between">
             <div>
               <div className="mono text-2xl font-light text-muted-foreground/50 mb-4">{s.num}</div>
               <h3 className="serif text-xl font-semibold mb-2 text-foreground">{s.title}</h3>
@@ -245,7 +245,7 @@ function PricingAndRatesSection() {
           </div>
         </div>
 
-        <div className="bg-[#F8F9FA] dark:bg-[#16161B] border border-border p-6 shadow-xs">
+        <div className="bg-card dark:bg-[#16161B] border border-border p-6 shadow-xs">
           <div className="mono text-[11px] text-muted-foreground pb-3 mb-4 border-b border-border flex justify-between">
             <span>DESTINATION TIERS</span>
             <span>RATES (USD/MIN)</span>
@@ -290,19 +290,19 @@ function ComplianceAndSafetySection() {
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-light">
-        <div className="border border-border p-5 bg-[#F8F9FA] dark:bg-[#16161B]">
+        <div className="border border-border p-5 bg-card dark:bg-[#16161B]">
           <div className="mono font-bold text-xs mb-2 text-foreground">Consent Attestation</div>
           <p className="text-muted-foreground leading-relaxed">
             Every API call requires <code>consent_attestation: true</code>, certifying you possess lawful authority to dial the destination.
           </p>
         </div>
-        <div className="border border-border p-5 bg-[#F8F9FA] dark:bg-[#16161B]">
+        <div className="border border-border p-5 bg-card dark:bg-[#16161B]">
           <div className="mono font-bold text-xs mb-2 text-foreground">Global Denylist</div>
           <p className="text-muted-foreground leading-relaxed">
             Emergency lines (911, 112) and high-fraud premium-rate prefixes are permanently blocked by database policy.
           </p>
         </div>
-        <div className="border border-border p-5 bg-[#F8F9FA] dark:bg-[#16161B]">
+        <div className="border border-border p-5 bg-card dark:bg-[#16161B]">
           <div className="mono font-bold text-xs mb-2 text-foreground">Zero Audio Recordings</div>
           <p className="text-muted-foreground leading-relaxed">
             We never record phone audio. Calls travel over encrypted WebRTC and carrier trunks with absolute privacy.

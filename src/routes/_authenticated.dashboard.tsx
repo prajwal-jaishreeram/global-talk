@@ -99,7 +99,7 @@ function DashboardLayout() {
     <div className="flex min-h-screen bg-white text-[#1C1C1B] dark:bg-[#0D0D11] dark:text-[#F3F3F5] transition-colors">
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-[#F8F9FA] dark:bg-[#131317] p-3 transition-[width] duration-200 md:flex",
+          "sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-border bg-white dark:bg-[#131317] p-3 transition-[width] duration-200 md:flex",
           collapsed ? "w-16" : "w-60",
         )}
       >
@@ -205,7 +205,7 @@ function DashboardLayout() {
 
       <div className="flex flex-1 flex-col overflow-x-clip bg-white dark:bg-[#0D0D11] transition-colors">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-[#F8F9FA] dark:bg-[#131317] px-4 md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-white dark:bg-[#131317] px-4 md:hidden">
           <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
             RINGRINGA<span className="text-[#8B6B55]">.</span>
           </Link>
@@ -229,7 +229,7 @@ function DashboardLayout() {
         {mobileOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-            <div className="absolute inset-y-0 left-0 w-72 bg-[#F8F9FA] dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
+            <div className="absolute inset-y-0 left-0 w-72 bg-white dark:bg-[#131317] p-4 shadow-xl flex flex-col border-r border-border">
               <div className="mb-6 flex items-center justify-between">
                 <Link to="/" className="serif text-xl font-semibold tracking-tighter text-foreground">
                   RINGRINGA<span className="text-[#8B6B55]">.</span>

@@ -181,23 +181,23 @@ function CreditsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 text-[#1C1C1B]">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-black/10 pb-6">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 text-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-border pb-6">
         <div>
-          <div className="mono text-[10px] uppercase tracking-widest text-[#8B6B55] font-semibold mb-2">
+          <div className="mono text-[10px] uppercase tracking-widest text-[#8B6B55] dark:text-[#C9A690] font-semibold mb-2">
             ◆ SETTLEMENT LEDGER & LIQUIDITY
           </div>
-          <h1 className="serif text-3xl sm:text-4xl font-light tracking-tight text-[#1C1C1B]">
+          <h1 className="serif text-3xl sm:text-4xl font-light tracking-tight text-foreground">
             Deposit Calling Credits
           </h1>
-          <p className="mt-1 text-xs text-black/60 font-light">
+          <p className="mt-1 text-xs text-muted-foreground font-light">
             Instant micro-settlement for agent-initiated PSTN calls.{" "}
             <a href="/rates" className="mono text-foreground underline underline-offset-4 hover:opacity-80">
               View live rate table →
             </a>
           </p>
         </div>
-        <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-4 text-sm shadow-xs min-w-[200px]">
+        <div className="border border-border bg-card dark:bg-[#16161B] p-4 text-sm shadow-xs min-w-[200px]">
           <div className="mono text-[10px] uppercase tracking-wider text-muted-foreground">AVAILABLE BALANCE</div>
           <div className="text-2xl serif font-light text-foreground mt-0.5">
             {balance === null ? "-" : formatMoneyExact(balance)}
@@ -220,7 +220,7 @@ function CreditsPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-5 sm:p-6 shadow-xs">
+          <div className="border border-border bg-card dark:bg-[#16161B] p-5 sm:p-6 shadow-xs">
             <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-4">
               <span className="mono text-xs font-semibold uppercase tracking-wider text-foreground">Prepaid Liquidity Tiers</span>
               <span className="mono text-[10px] text-muted-foreground">NO_EXPIRATION</span>
@@ -259,7 +259,7 @@ function CreditsPage() {
             </div>
           </div>
 
-          <div className="border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-5 sm:p-6 shadow-xs">
+          <div className="border border-border bg-card dark:bg-[#16161B] p-5 sm:p-6 shadow-xs">
             <div className="flex items-center justify-between gap-3 border-b-2 border-dashed border-border pb-3">
               <label
                 htmlFor="auto-topup-toggle"
@@ -340,7 +340,7 @@ function CreditsPage() {
           </div>
         </div>
 
-        <aside className="h-fit border border-border bg-[#F8F9FA] dark:bg-[#16161B] p-5 sm:p-6 shadow-xs lg:sticky lg:top-6">
+        <aside className="h-fit border border-border bg-card dark:bg-[#16161B] p-5 sm:p-6 shadow-xs lg:sticky lg:top-6">
           <div className="flex items-center justify-between border-b-2 border-dashed border-border pb-3 mb-4">
             <span className="mono text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5" /> Order Summary

@@ -1620,7 +1620,7 @@ function DialerPage() {
   }
 
   return (
-    <div className="relative flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-start gap-6 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:gap-4 md:py-6 lg:flex-row lg:items-stretch lg:justify-center">
+    <div className="relative flex min-h-[calc(100vh-56px)] w-full flex-col items-center justify-center gap-4 overflow-x-hidden px-2 py-3 sm:px-4 md:min-h-[calc(100vh-1px)] md:py-6 lg:flex-row lg:items-center lg:justify-center">
       <audio
         id="telnyx-remote-audio"
         autoPlay
@@ -1632,20 +1632,20 @@ function DialerPage() {
           audioElRef.current = el;
         }}
       />
-      <div className="flex w-full max-w-[420px] flex-col items-center">
+      <div className="flex w-full max-w-[380px] flex-col items-center">
         <AgentCallRequestsTray onAcceptCall={handleAcceptAgentCall} />
         <PhoneMockupCard
           variant="titanium"
           showDynamicIsland={true}
           className={cn(
-            "relative z-10 w-full shrink-0 self-center max-w-[315px] sm:max-w-[335px] shadow-2xl transition-all",
-            panelOpen ? "lg:max-w-[315px]" : "lg:max-w-[340px]",
+            "relative z-10 w-full shrink-0 self-center max-w-[285px] sm:max-w-[305px] shadow-2xl transition-all",
+            panelOpen ? "lg:max-w-[285px]" : "lg:max-w-[305px]",
           )}
         >
-          <div className="flex flex-col h-full w-full justify-between p-3.5 pt-8 sm:p-4 sm:pt-9 bg-card text-foreground select-none">
-            <div className="rounded-2xl border border-border/50 bg-background/90 p-3 shadow-xs">
+          <div className="flex flex-col w-full justify-between p-2.5 pt-6 sm:p-3 sm:pt-6.5 bg-card text-foreground select-none">
+            <div className="rounded-xl border border-border/60 bg-background/90 p-2.5 shadow-2xs">
             {/* Call from picker */}
-            <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+            <div className="mb-2 flex items-center justify-between gap-1.5 text-xs">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="shrink-0 text-muted-foreground">Call from:</span>
                 <Popover open={callFromOpen} onOpenChange={setCallFromOpen}>
@@ -1967,43 +1967,43 @@ function DialerPage() {
                 type="button"
                 onClick={openAddContactDialog}
                 disabled={!raw}
-                className="mt-3 flex h-7 w-full items-center justify-center gap-1.5 rounded-full bg-white/[0.035] px-3 text-[11px] text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground disabled:opacity-40 disabled:hover:bg-white/[0.035] disabled:hover:text-muted-foreground"
+                className="mt-2 flex h-6 w-full items-center justify-center gap-1.5 rounded-full bg-muted/40 px-2.5 text-[10px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
               >
-                <UserPlus className="h-3.5 w-3.5" />
+                <UserPlus className="h-3 w-3" />
                 <span>Add contact</span>
               </button>
             )}
           </div>
 
           {/* Keypad */}
-          <div className="my-2.5 grid grid-cols-3 place-items-center gap-y-2 sm:gap-y-2.5">
+          <div className="my-1.5 grid grid-cols-3 place-items-center gap-y-1.5 sm:gap-y-2">
             {keys.map((k) => {
               const sub = keyMeta[k];
               return (
                 <button
                   key={k}
                   onClick={() => press(k, sub)}
-                  className="flex h-12 w-12 sm:h-14 sm:w-14 flex-col items-center justify-center rounded-full border border-border/50 bg-muted/40 text-foreground shadow-2xs transition-colors hover:bg-muted active:scale-95 cursor-pointer"
+                  className="flex h-10 w-10 sm:h-11 sm:w-11 flex-col items-center justify-center rounded-full border border-border/60 bg-muted/30 text-foreground shadow-2xs transition-all hover:bg-muted active:scale-95 cursor-pointer"
                 >
                   <span
                     className={cn(
                       "font-semibold leading-none",
                       alpha && sub
                         ? sub.length >= 4
-                          ? "text-xs"
-                          : "text-sm"
-                        : "text-xl sm:text-2xl",
+                          ? "text-[11px]"
+                          : "text-xs"
+                        : "text-lg sm:text-xl",
                     )}
                   >
                     {alpha && sub ? sub : k}
                   </span>
                   {sub && !alpha && (
-                    <span className="mt-0.5 text-[9px] tracking-[0.12em] text-muted-foreground">
+                    <span className="mt-0.5 text-[8px] sm:text-[8.5px] tracking-[0.1em] text-muted-foreground">
                       {sub}
                     </span>
                   )}
                   {alpha && sub && (
-                    <span className="mt-0.5 text-[9px] tracking-[0.12em] text-muted-foreground">
+                    <span className="mt-0.5 text-[8px] sm:text-[8.5px] tracking-[0.1em] text-muted-foreground">
                       {k}
                     </span>
                   )}
@@ -2013,13 +2013,13 @@ function DialerPage() {
           </div>
 
           {/* Bottom action row */}
-          <div className="mb-2 grid grid-cols-3 place-items-center">
+          <div className="my-1 grid grid-cols-3 place-items-center">
             {inCall ? (
               <button
                 onClick={toggleMute}
                 disabled={callState === "connecting" || callState === "ending"}
                 className={cn(
-                  "grid h-10 w-10 place-items-center rounded-full border transition-colors disabled:opacity-40 cursor-pointer",
+                  "grid h-9 w-9 place-items-center rounded-full border transition-colors disabled:opacity-40 cursor-pointer",
                   muted
                     ? "border-primary/50 bg-primary/20 text-primary shadow-inner hover:bg-primary/25"
                     : "border-border/50 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -2027,7 +2027,7 @@ function DialerPage() {
                 aria-label={muted ? "Unmute" : "Mute"}
                 title={muted ? "Tap to unmute" : "Tap to mute"}
               >
-                {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                {muted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
               </button>
             ) : (
               <button
@@ -2041,7 +2041,7 @@ function DialerPage() {
                   });
                 }}
                 aria-label="Toggle letters"
-                className="grid h-10 w-10 place-items-center rounded-full border border-border/50 bg-muted/40 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+                className="grid h-9 w-9 place-items-center rounded-full border border-border/50 bg-muted/40 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
               >
                 {alpha ? "123" : "ABC"}
               </button>
@@ -2050,12 +2050,12 @@ function DialerPage() {
               <button
                 onClick={hangup}
                 aria-label="End call"
-                className="grid h-14 w-14 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                className="grid h-12 w-12 sm:h-12.5 sm:w-12.5 place-items-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer"
               >
                 {callState === "connecting" || callState === "ending" ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <PhoneOff className="h-6 w-6" />
+                  <PhoneOff className="h-5 w-5" />
                 )}
               </button>
             ) : (
@@ -2063,9 +2063,9 @@ function DialerPage() {
                 onClick={startCall}
                 disabled={!isValid}
                 aria-label="Call"
-                className="grid h-14 w-14 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer"
+                className="grid h-12 w-12 sm:h-12.5 sm:w-12.5 place-items-center rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer"
               >
-                <Phone className="h-6 w-6" />
+                <Phone className="h-5 w-5" />
               </button>
             )}
             {inCall ? (
@@ -2075,22 +2075,22 @@ function DialerPage() {
                 aria-label={speakerOn ? "Speaker off" : "Speaker on"}
                 title={speakerOn ? "Tap to disable speaker" : "Tap to enable speaker"}
                 className={cn(
-                  "grid h-10 w-10 place-items-center rounded-full border transition-colors disabled:opacity-40 cursor-pointer",
+                  "grid h-9 w-9 place-items-center rounded-full border transition-colors disabled:opacity-40 cursor-pointer",
                   speakerOn
                     ? "border-primary/50 bg-primary/20 text-primary shadow-inner hover:bg-primary/25"
                     : "border-border/50 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <Volume2 className="h-4 w-4" />
+                <Volume2 className="h-3.5 w-3.5" />
               </button>
             ) : (
               <button
                 onClick={backspace}
                 disabled={!raw}
                 aria-label="Backspace"
-                className="grid h-10 w-10 place-items-center rounded-full border border-border/50 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 cursor-pointer"
+                className="grid h-9 w-9 place-items-center rounded-full border border-border/50 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 cursor-pointer"
               >
-                <Delete className="h-4 w-4" />
+                <Delete className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
