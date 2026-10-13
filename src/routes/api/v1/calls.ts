@@ -145,10 +145,58 @@ export const Route = createFileRoute("/api/v1/calls")({
           return Response.json({ error: hold.error }, { status: 402 });
         }
 
+        // Autonomous mode: If requested, immediately trigger carrier outbound dialing
+        let telnyxCallControlId: string | null = null;
+        const isAutonomous = mode === "autonomous" || mode === "auto" || mode === "ai";
+        const telnyxApiKey = process.env.TELNYX_API_KEY;
+        const telnyxConnectionId = process.env.TELNYX_CONNECTION_ID || "3069672995761948160";
+        const defaultCallerId = process.env.TELNYX_PUBLIC_CALLER_ID || "+18887090611";
+
+        if (isAutonomous && telnyxApiKey && telnyxConnectionId && !scheduledDate) {
+          try {
+            const clientStatePayload = Buffer.from(
+              JSON.stringify({
+                taskId: task.id,
+                goal: task.goal,
+                script: task.script,
+              })
+            ).toString("base64");
+
+            const dialRes = await fetch("https://api.telnyx.com/v2/calls", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${telnyxApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: task.to_number,
+                from: task.from_number || defaultCallerId,
+                connection_id: telnyxConnectionId,
+                client_state: clientStatePayload,
+              }),
+            });
+
+            const dialData = await dialRes.json();
+            if (dialData?.data?.call_control_id) {
+              telnyxCallControlId = dialData.data.call_control_id;
+              await supabaseAdmin
+                .from("call_tasks")
+                .update({
+                  status: "dialing",
+                  call_id: telnyxCallControlId,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", task.id);
+            }
+          } catch (dialErr) {
+            console.error("Direct autonomous dial failed:", dialErr);
+          }
+        }
+
         // Dispatch webhook
         await dispatchWebhookEvent({
           userId: user_id,
-          event: initialStatus === "queued" ? "call.queued" : "call.awaiting_human",
+          event: initialStatus === "queued" ? "call.queued" : isAutonomous ? "call.dialing" : "call.awaiting_human",
           data: task,
           isTest: is_test,
         });
@@ -161,7 +209,8 @@ export const Route = createFileRoute("/api/v1/calls")({
             to: task.to_number,
             from: task.from_number,
             mode: task.mode,
-            status: task.status,
+            status: telnyxCallControlId ? "dialing" : task.status,
+            call_control_id: telnyxCallControlId,
             rate_per_minute: task.rate_per_minute,
             estimated_cost: estimatedCost,
             scheduled_for: task.scheduled_for,

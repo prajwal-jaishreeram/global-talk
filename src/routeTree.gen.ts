@@ -31,6 +31,7 @@ import { Route as AuthenticatedDashboardRatesRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
 import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar-webhook'
 import { Route as ApiPublicTelnyxSmsWebhookRouteImport } from './routes/api/public/telnyx-sms-webhook'
+import { Route as ApiPublicTelnyxVoiceWebhookRouteImport } from './routes/api/public/telnyx-voice-webhook'
 import { Route as ApiV1BalanceRouteImport } from './routes/api/v1/balance'
 import { Route as ApiV1CallsRouteImport } from './routes/api/v1/calls'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
@@ -163,6 +164,12 @@ const ApiPublicTelnyxSmsWebhookRoute =
     path: '/api/public/telnyx-sms-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTelnyxVoiceWebhookRoute =
+  ApiPublicTelnyxVoiceWebhookRouteImport.update({
+    id: '/api/public/telnyx-voice-webhook',
+    path: '/api/public/telnyx-voice-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1BalanceRoute = ApiV1BalanceRouteImport.update({
   id: '/api/v1/balance',
   path: '/api/v1/balance',
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/public/telnyx-voice-webhook': typeof ApiPublicTelnyxVoiceWebhookRoute
   '/api/v1/balance': typeof ApiV1BalanceRoute
   '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRoute
@@ -283,6 +291,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/public/telnyx-voice-webhook': typeof ApiPublicTelnyxVoiceWebhookRoute
   '/api/v1/balance': typeof ApiV1BalanceRoute
   '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRoute
@@ -320,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/api/public/polar-webhook': typeof ApiPublicPolarWebhookRoute
   '/api/public/telnyx-sms-webhook': typeof ApiPublicTelnyxSmsWebhookRoute
+  '/api/public/telnyx-voice-webhook': typeof ApiPublicTelnyxVoiceWebhookRoute
   '/api/v1/balance': typeof ApiV1BalanceRoute
   '/api/v1/calls': typeof ApiV1CallsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRoute
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/public/telnyx-voice-webhook'
     | '/api/v1/balance'
     | '/api/v1/calls'
     | '/api/v1/me'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/public/telnyx-voice-webhook'
     | '/api/v1/balance'
     | '/api/v1/calls'
     | '/api/v1/me'
@@ -427,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/settings'
     | '/api/public/polar-webhook'
     | '/api/public/telnyx-sms-webhook'
+    | '/api/public/telnyx-voice-webhook'
     | '/api/v1/balance'
     | '/api/v1/calls'
     | '/api/v1/me'
@@ -455,6 +468,7 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   ApiPublicPolarWebhookRoute: typeof ApiPublicPolarWebhookRoute
   ApiPublicTelnyxSmsWebhookRoute: typeof ApiPublicTelnyxSmsWebhookRoute
+  ApiPublicTelnyxVoiceWebhookRoute: typeof ApiPublicTelnyxVoiceWebhookRoute
   ApiV1BalanceRoute: typeof ApiV1BalanceRoute
   ApiV1CallsRoute: typeof ApiV1CallsRouteWithChildren
   ApiV1MeRoute: typeof ApiV1MeRoute
@@ -624,6 +638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTelnyxSmsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/telnyx-voice-webhook': {
+      id: '/api/public/telnyx-voice-webhook'
+      path: '/api/public/telnyx-voice-webhook'
+      fullPath: '/api/public/telnyx-voice-webhook'
+      preLoaderRoute: typeof ApiPublicTelnyxVoiceWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/balance': {
       id: '/api/v1/balance'
       path: '/api/v1/balance'
@@ -779,6 +800,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   ApiPublicPolarWebhookRoute: ApiPublicPolarWebhookRoute,
   ApiPublicTelnyxSmsWebhookRoute: ApiPublicTelnyxSmsWebhookRoute,
+  ApiPublicTelnyxVoiceWebhookRoute: ApiPublicTelnyxVoiceWebhookRoute,
   ApiV1BalanceRoute: ApiV1BalanceRoute,
   ApiV1CallsRoute: ApiV1CallsRouteWithChildren,
   ApiV1MeRoute: ApiV1MeRoute,

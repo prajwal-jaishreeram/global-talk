@@ -53,6 +53,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Additional notes or context",
             },
+            mode: {
+              type: "string",
+              description: "Call mode: 'autonomous' (instantly dials recipient's phone via carrier and speaks the script) or 'assisted' (queues for browser dialer). Defaults to 'autonomous'.",
+              enum: ["autonomous", "assisted"],
+            },
             consent_attestation: {
               type: "boolean",
               description: "Certify that you have lawful consent to call this recipient",
@@ -137,9 +142,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     if (name === "place_call") {
+      const payload = {
+        mode: "autonomous",
+        ...args,
+      };
       const data = await apiFetch("/calls", {
         method: "POST",
-        body: JSON.stringify(args),
+        body: JSON.stringify(payload),
       });
       return {
         content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
