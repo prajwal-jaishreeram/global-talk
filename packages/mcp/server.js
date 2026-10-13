@@ -168,9 +168,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     if (name === "cancel_call") {
-      const data = await apiFetch(`/calls/${args.id}/cancel`, {
-        method: "POST",
-      });
+      let data;
+      try {
+        data = await apiFetch(`/calls/${args.id}`, {
+          method: "POST",
+          body: JSON.stringify({ action: "cancel" }),
+        });
+      } catch (err) {
+        data = await apiFetch(`/calls/${args.id}/cancel`, {
+          method: "POST",
+        });
+      }
       return {
         content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       };
