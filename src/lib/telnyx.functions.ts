@@ -262,13 +262,92 @@ export const listMyPhoneNumbers = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("phone_numbers")
-      .select("id,phone_number,country_code,monthly_cost,status,created_at")
+      .select("id,phone_number,country_code,monthly_cost,status,forward_to_number,forward_sms_enabled,created_at")
       .eq("user_id", userId)
       // Hide rows that are still awaiting payment — they're not yet owned.
       .neq("status", "pending_payment")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { numbers: data ?? [] };
+  });
+
+export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { id: string; forward_to_number: string | null; forward_sms_enabled: boolean }) =>
+      input,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    let normalizedForwardTo: string | null = null;
+    if (data.forward_to_number && data.forward_to_number.trim()) {
+      normalizedForwardTo = normalizeE164(data.forward_to_number.trim());
+    }
+
+    const { error } = await supabase
+      .from("phone_numbers")
+      .update({
+        forward_to_number: normalizedForwardTo,
+        forward_sms_enabled: data.forward_sms_enabled,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("user_id", userId);
+
+    if (error) throw new Error(error.message);
+    return {
+      ok: true,
+      forward_to_number: normalizedForwardTo,
+      forward_sms_enabled: data.forward_sms_enabled,
+    };
+  });
+
+export const forwardSmsMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { from: string; to: string; body: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const toE164 = normalizeE164(data.to);
+
+    // Verify ownership of sender number
+    const { data: own, error: ownErr } = await supabase
+      .from("phone_numbers")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("phone_number", data.from)
+      .maybeSingle();
+    if (ownErr) throw new Error(ownErr.message);
+    if (!own) throw new Error("You do not own that sender number.");
+
+    const res = await fetch(`${TELNYX_BASE}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${telnyxKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: data.from, to: toE164, text: data.body }),
+    });
+    const json = (await res.json()) as {
+      data?: { id?: string };
+      errors?: Array<{ detail?: string; title?: string }>;
+    };
+    if (!res.ok) {
+      const detail =
+        json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Voice provider ${res.status}`;
+      throw new Error(detail);
+    }
+
+    await supabase.from("messages").insert({
+      user_id: userId,
+      from_number: data.from,
+      to_number: toE164,
+      body: data.body,
+      direction: "outbound",
+      status: "forwarded",
+      telnyx_message_id: json.data?.id ?? null,
+    });
+
+    return { ok: true };
   });
 
 export const listMyMessages = createServerFn({ method: "POST" })

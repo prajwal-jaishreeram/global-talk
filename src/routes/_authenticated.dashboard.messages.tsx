@@ -1,12 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquare, Send, Inbox, Phone, ArrowLeft } from "lucide-react";
+import { MessageSquare, Send, Inbox, Phone, ArrowLeft, Forward } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
-import { listMyMessages, listMyPhoneNumbers, sendSms } from "@/lib/telnyx.functions";
+import {
+  listMyMessages,
+  listMyPhoneNumbers,
+  sendSms,
+  forwardSmsMessage,
+} from "@/lib/telnyx.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -53,6 +67,7 @@ export default function MessagesPage() {
   const fetchMsgs = useServerFn(listMyMessages);
   const fetchNums = useServerFn(listMyPhoneNumbers);
   const send = useServerFn(sendSms);
+  const forwardFn = useServerFn(forwardSmsMessage);
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [nums, setNums] = useState<Owned[]>([]);
@@ -61,6 +76,12 @@ export default function MessagesPage() {
   const [from, setFrom] = useState<string>("");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Forwarding dialog state
+  const [forwardTargetMsg, setForwardTargetMsg] = useState<Msg | null>(null);
+  const [forwardToNumber, setForwardToNumber] = useState("");
+  const [forwardFromNumber, setForwardFromNumber] = useState("");
+  const [forwarding, setForwarding] = useState(false);
 
   async function refresh() {
     setLoading(true);
@@ -138,15 +159,41 @@ export default function MessagesPage() {
     }
   }
 
-  const hasNumbers = nums.length > 0;
+  async function onForward() {
+    if (!forwardTargetMsg || !forwardToNumber.trim() || !forwardFromNumber) return;
+    setForwarding(true);
+    try {
+      const forwardBody = `[Fwd from ${peer(forwardTargetMsg)}]: ${forwardTargetMsg.body}`;
+      await forwardFn({
+        data: {
+          from: forwardFromNumber,
+          to: forwardToNumber.trim(),
+          body: forwardBody,
+        },
+      });
+      toast.success(`Message forwarded to ${forwardToNumber.trim()}`);
+      setForwardTargetMsg(null);
+      setForwardToNumber("");
+      refresh();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Forwarding failed");
+    } finally {
+      setForwarding(false);
+    }
+  }
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-4 md:p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
-        {hasNumbers && (
-          <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
-            <span>Send from</span>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Messages</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send, receive, and forward two-way SMS with your Ringringa phone numbers.
+          </p>
+        </div>
+        {nums.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Default sender:</span>
             <Select value={from} onValueChange={setFrom}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
@@ -163,40 +210,33 @@ export default function MessagesPage() {
         )}
       </div>
 
-      {!hasNumbers ? (
-        <div className="rounded-2xl border border-border bg-card p-10 text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary/10 text-primary">
-            <Phone className="h-6 w-6" />
-          </div>
-          <h2 className="mt-4 text-lg font-semibold">Get a phone number to receive SMS</h2>
-          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            Buy a virtual phone number and start receiving text messages directly here.
-            Numbers start at just $2/month.
+      {nums.length === 0 && !loading && (
+        <div className="mt-6 rounded-2xl border border-dashed border-border p-8 text-center">
+          <Phone className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+          <h3 className="font-semibold">No phone number yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You need at least one phone number to send and receive text messages.
           </p>
-          <a href="/dashboard/numbers" className="mt-5 inline-block">
-            <Button>
-              <Phone className="mr-2 h-4 w-4" /> Buy a Phone Number
-            </Button>
+          <a
+            href="/dashboard/numbers"
+            className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Buy a number
           </a>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-[320px_1fr]">
-          {/* Thread list */}
-          <div
-            className={cn(
-              "rounded-2xl border border-border bg-card overflow-hidden",
-              active && "hidden md:block",
-            )}
-          >
-            <div className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium">
-              <Inbox className="h-4 w-4 text-muted-foreground" /> Inbox
-              <span className="ml-auto text-xs text-muted-foreground">{threads.length}</span>
+      )}
+
+      {nums.length > 0 && (
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
+          {/* Threads list */}
+          <div className="flex flex-col rounded-2xl border border-border bg-card">
+            <div className="border-b border-border p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Conversations ({threads.length})
             </div>
-            {loading ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>
-            ) : threads.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">
-                No messages yet. Share your number to start receiving SMS.
+            {threads.length === 0 ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">
+                <Inbox className="mx-auto mb-2 h-6 w-6 opacity-50" />
+                No messages yet.
               </div>
             ) : (
               <ul className="max-h-[60vh] overflow-y-auto">
@@ -264,15 +304,30 @@ export default function MessagesPage() {
                     <span className="text-xs text-muted-foreground">via {from}</span>
                   </div>
                 </div>
-                <div className="flex-1 space-y-2 overflow-y-auto p-4">
+                <div className="flex-1 space-y-3 overflow-y-auto p-4">
                   {conversation.map((m) => (
                     <div
                       key={m.id}
                       className={cn(
-                        "flex",
+                        "group flex items-end gap-2",
                         m.direction === "outbound" ? "justify-end" : "justify-start",
                       )}
                     >
+                      {/* Left action button if outbound */}
+                      {m.direction === "outbound" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForwardTargetMsg(m);
+                            setForwardFromNumber(mine(m) || from || nums[0]?.phone_number);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
+                          title="Forward this message"
+                        >
+                          <Forward className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+
                       <div
                         className={cn(
                           "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
@@ -284,15 +339,33 @@ export default function MessagesPage() {
                         <div className="whitespace-pre-wrap break-words">{m.body || "(no text)"}</div>
                         <div
                           className={cn(
-                            "mt-1 text-[10px]",
+                            "mt-1 flex items-center justify-between gap-3 text-[10px]",
                             m.direction === "outbound"
                               ? "text-primary-foreground/70"
                               : "text-muted-foreground",
                           )}
                         >
-                          {fmt(m.created_at)}
+                          <span>{fmt(m.created_at)}</span>
+                          {m.status === "forwarded" && (
+                            <span className="font-medium underline decoration-dotted">Forwarded</span>
+                          )}
                         </div>
                       </div>
+
+                      {/* Right action button if inbound */}
+                      {m.direction === "inbound" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForwardTargetMsg(m);
+                            setForwardFromNumber(mine(m) || from || nums[0]?.phone_number);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
+                          title="Forward this message"
+                        >
+                          <Forward className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -318,6 +391,90 @@ export default function MessagesPage() {
           </div>
         </div>
       )}
+
+      {/* Manual Forwarding Modal Dialog */}
+      <Dialog
+        open={Boolean(forwardTargetMsg)}
+        onOpenChange={(open) => !open && setForwardTargetMsg(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Forward className="h-5 w-5 text-primary" />
+              Forward Message
+            </DialogTitle>
+            <DialogDescription>
+              Forward this text message to any mobile phone number worldwide.
+            </DialogDescription>
+          </DialogHeader>
+
+          {forwardTargetMsg && (
+            <div className="space-y-4 py-2">
+              {/* Message preview */}
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                <span className="font-semibold text-muted-foreground block mb-1">
+                  Original from {peer(forwardTargetMsg)}:
+                </span>
+                <p className="italic text-foreground whitespace-pre-wrap">{forwardTargetMsg.body}</p>
+              </div>
+
+              {/* Destination phone input */}
+              <div className="space-y-1.5">
+                <Label htmlFor="forward-dest" className="text-xs">
+                  Forward to phone number (with country code):
+                </Label>
+                <Input
+                  id="forward-dest"
+                  placeholder="e.g. +91 8605222604 or +1 415 555 2671"
+                  value={forwardToNumber}
+                  onChange={(e) => setForwardToNumber(e.target.value)}
+                  autoFocus
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Can be any personal mobile phone, SIM card, or WhatsApp phone worldwide.
+                </p>
+              </div>
+
+              {/* Sender number picker */}
+              {nums.length > 1 && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Send from your Ringringa number:</Label>
+                  <Select value={forwardFromNumber} onValueChange={setForwardFromNumber}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nums.map((n) => (
+                        <SelectItem key={n.id} value={n.phone_number}>
+                          {n.phone_number}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setForwardTargetMsg(null)}
+              disabled={forwarding}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={onForward}
+              disabled={forwarding || !forwardToNumber.trim()}
+              className="gap-1.5"
+            >
+              <Forward className="h-4 w-4" />
+              {forwarding ? "Forwarding…" : "Send Forward"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

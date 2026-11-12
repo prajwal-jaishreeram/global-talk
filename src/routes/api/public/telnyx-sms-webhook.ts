@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
 
         const { data: owner, error: ownerErr } = await supabaseAdmin
           .from("phone_numbers")
-          .select("user_id")
+          .select("user_id, forward_to_number, forward_sms_enabled")
           .eq("phone_number", to)
           .maybeSingle();
         if (ownerErr) return new Response(ownerErr.message, { status: 500 });
@@ -48,6 +48,40 @@ export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
           media_urls: media,
         });
         if (insertErr) return new Response(insertErr.message, { status: 500 });
+
+        // Auto-forward incoming message if user enabled it
+        if (owner.forward_sms_enabled && owner.forward_to_number) {
+          const telnyxKey = process.env.TELNYX_API_KEY;
+          if (telnyxKey) {
+            try {
+              const forwardText = `[Fwd from ${from}]: ${body}`;
+              const fwdRes = await fetch("https://api.telnyx.com/v2/messages", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${telnyxKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: to,
+                  to: owner.forward_to_number,
+                  text: forwardText,
+                }),
+              });
+              const fwdJson = (await fwdRes.json()) as { data?: { id?: string } };
+              await supabaseAdmin.from("messages").insert({
+                user_id: owner.user_id,
+                from_number: to,
+                to_number: owner.forward_to_number,
+                body: forwardText,
+                direction: "outbound",
+                status: "forwarded",
+                telnyx_message_id: fwdJson?.data?.id ?? null,
+              });
+            } catch (fwdErr) {
+              console.error("[Telnyx SMS Webhook] auto-forward failed:", fwdErr);
+            }
+          }
+        }
 
         return new Response("ok");
       },
