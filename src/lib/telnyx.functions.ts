@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  type ForwardRecipient,
+  parseForwardRecipients,
+  serializeForwardRecipients,
+  extractForwardPhoneNumbers,
+} from "@/lib/forwarding";
 
 export const getTelnyxWebrtcCredentials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -271,33 +277,16 @@ export const listMyPhoneNumbers = createServerFn({ method: "POST" })
     return { numbers: data ?? [] };
   });
 
-export function normalizeE164(phone: string): string {
-  const trimmed = phone.trim();
-  if (trimmed.startsWith("+")) return `+${trimmed.slice(1).replace(/\D/g, "")}`;
-  return `+${trimmed.replace(/\D/g, "")}`;
-}
+export {
+  normalizeE164,
+  parseForwardRecipients,
+  serializeForwardRecipients,
+  extractForwardPhoneNumbers,
+  type ForwardRecipient,
+} from "@/lib/forwarding";
 
 export function parseAndNormalizePhoneList(input: unknown): string[] {
-  if (!input) return [];
-  const rawList: string[] = Array.isArray(input)
-    ? input.map(String)
-    : String(input).split(/[,;\n\r]+/);
-
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const raw of rawList) {
-    const trimmed = raw.trim();
-    if (!trimmed) continue;
-    const e164 = normalizeE164(trimmed);
-    if (/^\+\d{7,16}$/.test(e164)) {
-      if (!seen.has(e164)) {
-        seen.add(e164);
-        result.push(e164);
-      }
-    }
-  }
-  return result;
+  return extractForwardPhoneNumbers(input as string);
 }
 
 export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
@@ -307,47 +296,56 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       id: string;
       forward_to_number?: string | null;
       forward_to_numbers?: string[];
+      recipients?: Array<{ number: string; name?: string }>;
       forward_sms_enabled: boolean;
     }) => input,
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    let numbersList: string[] = [];
-    if (Array.isArray(data.forward_to_numbers)) {
-      numbersList = data.forward_to_numbers;
+    let targetRecipients: ForwardRecipient[] = [];
+
+    if (Array.isArray(data.recipients)) {
+      targetRecipients = data.recipients.map((r) => ({
+        number: normalizeE164(r.number),
+        name: (r.name || "").trim(),
+      }));
+    } else if (Array.isArray(data.forward_to_numbers)) {
+      targetRecipients = data.forward_to_numbers.map((n) => ({
+        number: normalizeE164(n),
+        name: "",
+      }));
     } else if (data.forward_to_number && data.forward_to_number.trim()) {
-      numbersList = data.forward_to_number.split(/[,;\n\r]+/);
+      targetRecipients = parseForwardRecipients(data.forward_to_number);
     }
 
-    const normalizedList: string[] = [];
     const seen = new Set<string>();
+    const normalizedRecipients: ForwardRecipient[] = [];
 
-    for (const item of numbersList) {
-      const trimmed = item.trim();
-      if (!trimmed) continue;
-      const normalized = normalizeE164(trimmed);
-      if (!/^\+\d{7,16}$/.test(normalized)) {
+    for (const r of targetRecipients) {
+      if (!/^\+\d{7,16}$/.test(r.number)) {
         throw new Error(
-          `Invalid phone number format "${trimmed}". Please include country code, e.g. +91 8605222604 or +1 415 555 2671.`,
+          `Invalid phone number format "${r.number}". Please include country code, e.g. +91 8605222604 or +1 415 555 2671.`,
         );
       }
-      if (!seen.has(normalized)) {
-        seen.add(normalized);
-        normalizedList.push(normalized);
+      if (!seen.has(r.number)) {
+        seen.add(r.number);
+        normalizedRecipients.push(r);
       }
     }
 
-    if (data.forward_sms_enabled && normalizedList.length === 0) {
-      throw new Error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+    if (data.forward_sms_enabled && normalizedRecipients.length === 0) {
+      throw new Error(
+        "Please add at least one forwarding phone number before enabling auto-forwarding.",
+      );
     }
 
-    const forwardToString = normalizedList.length > 0 ? normalizedList.join(", ") : null;
+    const serialized = serializeForwardRecipients(normalizedRecipients);
 
     const { error } = await supabase
       .from("phone_numbers")
       .update({
-        forward_to_number: forwardToString,
+        forward_to_number: serialized,
         forward_sms_enabled: data.forward_sms_enabled,
         updated_at: new Date().toISOString(),
       })
@@ -357,9 +355,103 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return {
       ok: true,
-      forward_to_number: forwardToString,
-      forward_to_numbers: normalizedList,
+      forward_to_number: serialized,
+      recipients: normalizedRecipients,
+      forward_to_numbers: normalizedRecipients.map((r) => r.number),
       forward_sms_enabled: data.forward_sms_enabled,
+    };
+  });
+
+export const sendTestForwardingSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { phoneNumberId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: num, error: numErr } = await supabase
+      .from("phone_numbers")
+      .select("id, phone_number, forward_to_number, forward_sms_enabled")
+      .eq("id", data.phoneNumberId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (numErr) throw new Error(numErr.message);
+    if (!num) throw new Error("Phone number not found.");
+
+    const recipients = parseForwardRecipients(num.forward_to_number);
+    if (recipients.length === 0) {
+      throw new Error("No forwarding recipients configured. Please add at least one recipient first.");
+    }
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const testBody = `[Ringringa Test SMS]: Auto-forwarding is verified and working live for your number ${num.phone_number}! (${timeStr})`;
+
+    const results = await Promise.allSettled(
+      recipients.map(async (r) => {
+        const toE164 = r.number;
+        let sender = toE164.startsWith("+91") ? "Ringringa" : num.phone_number;
+
+        let res = await fetch(`${TELNYX_BASE}/messages`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${telnyxKey()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: sender,
+            to: toE164,
+            text: testBody,
+            messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+          }),
+        });
+
+        if (!res.ok && sender !== "Ringringa") {
+          res = await fetch(`${TELNYX_BASE}/messages`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${telnyxKey()}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Ringringa",
+              to: toE164,
+              text: testBody,
+              messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+            }),
+          });
+        }
+
+        const json = (await res.json()) as { data?: { id?: string }; errors?: Array<{ detail?: string }> };
+        if (!res.ok) {
+          throw new Error(json.errors?.[0]?.detail ?? `Telnyx error ${res.status}`);
+        }
+
+        await supabase.from("messages").insert({
+          user_id: userId,
+          from_number: num.phone_number,
+          to_number: toE164,
+          body: testBody,
+          direction: "outbound",
+          status: "forwarded",
+          telnyx_message_id: json.data?.id ?? null,
+        });
+
+        return toE164;
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected");
+
+    if (succeeded === 0 && failed.length > 0) {
+      throw new Error((failed[0] as PromiseRejectedResult).reason?.message ?? "Test dispatch failed.");
+    }
+
+    return {
+      ok: true,
+      succeeded,
+      total: recipients.length,
+      recipients: recipients.map((r) => ({ number: r.number, name: r.name || "" })),
     };
   });
 

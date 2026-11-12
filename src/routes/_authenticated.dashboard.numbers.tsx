@@ -41,6 +41,7 @@ import {
 import { CountryFlag } from "@/components/country-flag";
 import { ConfirmAction } from "@/components/confirm-action";
 import { toast } from "sonner";
+import { extractForwardPhoneNumbers } from "@/lib/forwarding";
 
 export const Route = createFileRoute("/_authenticated/dashboard/numbers")({
   head: () => ({ meta: [{ title: "Phone numbers - Ringringa" }] }),
@@ -106,11 +107,7 @@ function NumbersPage() {
   const [savingForwardId, setSavingForwardId] = useState<string | null>(null);
 
   function parseNumbersList(raw: string | null | undefined): string[] {
-    if (!raw) return [];
-    return raw
-      .split(/[,;\n\r]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    return extractForwardPhoneNumbers(raw);
   }
 
   async function refreshOwned() {

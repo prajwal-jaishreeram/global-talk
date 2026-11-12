@@ -13,6 +13,16 @@ import {
   Trash2,
   X,
   Loader2,
+  Copy,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  ShieldCheck,
+  Smartphone,
+  Edit2,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
@@ -22,7 +32,14 @@ import {
   sendSms,
   forwardSmsMessage,
   updatePhoneNumberForwarding,
+  sendTestForwardingSms,
+  type ForwardRecipient,
 } from "@/lib/telnyx.functions";
+import {
+  parseForwardRecipients,
+  extractOtpCode,
+  normalizeE164,
+} from "@/lib/forwarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +63,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/messages")({
-  head: () => ({ meta: [{ title: "Messages — Ringringa" }] }),
+  head: () => ({ meta: [{ title: "Messages & Auto-Forwarding — Ringringa" }] }),
   component: MessagesPage,
 });
 
@@ -75,6 +92,11 @@ function fmt(ts: string) {
   return d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
 }
 
+function fmtTimeOnly(ts: string) {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 function peer(m: Msg) {
   return m.direction === "inbound" ? m.from_number : m.to_number;
 }
@@ -83,30 +105,14 @@ function mine(m: Msg) {
   return m.direction === "inbound" ? m.to_number : m.from_number;
 }
 
-function parseNumbersList(raw: string | null | undefined): string[] {
-  if (!raw) return [];
-  return raw
-    .split(/[,;\n\r]+/)
-    .map((s) => s.trim().replace(/[^\d+]/g, ""))
-    .filter(Boolean);
-}
-
-function parseAndCleanInput(raw: string): string[] {
-  const parts = raw.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
-  const result: string[] = [];
-  for (const p of parts) {
-    let digits = p.replace(/\D/g, "");
-    if (!digits) continue;
-    // If 10 digits and starts with 6,7,8,9 without country code, assume India (+91)
-    if (digits.length === 10 && /^[6-9]/.test(digits) && !p.startsWith("+1")) {
-      digits = `91${digits}`;
-    }
-    const formatted = `+${digits}`;
-    if (digits.length >= 7 && digits.length <= 16) {
-      if (!result.includes(formatted)) result.push(formatted);
-    }
+function formatPhoneDisplay(num: string) {
+  if (num.startsWith("+91") && num.length === 13) {
+    return `+91 ${num.slice(3, 8)} ${num.slice(8)}`;
   }
-  return result;
+  if (num.startsWith("+1") && num.length === 12) {
+    return `+1 (${num.slice(2, 5)}) ${num.slice(5, 8)}-${num.slice(8)}`;
+  }
+  return num;
 }
 
 export default function MessagesPage() {
@@ -116,6 +122,18 @@ export default function MessagesPage() {
   const send = useServerFn(sendSms);
   const forwardFn = useServerFn(forwardSmsMessage);
   const updateForwarding = useServerFn(updatePhoneNumberForwarding);
+  const sendTestSmsFn = useServerFn(sendTestForwardingSms);
+
+  // Top-level navigation tabs: "inbox" | "forwarding"
+  const [activeTab, setActiveTab] = useState<"inbox" | "forwarding">("inbox");
+
+  // Minimized state for forwarding banner in Inbox tab
+  const [isBannerMinimized, setIsBannerMinimized] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ringringa_fwd_banner_minimized") === "true";
+    }
+    return false;
+  });
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [nums, setNums] = useState<Owned[]>([]);
@@ -125,20 +143,34 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Forwarding settings card state (multi-number support with REAL-TIME AUTO-SAVE)
+  // Conversation filter and search
+  const [conversationFilter, setConversationFilter] = useState<"all" | "inbound" | "forwarded">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Auto-Forwarding configuration state
   const activeNumberObj = useMemo(
     () => nums.find((n) => n.phone_number === from) || nums[0],
     [nums, from],
   );
-  const [forwardNumbers, setForwardNumbers] = useState<string[]>([]);
-  const [newNumberInput, setNewNumberInput] = useState("");
+
+  const [recipients, setRecipients] = useState<ForwardRecipient[]>([]);
+  const [newNumberPhone, setNewNumberPhone] = useState("");
+  const [newNumberName, setNewNumberName] = useState("");
   const [forwardEnabledInput, setForwardEnabledInput] = useState(false);
   const [savingForward, setSavingForward] = useState(false);
+  const [testingForward, setTestingForward] = useState(false);
 
-  // Manual forwarding modal state (multi-recipient support)
+  // Inline recipient rename state
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingNameValue, setEditingNameValue] = useState("");
+
+  // Copied OTP state feedback
+  const [copiedOtp, setCopiedOtp] = useState<string | null>(null);
+
+  // Manual forwarding modal state
   const [forwardTargetMsg, setForwardTargetMsg] = useState<Msg | null>(null);
-  const [manualForwardNumbers, setManualForwardNumbers] = useState<string[]>([]);
-  const [manualNumberInput, setManualNumberInput] = useState("");
+  const [manualRecipients, setManualRecipients] = useState<string[]>([]);
+  const [manualInput, setManualInput] = useState("");
   const [forwardFromNumber, setForwardFromNumber] = useState("");
   const [forwarding, setForwarding] = useState(false);
 
@@ -155,7 +187,7 @@ export default function MessagesPage() {
 
       const currentNum = loadedNums.find((x: any) => x.phone_number === defaultSender);
       if (currentNum) {
-        setForwardNumbers(parseNumbersList(currentNum.forward_to_number));
+        setRecipients(parseForwardRecipients(currentNum.forward_to_number));
         setForwardEnabledInput(Boolean(currentNum.forward_sms_enabled));
       }
     } catch (e: any) {
@@ -174,10 +206,21 @@ export default function MessagesPage() {
     setFrom(newFrom);
     const selected = nums.find((x) => x.phone_number === newFrom);
     if (selected) {
-      setForwardNumbers(parseNumbersList(selected.forward_to_number));
+      setRecipients(parseForwardRecipients(selected.forward_to_number));
       setForwardEnabledInput(Boolean(selected.forward_sms_enabled));
-      setNewNumberInput("");
+      setNewNumberPhone("");
+      setNewNumberName("");
     }
+  }
+
+  function toggleBannerMinimized() {
+    setIsBannerMinimized((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ringringa_fwd_banner_minimized", String(next));
+      }
+      return next;
+    });
   }
 
   // Realtime: new messages for this user
@@ -198,29 +241,60 @@ export default function MessagesPage() {
     };
   }, [user]);
 
+  // Filtered threads list
   const threads = useMemo(() => {
-    const map = new Map<string, { peer: string; mine: string; last: Msg; unread: number }>();
+    const map = new Map<string, { peer: string; mine: string; last: Msg; unread: number; count: number }>();
     for (const m of msgs) {
+      // Filter tab checks
+      if (conversationFilter === "inbound" && m.direction !== "inbound") continue;
+      if (conversationFilter === "forwarded" && m.status !== "forwarded") continue;
+
       const p = peer(m);
+
+      // Search query check
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesPeer = p.toLowerCase().includes(q);
+        const matchesBody = (m.body || "").toLowerCase().includes(q);
+        if (!matchesPeer && !matchesBody) continue;
+      }
+
       const existing = map.get(p);
       if (!existing) {
-        map.set(p, { peer: p, mine: mine(m), last: m, unread: m.direction === "inbound" && !m.read_at ? 1 : 0 });
+        map.set(p, {
+          peer: p,
+          mine: mine(m),
+          last: m,
+          unread: m.direction === "inbound" && !m.read_at ? 1 : 0,
+          count: 1,
+        });
       } else {
-        if (new Date(m.created_at) > new Date(existing.last.created_at)) existing.last = m;
-        if (m.direction === "inbound" && !m.read_at) existing.unread += 1;
+        existing.count += 1;
+        if (new Date(m.created_at) > new Date(existing.last.created_at)) {
+          existing.last = m;
+        }
+        if (m.direction === "inbound" && !m.read_at) {
+          existing.unread += 1;
+        }
       }
     }
     return Array.from(map.values()).sort(
       (a, b) => new Date(b.last.created_at).getTime() - new Date(a.last.created_at).getTime(),
     );
-  }, [msgs]);
+  }, [msgs, conversationFilter, searchQuery]);
 
+  // Active conversation message list
   const conversation = useMemo(() => {
     if (!active) return [];
     return msgs
       .filter((m) => peer(m) === active)
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }, [msgs, active]);
+
+  // Total forwarded count for metrics
+  const totalForwardedCount = useMemo(() => {
+    return msgs.filter((m) => m.status === "forwarded").length;
+  }, [msgs]);
 
   async function onSend() {
     if (!draft.trim() || !active || !from) return;
@@ -237,9 +311,9 @@ export default function MessagesPage() {
     }
   }
 
-  // Real-time persistence helper that saves to DB immediately
+  // Real-time persistence helper that saves recipients + enabled status immediately
   async function persistForwarding(
-    numbersToSave: string[],
+    recipientsToSave: ForwardRecipient[],
     enabledToSave: boolean,
     customSuccessMsg?: string,
   ) {
@@ -249,14 +323,13 @@ export default function MessagesPage() {
       const res = await updateForwarding({
         data: {
           id: activeNumberObj.id,
-          forward_to_numbers: numbersToSave,
-          forward_to_number: numbersToSave.length > 0 ? numbersToSave.join(", ") : null,
+          recipients: recipientsToSave,
           forward_sms_enabled: enabledToSave,
         },
       });
 
-      const updatedList = res.forward_to_numbers ?? parseNumbersList(res.forward_to_number);
-      setForwardNumbers(updatedList);
+      const updatedList: ForwardRecipient[] = res.recipients ?? parseForwardRecipients(res.forward_to_number);
+      setRecipients(updatedList);
       setForwardEnabledInput(res.forward_sms_enabled);
 
       setNums((prev) =>
@@ -274,7 +347,7 @@ export default function MessagesPage() {
       toast.success(
         customSuccessMsg ??
           (enabledToSave && updatedList.length > 0
-            ? `Saved! Forwarding to ${updatedList.length} number${updatedList.length > 1 ? "s" : ""}: ${updatedList.join(", ")}`
+            ? `Saved! Forwarding active for ${updatedList.length} recipient${updatedList.length > 1 ? "s" : ""}.`
             : "Forwarding disabled"),
       );
     } catch (err: any) {
@@ -284,121 +357,150 @@ export default function MessagesPage() {
     }
   }
 
-  // Adding a number saves immediately in real time
-  async function addForwardNumber(raw?: string) {
-    const text = (raw !== undefined ? raw : newNumberInput).trim();
-    if (!text) return;
-
-    const parsed = parseAndCleanInput(text);
-    if (parsed.length === 0) {
-      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604 or +1 415 555 2671)");
+  // Adding a recipient saves immediately in real time
+  async function addRecipient() {
+    const rawNumber = newNumberPhone.trim();
+    if (!rawNumber) {
+      toast.error("Please enter a phone number.");
       return;
     }
 
-    const next = [...forwardNumbers];
-    let addedCount = 0;
-    for (const num of parsed) {
-      if (!next.includes(num)) {
-        next.push(num);
-        addedCount++;
-      }
-    }
-
-    if (addedCount === 0) {
-      toast.info("Number is already in the forwarding list.");
-      setNewNumberInput("");
+    const normalized = normalizeE164(rawNumber);
+    if (!/^\+\d{7,16}$/.test(normalized)) {
+      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604 or +1 415 555 2671).");
       return;
     }
 
-    setNewNumberInput("");
-    // Save to server immediately in real time, auto-enabling forwarding
+    if (recipients.some((r) => r.number === normalized)) {
+      toast.info("This phone number is already in your forwarding list.");
+      return;
+    }
+
+    const nextRecipients: ForwardRecipient[] = [
+      ...recipients,
+      {
+        number: normalized,
+        name: newNumberName.trim(),
+      },
+    ];
+
+    setNewNumberPhone("");
+    setNewNumberName("");
+
     await persistForwarding(
-      next,
+      nextRecipients,
       true,
-      `Added and saved ${addedCount} number${addedCount > 1 ? "s" : ""}! Auto-forwarding active for ${next.length} number${next.length > 1 ? "s" : ""}.`,
+      `Added and saved ${normalized}${newNumberName.trim() ? ` (${newNumberName.trim()})` : ""}! Auto-forwarding active.`,
     );
   }
 
-  // Removing a number saves immediately in real time
-  async function removeForwardNumber(index: number) {
-    const next = forwardNumbers.filter((_, i) => i !== index);
+  // Remove recipient saves immediately
+  async function removeRecipient(index: number) {
+    const target = recipients[index];
+    const nextRecipients = recipients.filter((_, i) => i !== index);
     await persistForwarding(
-      next,
-      next.length > 0 ? forwardEnabledInput : false,
-      `Number removed. ${next.length > 0 ? `Still forwarding to ${next.length} number(s).` : "Forwarding is now off."}`,
+      nextRecipients,
+      nextRecipients.length > 0 ? forwardEnabledInput : false,
+      `Removed ${target?.name ? `${target.name} (${target.number})` : target?.number}.`,
     );
   }
 
-  // Toggling the switch saves immediately in real time
+  // Save edited name for recipient
+  async function saveRecipientName(index: number) {
+    if (editingIndex === null) return;
+    const nextRecipients = recipients.map((r, i) =>
+      i === index ? { ...r, name: editingNameValue.trim() } : r,
+    );
+    setEditingIndex(null);
+    setEditingNameValue("");
+    await persistForwarding(nextRecipients, forwardEnabledInput, "Recipient name updated!");
+  }
+
+  // Toggle master switch saves immediately
   async function handleToggleSwitch(enabled: boolean) {
-    if (enabled && forwardNumbers.length === 0 && !newNumberInput.trim()) {
-      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+    if (enabled && recipients.length === 0 && !newNumberPhone.trim()) {
+      toast.error("Please add at least one forwarding recipient before enabling auto-forwarding.");
       return;
     }
 
-    let finalNumbers = [...forwardNumbers];
-    if (enabled && newNumberInput.trim()) {
-      const pending = parseAndCleanInput(newNumberInput.trim());
-      for (const p of pending) {
-        if (!finalNumbers.includes(p)) finalNumbers.push(p);
+    let nextRecipients = [...recipients];
+    if (enabled && newNumberPhone.trim()) {
+      const normalized = normalizeE164(newNumberPhone.trim());
+      if (/^\+\d{7,16}$/.test(normalized) && !nextRecipients.some((r) => r.number === normalized)) {
+        nextRecipients.push({
+          number: normalized,
+          name: newNumberName.trim(),
+        });
+        setNewNumberPhone("");
+        setNewNumberName("");
       }
-      setNewNumberInput("");
     }
 
     setForwardEnabledInput(enabled);
-    await persistForwarding(finalNumbers, enabled);
+    await persistForwarding(nextRecipients, enabled);
   }
 
-  // Explicit Save button (also incorporates any un-added input text)
-  async function onSaveForwardSettings() {
-    let finalNumbers = [...forwardNumbers];
-    if (newNumberInput.trim()) {
-      const pending = parseAndCleanInput(newNumberInput.trim());
-      for (const p of pending) {
-        if (!finalNumbers.includes(p)) finalNumbers.push(p);
-      }
-      setNewNumberInput("");
-    }
-
-    if (forwardEnabledInput && finalNumbers.length === 0) {
-      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+  // 1-Click Send Live Carrier Test SMS
+  async function onSendTestSms() {
+    if (!activeNumberObj) return;
+    if (recipients.length === 0) {
+      toast.error("Please add at least one forwarding recipient before running a test.");
       return;
     }
-
-    await persistForwarding(finalNumbers, forwardEnabledInput);
+    setTestingForward(true);
+    try {
+      const res = await sendTestSmsFn({
+        data: { phoneNumberId: activeNumberObj.id },
+      });
+      toast.success(
+        `Carrier Test Sent! Successfully dispatched to ${res.succeeded}/${res.total} recipient${res.total > 1 ? "s" : ""}. Check your phones!`,
+      );
+      refresh();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Test dispatch failed.");
+    } finally {
+      setTestingForward(false);
+    }
   }
 
-  function addManualRecipient(raw?: string) {
-    const text = (raw !== undefined ? raw : manualNumberInput).trim();
-    if (!text) return;
+  // Copy OTP helper
+  function handleCopyOtp(code: string) {
+    navigator.clipboard.writeText(code);
+    setCopiedOtp(code);
+    toast.success(`Copied verification code ${code} to clipboard!`);
+    setTimeout(() => {
+      setCopiedOtp(null);
+    }, 2500);
+  }
 
-    const parsed = parseAndCleanInput(text);
-    if (parsed.length === 0) {
+  // Manual forwarding modal logic
+  function addManualRecipient() {
+    const raw = manualInput.trim();
+    if (!raw) return;
+    const normalized = normalizeE164(raw);
+    if (!/^\+\d{7,16}$/.test(normalized)) {
       toast.error("Please enter a valid phone number with country code.");
       return;
     }
-
-    const next = [...manualForwardNumbers];
-    for (const p of parsed) {
-      if (!next.includes(p)) next.push(p);
+    if (!manualRecipients.includes(normalized)) {
+      setManualRecipients([...manualRecipients, normalized]);
     }
-    setManualForwardNumbers(next);
-    setManualNumberInput("");
+    setManualInput("");
   }
 
   async function onForward() {
     if (!forwardTargetMsg || !forwardFromNumber) return;
 
-    let recipients = [...manualForwardNumbers];
-    if (manualNumberInput.trim()) {
-      const pending = parseAndCleanInput(manualNumberInput.trim());
-      for (const p of pending) {
-        if (!recipients.includes(p)) recipients.push(p);
+    let targets = [...manualRecipients];
+    if (manualInput.trim()) {
+      const norm = normalizeE164(manualInput.trim());
+      if (/^\+\d{7,16}$/.test(norm) && !targets.includes(norm)) {
+        targets.push(norm);
       }
     }
 
-    if (recipients.length === 0) {
-      toast.error("Please add at least one recipient phone number.");
+    if (targets.length === 0) {
+      toast.error("Please specify at least one recipient phone number.");
       return;
     }
 
@@ -408,16 +510,16 @@ export default function MessagesPage() {
       const res = await forwardFn({
         data: {
           from: forwardFromNumber,
-          to: recipients,
+          to: targets,
           body: forwardBody,
         },
       });
       toast.success(
-        `Message forwarded to ${res.succeeded ?? recipients.length} recipient${recipients.length > 1 ? "s" : ""}!`,
+        `Message forwarded to ${res.succeeded ?? targets.length} recipient${targets.length > 1 ? "s" : ""}!`,
       );
       setForwardTargetMsg(null);
-      setManualForwardNumbers([]);
-      setManualNumberInput("");
+      setManualRecipients([]);
+      setManualInput("");
       refresh();
     } catch (err: any) {
       toast.error(err?.message ?? "Forwarding failed");
@@ -427,370 +529,990 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      {/* Top Header Bar */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Messages</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Messages & SMS</h1>
+            {activeNumberObj?.forward_sms_enabled && recipients.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Forwarding Live
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Send, receive, and forward two-way SMS with your Ringringa phone numbers.
+            Two-way SMS messaging, instant OTP verification copy, and real-time mobile forwarding.
           </p>
         </div>
+
         {nums.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Active Number:</span>
-            <Select value={from} onValueChange={handleSenderChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {nums.map((n) => (
-                  <SelectItem key={n.id} value={n.phone_number}>
-                    {n.phone_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-1.5 px-3 shadow-2xs">
+              <Smartphone className="h-4 w-4 text-primary" />
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">
+                  Active Virtual Number
+                </span>
+                <Select value={from} onValueChange={handleSenderChange}>
+                  <SelectTrigger className="h-7 border-0 p-0 font-mono text-xs font-semibold focus:ring-0 shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nums.map((n) => (
+                      <SelectItem key={n.id} value={n.phone_number} className="font-mono text-xs">
+                        {formatPhoneDisplay(n.phone_number)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {nums.length === 0 && !loading && (
-        <div className="mt-6 rounded-2xl border border-dashed border-border p-8 text-center">
-          <Phone className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-          <h3 className="font-semibold">No phone number yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            You need at least one phone number to send and receive text messages.
+        <div className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center">
+          <Phone className="mx-auto mb-3 h-10 w-10 text-muted-foreground/60" />
+          <h3 className="text-lg font-semibold">No Phone Number Purchased Yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
+            You need a virtual phone number to receive verification SMS, OTPs, and route automated forwarding to your personal mobile.
           </p>
           <a
             href="/dashboard/numbers"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="mt-5 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm"
           >
-            Buy a number
+            Get a Phone Number
           </a>
         </div>
       )}
 
-      {/* Prominent SMS Multi-Number Auto-Forwarding Configuration Card */}
       {nums.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-primary/20 bg-card p-5 shadow-xs">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Forward className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-semibold">SMS & OTP Auto-Forwarding</h2>
-                {activeNumberObj?.forward_sms_enabled && forwardNumbers.length > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active → Forwarding to {forwardNumbers.length} number{forwardNumbers.length > 1 ? "s" : ""}
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                    Disabled
-                  </span>
+        <div className="mt-6 space-y-6">
+          {/* Main Navigation Tabs */}
+          <div className="flex items-center justify-between border-b border-border">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("inbox")}
+                className={cn(
+                  "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+                  activeTab === "inbox"
+                    ? "border-primary text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
-                {savingForward && (
-                  <span className="inline-flex items-center gap-1 text-[11px] text-primary animate-pulse font-medium">
-                    <Loader2 className="h-3 w-3 animate-spin" /> Saving changes…
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                All incoming texts & OTPs sent to{" "}
-                <span className="font-semibold text-foreground">{from || nums[0]?.phone_number}</span> will be auto-forwarded in real-time to all numbers listed below.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Switch
-                id="toggle-forward"
-                checked={forwardEnabledInput}
-                onCheckedChange={handleToggleSwitch}
-                disabled={savingForward}
-              />
-              <Label htmlFor="toggle-forward" className="text-xs font-medium cursor-pointer">
-                {forwardEnabledInput ? "Forwarding Enabled" : "Forwarding Disabled"}
-              </Label>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-4">
-            {/* List of configured forwarding numbers */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Forwarding Recipients ({forwardNumbers.length})
-                </Label>
-                {forwardNumbers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => persistForwarding([], false, "Cleared all forwarding numbers.")}
-                    className="text-[11px] text-muted-foreground hover:text-destructive underline"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-
-              {forwardNumbers.length > 0 ? (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {forwardNumbers.map((num, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-border/80 bg-background/90 px-3.5 py-2.5 text-xs shadow-2xs transition-colors hover:border-primary/40"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                          {idx + 1}
-                        </span>
-                        <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        <span className="font-mono font-medium text-foreground truncate">
-                          {num}
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={savingForward}
-                        onClick={() => removeForwardNumber(idx)}
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                        title="Remove number"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-                  No forwarding numbers added yet. Add your personal mobile number(s) below.
-                </div>
-              )}
-            </div>
-
-            {/* Input row to add new number and save */}
-            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
-              <div className="flex flex-1 items-center gap-2 max-w-md">
-                <Input
-                  placeholder="Enter phone number (e.g. +91 8605222604, +1 415 555 2671)"
-                  value={newNumberInput}
-                  onChange={(e) => setNewNumberInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addForwardNumber();
-                    }
-                  }}
-                  className="text-xs"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => addForwardNumber()}
-                  disabled={!newNumberInput.trim() || savingForward}
-                  className="gap-1 text-xs shrink-0"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Number
-                </Button>
-              </div>
-
-              <Button
-                size="sm"
-                disabled={savingForward}
-                onClick={onSaveForwardSettings}
-                className="gap-1.5 text-xs sm:ml-auto"
               >
-                <Check className="h-3.5 w-3.5" />
-                {savingForward ? "Saving…" : "Save Forwarding Settings"}
-              </Button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              You can add multiple phone numbers. Adding or removing a number auto-saves instantly in real-time.
-            </p>
-          </div>
-        </div>
-      )}
+                <MessageSquare className="h-4 w-4" />
+                <span>Inbox & Messages</span>
+                <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                  {threads.length}
+                </span>
+              </button>
 
-      {nums.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
-          {/* Threads list */}
-          <div className="flex flex-col rounded-2xl border border-border bg-card">
-            <div className="border-b border-border p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Conversations ({threads.length})
-            </div>
-            {threads.length === 0 ? (
-              <div className="p-8 text-center text-sm text-muted-foreground">
-                <Inbox className="mx-auto mb-2 h-6 w-6 opacity-50" />
-                No messages yet.
-              </div>
-            ) : (
-              <ul className="max-h-[60vh] overflow-y-auto">
-                {threads.map((t) => (
-                  <li key={t.peer}>
-                    <button
-                      onClick={() => {
-                        setActive(t.peer);
-                        handleSenderChange(t.mine);
-                      }}
-                      className={cn(
-                        "flex w-full flex-col gap-1 border-b border-border/60 px-4 py-3 text-left text-sm hover:bg-accent/40",
-                        active === t.peer && "bg-accent/60",
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{t.peer}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {fmt(t.last.created_at)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="line-clamp-1 text-xs text-muted-foreground">
-                          {t.last.direction === "outbound" ? "You: " : ""}
-                          {t.last.body || "(no text)"}
-                        </span>
-                        {t.unread > 0 && (
-                          <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground">
-                            {t.unread}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">to {t.mine}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Conversation */}
-          <div
-            className={cn(
-              "flex flex-col rounded-2xl border border-border bg-card overflow-hidden min-h-[60vh]",
-              !active && "hidden md:flex",
-            )}
-          >
-            {!active ? (
-              <div className="m-auto p-10 text-center text-sm text-muted-foreground">
-                <MessageSquare className="mx-auto mb-3 h-8 w-8 opacity-50" />
-                Select a conversation to view messages
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-                  <button
-                    onClick={() => setActive(null)}
-                    className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent md:hidden"
-                    aria-label="Back"
+              <button
+                type="button"
+                onClick={() => setActiveTab("forwarding")}
+                className={cn(
+                  "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+                  activeTab === "forwarding"
+                    ? "border-primary text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Zap className="h-4 w-4 text-amber-500" />
+                <span>Auto-Forwarding Hub</span>
+                {recipients.length > 0 && (
+                  <span
+                    className={cn(
+                      "ml-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                      forwardEnabledInput
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        : "bg-muted text-muted-foreground",
+                    )}
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                  </button>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{active}</span>
-                    <span className="text-xs text-muted-foreground">via {from}</span>
-                  </div>
-                </div>
-                <div className="flex-1 space-y-3 overflow-y-auto p-4">
-                  {conversation.map((m) => (
-                    <div
-                      key={m.id}
-                      className={cn(
-                        "group flex items-end gap-2",
-                        m.direction === "outbound" ? "justify-end" : "justify-start",
-                      )}
-                    >
-                      {/* Left action button if outbound */}
-                      {m.direction === "outbound" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setForwardTargetMsg(m);
-                            setForwardFromNumber(mine(m) || from || nums[0]?.phone_number);
-                            setManualForwardNumbers([]);
-                            setManualNumberInput("");
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
-                          title="Forward this message"
-                        >
-                          <Forward className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                    {recipients.length} {recipients.length === 1 ? "number" : "numbers"}
+                  </span>
+                )}
+              </button>
+            </div>
 
-                      <div
-                        className={cn(
-                          "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
-                          m.direction === "outbound"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground",
-                        )}
-                      >
-                        <div className="whitespace-pre-wrap break-words">{m.body || "(no text)"}</div>
-                        <div
+            {/* Quick test button available right from top bar */}
+            {recipients.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSendTestSms}
+                disabled={testingForward}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs h-8 border-dashed hover:border-primary/50"
+                title="Send a live test message to all configured forwarding recipients"
+              >
+                {testingForward ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Zap className="h-3.5 w-3.5 text-amber-500" />
+                )}
+                <span>Test Forwarding</span>
+              </Button>
+            )}
+          </div>
+
+          {/* TAB 1: INBOX & MESSAGES */}
+          {activeTab === "inbox" && (
+            <div className="space-y-4">
+              {/* Collapsible / Minimizable Forwarding Banner */}
+              <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs transition-all">
+                {isBannerMinimized ? (
+                  // Minimized Sleek Pill Bar
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 text-xs bg-muted/30">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span
                           className={cn(
-                            "mt-1 flex items-center justify-between gap-3 text-[10px]",
-                            m.direction === "outbound"
-                              ? "text-primary-foreground/70"
+                            "h-2 w-2 rounded-full shrink-0",
+                            forwardEnabledInput && recipients.length > 0
+                              ? "bg-emerald-500"
+                              : "bg-muted-foreground/40",
+                          )}
+                        />
+                        <span className="font-semibold text-foreground">
+                          Auto-Forwarding:
+                        </span>
+                        <span
+                          className={cn(
+                            "font-medium",
+                            forwardEnabledInput && recipients.length > 0
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : "text-muted-foreground",
                           )}
                         >
-                          <span>{fmt(m.created_at)}</span>
-                          {m.status === "forwarded" && (
-                            <span className="font-medium underline decoration-dotted">Forwarded</span>
-                          )}
-                        </div>
+                          {forwardEnabledInput && recipients.length > 0
+                            ? `Active (${recipients.length} ${recipients.length === 1 ? "recipient" : "recipients"})`
+                            : "Off"}
+                        </span>
                       </div>
 
-                      {/* Right action button if inbound */}
-                      {m.direction === "inbound" && (
+                      {recipients.length > 0 && (
+                        <div className="hidden md:flex items-center gap-1.5 overflow-hidden text-muted-foreground">
+                          <span>→</span>
+                          {recipients.slice(0, 3).map((r, i) => (
+                            <span
+                              key={i}
+                              className="rounded-md bg-background px-2 py-0.5 text-[11px] font-mono border border-border/60 truncate max-w-[140px]"
+                            >
+                              {r.name ? `${r.name}: ` : ""}
+                              {r.number}
+                            </span>
+                          ))}
+                          {recipients.length > 3 && (
+                            <span className="text-[11px] text-muted-foreground">
+                              +{recipients.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setActiveTab("forwarding")}
+                        className="h-7 text-xs text-primary hover:text-primary gap-1 px-2"
+                      >
+                        <span>Manage Hub</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={toggleBannerMinimized}
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        title="Expand auto-forwarding controls"
+                      >
+                        <span>Expand</span>
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Expanded Banner with Quick Controls & Minimize Button
+                  <div className="p-4 sm:p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/50 pb-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Forward className="h-4 w-4 text-primary" />
+                          <h2 className="text-sm font-semibold">SMS & OTP Auto-Forwarding</h2>
+                          {forwardEnabledInput && recipients.length > 0 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                              Active → Forwarding to {recipients.length} number{recipients.length > 1 ? "s" : ""}
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                              Disabled
+                            </span>
+                          )}
+                          {savingForward && (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-primary animate-pulse font-medium">
+                              <Loader2 className="h-3 w-3 animate-spin" /> Saving…
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          All incoming SMS & OTPs sent to{" "}
+                          <span className="font-semibold text-foreground">{from}</span> are routed in real-time to your mobile phones.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2.5">
+                          <Switch
+                            id="banner-toggle"
+                            checked={forwardEnabledInput}
+                            onCheckedChange={handleToggleSwitch}
+                            disabled={savingForward}
+                          />
+                          <Label htmlFor="banner-toggle" className="text-xs font-medium cursor-pointer">
+                            {forwardEnabledInput ? "Enabled" : "Disabled"}
+                          </Label>
+                        </div>
+
                         <button
                           type="button"
-                          onClick={() => {
-                            setForwardTargetMsg(m);
-                            setForwardFromNumber(mine(m) || from || nums[0]?.phone_number);
-                            setManualForwardNumbers([]);
-                            setManualNumberInput("");
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
-                          title="Forward this message"
+                          onClick={toggleBannerMinimized}
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ml-2"
+                          title="Minimize forwarding banner to save space"
                         >
-                          <Forward className="h-3.5 w-3.5" />
+                          <span>Minimize</span>
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick Recipients Chips */}
+                    <div className="pt-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {recipients.map((r, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs"
+                          >
+                            <Phone className="h-3 w-3 text-primary" />
+                            {r.name && (
+                              <span className="font-medium text-foreground">{r.name}:</span>
+                            )}
+                            <span className="font-mono text-muted-foreground">{r.number}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeRecipient(idx)}
+                              disabled={savingForward}
+                              className="text-muted-foreground hover:text-destructive p-0.5 ml-0.5"
+                              title="Remove"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveTab("forwarding")}
+                          className="h-7 text-xs text-primary gap-1"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          <span>Add recipient or label in Hub</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2-Column Messaging Workspace */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-[320px_1fr]">
+                {/* Left Column: Conversations List with Search & Filtering */}
+                <div className="flex flex-col rounded-2xl border border-border bg-card overflow-hidden shadow-2xs">
+                  {/* Search Bar */}
+                  <div className="border-b border-border/80 p-3 space-y-2.5">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Search messages or numbers…"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-8 h-8 text-xs bg-muted/30"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
-                  ))}
+
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setConversationFilter("all")}
+                        className={cn(
+                          "rounded-md px-2 py-1 font-medium transition-colors",
+                          conversationFilter === "all"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "bg-muted text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConversationFilter("inbound")}
+                        className={cn(
+                          "rounded-md px-2 py-1 font-medium transition-colors",
+                          conversationFilter === "inbound"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "bg-muted text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        Received & OTPs
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConversationFilter("forwarded")}
+                        className={cn(
+                          "rounded-md px-2 py-1 font-medium transition-colors",
+                          conversationFilter === "forwarded"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "bg-muted text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        Forwarded Log
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Threads List */}
+                  {threads.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-muted-foreground">
+                      <Inbox className="mx-auto mb-2 h-7 w-7 opacity-40" />
+                      <p className="font-medium text-xs">No conversations found</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {searchQuery ? "Try another search term" : "Incoming SMS and OTPs will appear here."}
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="max-h-[65vh] overflow-y-auto divide-y divide-border/40">
+                      {threads.map((t) => {
+                        const otpCode = extractOtpCode(t.last.body);
+                        return (
+                          <li key={t.peer}>
+                            <button
+                              onClick={() => {
+                                setActive(t.peer);
+                                handleSenderChange(t.mine);
+                              }}
+                              className={cn(
+                                "flex w-full flex-col gap-1.5 p-3.5 text-left text-xs transition-colors hover:bg-accent/40",
+                                active === t.peer && "bg-accent/60",
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-foreground font-mono">
+                                  {formatPhoneDisplay(t.peer)}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {fmtTimeOnly(t.last.created_at)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <span className="line-clamp-1 text-muted-foreground flex-1">
+                                  {t.last.direction === "outbound" ? (
+                                    <span className="text-primary font-medium">You: </span>
+                                  ) : null}
+                                  {t.last.body || "(no text)"}
+                                </span>
+                                {t.unread > 0 && (
+                                  <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground shrink-0">
+                                    {t.unread}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px] text-muted-foreground/80 pt-0.5">
+                                <span>via {t.mine}</span>
+                                {otpCode && (
+                                  <span className="rounded bg-amber-500/10 px-1.5 py-0.2 text-amber-600 dark:text-amber-400 font-semibold text-[10px]">
+                                    OTP Detected
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    onSend();
-                  }}
-                  className="flex gap-2 border-t border-border p-3"
+
+                {/* Right Column: Chat Viewer & Quick Reply */}
+                <div
+                  className={cn(
+                    "flex flex-col rounded-2xl border border-border bg-card overflow-hidden min-h-[65vh] shadow-2xs",
+                    !active && "hidden md:flex",
+                  )}
                 >
-                  <Input
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Type a message…"
-                    disabled={sending}
-                  />
-                  <Button type="submit" disabled={sending || !draft.trim()}>
-                    <Send className="mr-2 h-4 w-4" /> Send
+                  {!active ? (
+                    <div className="m-auto p-12 text-center text-sm text-muted-foreground">
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground">
+                        <MessageSquare className="h-7 w-7 opacity-60" />
+                      </div>
+                      <h3 className="font-semibold text-base text-foreground">Select a conversation</h3>
+                      <p className="mt-1 text-xs text-muted-foreground max-w-sm">
+                        Choose any message thread from the left sidebar to view messages, copy verification codes, or reply.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Active Chat Header */}
+                      <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/20">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setActive(null)}
+                            className="grid h-8 w-8 place-items-center rounded-lg hover:bg-accent md:hidden"
+                            aria-label="Back"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                          </button>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-sm font-mono">{formatPhoneDisplay(active)}</span>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground">
+                              Via virtual number {from}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const lastMsg = conversation[conversation.length - 1];
+                            if (lastMsg) {
+                              setForwardTargetMsg(lastMsg);
+                              setForwardFromNumber(mine(lastMsg) || from);
+                              setManualRecipients([]);
+                              setManualInput("");
+                            }
+                          }}
+                          className="h-8 gap-1.5 text-xs"
+                        >
+                          <Forward className="h-3.5 w-3.5" />
+                          <span>Forward Message</span>
+                        </Button>
+                      </div>
+
+                      {/* Chat Messages Feed */}
+                      <div className="flex-1 space-y-3.5 overflow-y-auto p-4 sm:p-5">
+                        {conversation.map((m) => {
+                          const otpCode = extractOtpCode(m.body);
+                          const isCopied = copiedOtp === otpCode;
+
+                          return (
+                            <div
+                              key={m.id}
+                              className={cn(
+                                "group flex items-end gap-2",
+                                m.direction === "outbound" ? "justify-end" : "justify-start",
+                              )}
+                            >
+                              {/* Left forward action for outbound messages */}
+                              {m.direction === "outbound" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setForwardTargetMsg(m);
+                                    setForwardFromNumber(mine(m) || from);
+                                    setManualRecipients([]);
+                                    setManualInput("");
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-foreground transition-opacity"
+                                  title="Forward message"
+                                >
+                                  <Forward className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+
+                              <div
+                                className={cn(
+                                  "max-w-[80%] rounded-2xl px-4 py-3 text-xs sm:text-sm shadow-2xs space-y-2",
+                                  m.direction === "outbound"
+                                    ? "bg-primary text-primary-foreground rounded-br-xs"
+                                    : "bg-muted/80 text-foreground border border-border/60 rounded-bl-xs",
+                                )}
+                              >
+                                {/* Message Body */}
+                                <div className="whitespace-pre-wrap break-words leading-relaxed">
+                                  {m.body || "(no text content)"}
+                                </div>
+
+                                {/* Smart OTP Detection Chip (Prominent 1-Click Copy) */}
+                                {otpCode && (
+                                  <div className="pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopyOtp(otpCode)}
+                                      className={cn(
+                                        "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all shadow-xs",
+                                        m.direction === "outbound"
+                                          ? "bg-white text-primary hover:bg-white/90"
+                                          : isCopied
+                                            ? "bg-emerald-500 text-white"
+                                            : "bg-primary text-primary-foreground hover:bg-primary/90",
+                                      )}
+                                      title="Click to copy verification OTP code"
+                                    >
+                                      {isCopied ? (
+                                        <>
+                                          <Check className="h-3.5 w-3.5" />
+                                          <span>Copied {otpCode}!</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy className="h-3.5 w-3.5" />
+                                          <span>Copy Code: <span className="font-mono tracking-wider">{otpCode}</span></span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Message Timestamp & Forwarded Status Tag */}
+                                <div
+                                  className={cn(
+                                    "flex items-center justify-between gap-3 text-[10px] pt-0.5",
+                                    m.direction === "outbound"
+                                      ? "text-primary-foreground/75"
+                                      : "text-muted-foreground",
+                                  )}
+                                >
+                                  <span>{fmt(m.created_at)}</span>
+                                  {m.status === "forwarded" && (
+                                    <span className="font-semibold inline-flex items-center gap-1 text-[10px] bg-primary/20 px-1.5 py-0.2 rounded">
+                                      <Forward className="h-2.5 w-2.5" /> Forwarded
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Right forward action for inbound messages */}
+                              {m.direction === "inbound" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setForwardTargetMsg(m);
+                                    setForwardFromNumber(mine(m) || from);
+                                    setManualRecipients([]);
+                                    setManualInput("");
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-foreground transition-opacity"
+                                  title="Forward message"
+                                >
+                                  <Forward className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Message Composer */}
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          onSend();
+                        }}
+                        className="flex gap-2 border-t border-border p-3.5 bg-muted/10"
+                      >
+                        <Input
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          placeholder="Type an SMS reply…"
+                          disabled={sending}
+                          className="text-xs"
+                        />
+                        <Button type="submit" size="sm" disabled={sending || !draft.trim()} className="gap-1.5 px-4 text-xs shrink-0">
+                          {sending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Send className="h-3.5 w-3.5" />
+                          )}
+                          <span>Send</span>
+                        </Button>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: AUTO-FORWARDING HUB */}
+          {activeTab === "forwarding" && (
+            <div className="space-y-6">
+              {/* Master Status Hero Card */}
+              <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-xs">
+                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-2 max-w-2xl">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Zap className="h-4 w-4" />
+                      </div>
+                      <h2 className="text-lg font-bold tracking-tight">
+                        Real-Time SMS & OTP Auto-Forwarding
+                      </h2>
+                      {forwardEnabledInput && recipients.length > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Active & Routing Live
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                          Forwarding Disabled
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Every incoming SMS verification code, banking OTP, and text message arriving on your Ringringa number (
+                      <span className="font-mono font-semibold text-foreground">{from}</span>
+                      ) is instantly duplicated and delivered to your personal mobile phones worldwide with zero latency.
+                    </p>
+                  </div>
+
+                  {/* Master Switch & Actions */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-2.5 px-4 shadow-2xs">
+                      <Switch
+                        id="hub-master-switch"
+                        checked={forwardEnabledInput}
+                        onCheckedChange={handleToggleSwitch}
+                        disabled={savingForward}
+                      />
+                      <Label htmlFor="hub-master-switch" className="text-xs font-semibold cursor-pointer">
+                        {forwardEnabledInput ? "Auto-Forwarding ON" : "Auto-Forwarding OFF"}
+                      </Label>
+                    </div>
+
+                    <Button
+                      onClick={onSendTestSms}
+                      disabled={testingForward || recipients.length === 0}
+                      className="gap-2 text-xs shrink-0 shadow-xs"
+                      title="Test live SMS dispatch to all recipient numbers right now"
+                    >
+                      {testingForward ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Zap className="h-3.5 w-3.5 text-amber-300" />
+                      )}
+                      <span>Test Forwarding Now</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Quick Info Grid */}
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 border-t border-border/60 pt-5">
+                  <div className="flex items-center gap-3 rounded-xl bg-background/60 p-3 border border-border/40">
+                    <Smartphone className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-muted-foreground">Source Number</span>
+                      <p className="font-mono text-xs font-semibold text-foreground">{formatPhoneDisplay(from)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 rounded-xl bg-background/60 p-3 border border-border/40">
+                    <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-muted-foreground">Carrier Routing</span>
+                      <p className="text-xs font-semibold text-foreground">TRAI / Alpha Sender Bypassed</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 rounded-xl bg-background/60 p-3 border border-border/40">
+                    <Forward className="h-5 w-5 text-primary" />
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-muted-foreground">Total Forwarded</span>
+                      <p className="text-xs font-semibold text-foreground">{totalForwardedCount} messages</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Forwarding Recipients Management */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
+                <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                  <div>
+                    <h3 className="text-base font-semibold">Configured Recipient Numbers</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Add friendly names (e.g. "My Phone", "Rahul SIM") and mobile numbers. Any changes save immediately in real time.
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {recipients.length} {recipients.length === 1 ? "Recipient" : "Recipients"}
+                  </span>
+                </div>
+
+                {/* Recipients List Cards */}
+                {recipients.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+                    <Phone className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
+                    <p className="font-semibold text-foreground">No forwarding numbers added yet</p>
+                    <p className="mt-0.5">Add your mobile number below to start receiving auto-forwarded SMS & OTPs.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {recipients.map((r, idx) => {
+                      const isEditing = editingIndex === idx;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-col justify-between gap-3 rounded-xl border border-border/80 bg-background/90 p-4 shadow-2xs hover:border-primary/40 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                {idx + 1}
+                              </span>
+
+                              <div className="min-w-0">
+                                {isEditing ? (
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <Input
+                                      value={editingNameValue}
+                                      onChange={(e) => setEditingNameValue(e.target.value)}
+                                      placeholder="Nickname (e.g. Personal)"
+                                      className="h-7 text-xs w-36"
+                                      autoFocus
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") saveRecipientName(idx);
+                                        if (e.key === "Escape") setEditingIndex(null);
+                                      }}
+                                    />
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => saveRecipientName(idx)}
+                                      className="h-7 px-2 text-xs"
+                                    >
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setEditingIndex(null)}
+                                      className="h-7 px-1.5 text-xs"
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-semibold text-xs text-foreground truncate">
+                                      {r.name || `Recipient #${idx + 1}`}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingIndex(idx);
+                                        setEditingNameValue(r.name || "");
+                                      }}
+                                      className="text-muted-foreground hover:text-foreground p-0.5"
+                                      title="Edit label/name"
+                                    >
+                                      <Edit2 className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                                  {formatPhoneDisplay(r.number)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={savingForward}
+                              onClick={() => removeRecipient(idx)}
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                              title="Remove recipient"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                            <span className="inline-flex items-center gap-1">
+                              {r.number.startsWith("+91") ? "🇮🇳 India" : r.number.startsWith("+1") ? "🇺🇸 North America" : "🌍 International"}
+                            </span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Ready</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Add Recipient Form */}
+                <div className="rounded-xl border border-dashed border-border bg-muted/20 p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                      Add New Forwarding Recipient
+                    </Label>
+
+                    {/* Quick country code prefix helpers */}
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-muted-foreground">Quick Prefix:</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewNumberPhone("+91 ")}
+                        className="rounded bg-background px-2 py-0.5 font-medium border border-border/80 hover:border-primary text-xs"
+                      >
+                        🇮🇳 +91
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewNumberPhone("+1 ")}
+                        className="rounded bg-background px-2 py-0.5 font-medium border border-border/80 hover:border-primary text-xs"
+                      >
+                        🇺🇸 +1
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="recipient-name" className="text-[11px] text-muted-foreground">
+                        Label / Nickname (Optional)
+                      </Label>
+                      <Input
+                        id="recipient-name"
+                        placeholder="e.g. Personal Mobile, Rahul SIM, Work WhatsApp"
+                        value={newNumberName}
+                        onChange={(e) => setNewNumberName(e.target.value)}
+                        className="text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="recipient-phone" className="text-[11px] text-muted-foreground">
+                        Mobile Phone Number *
+                      </Label>
+                      <Input
+                        id="recipient-phone"
+                        placeholder="e.g. +91 8605222604 or +1 415 555 2671"
+                        value={newNumberPhone}
+                        onChange={(e) => setNewNumberPhone(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addRecipient();
+                          }
+                        }}
+                        className="text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-[11px] text-muted-foreground">
+                      Saving adds the recipient and immediately enables auto-forwarding for it.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addRecipient}
+                      disabled={!newNumberPhone.trim() || savingForward}
+                      className="gap-1.5 text-xs shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Add & Save Recipient</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Forwarding Activity Log */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold">Forwarding Activity Log</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Recent messages auto-forwarded to your mobile devices.
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refresh}
+                    className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>Refresh</span>
                   </Button>
-                </form>
-              </>
-            )}
-          </div>
+                </div>
+
+                {msgs.filter((m) => m.status === "forwarded").length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                    No forwarded messages logged yet. When an SMS arrives on {from}, forwarded messages will record here.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/50 max-h-72 overflow-y-auto">
+                    {msgs
+                      .filter((m) => m.status === "forwarded")
+                      .slice(0, 20)
+                      .map((m) => (
+                        <div key={m.id} className="py-3 flex items-center justify-between gap-4 text-xs">
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground font-mono">
+                                To: {formatPhoneDisplay(m.to_number)}
+                              </span>
+                              <span className="rounded bg-emerald-500/10 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                Delivered
+                              </span>
+                            </div>
+                            <p className="line-clamp-1 text-muted-foreground text-[11px]">{m.body}</p>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground shrink-0">
+                            {fmt(m.created_at)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Manual Forwarding Modal Dialog (supports multiple recipients) */}
+      {/* Manual Forwarding Modal Dialog */}
       <Dialog
         open={Boolean(forwardTargetMsg)}
         onOpenChange={(open) => {
           if (!open) {
             setForwardTargetMsg(null);
-            setManualForwardNumbers([]);
-            setManualNumberInput("");
+            setManualRecipients([]);
+            setManualInput("");
           }
         }}
       >
@@ -801,39 +1523,37 @@ export default function MessagesPage() {
               Forward Message
             </DialogTitle>
             <DialogDescription>
-              Forward this message to one or multiple mobile numbers worldwide.
+              Forward this message to any mobile number or team member worldwide.
             </DialogDescription>
           </DialogHeader>
 
           {forwardTargetMsg && (
             <div className="space-y-4 py-2">
               {/* Message preview */}
-              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs">
-                <span className="font-semibold text-muted-foreground block mb-1">
+              <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs space-y-1">
+                <span className="font-semibold text-muted-foreground block text-[11px]">
                   Original from {peer(forwardTargetMsg)}:
                 </span>
                 <p className="italic text-foreground whitespace-pre-wrap">{forwardTargetMsg.body}</p>
               </div>
 
-              {/* Recipients list and input */}
+              {/* Target recipients chips */}
               <div className="space-y-2">
                 <Label className="text-xs">
-                  Recipients ({manualForwardNumbers.length}):
+                  Recipients ({manualRecipients.length}):
                 </Label>
-                {manualForwardNumbers.length > 0 && (
+                {manualRecipients.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1">
-                    {manualForwardNumbers.map((num, idx) => (
+                    {manualRecipients.map((num, idx) => (
                       <span
                         key={idx}
                         className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-xs font-medium"
                       >
                         <Phone className="h-3 w-3 text-primary" />
-                        <span>{num}</span>
+                        <span className="font-mono">{num}</span>
                         <button
                           type="button"
-                          onClick={() =>
-                            setManualForwardNumbers((prev) => prev.filter((_, i) => i !== idx))
-                          }
+                          onClick={() => setManualRecipients((prev) => prev.filter((_, i) => i !== idx))}
                           className="hover:text-destructive p-0.5 text-muted-foreground"
                         >
                           <X className="h-3 w-3" />
@@ -846,44 +1566,41 @@ export default function MessagesPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     placeholder="e.g. +91 8605222604 (press Add or Enter)"
-                    value={manualNumberInput}
-                    onChange={(e) => setManualNumberInput(e.target.value)}
+                    value={manualInput}
+                    onChange={(e) => setManualInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         addManualRecipient();
                       }
                     }}
-                    className="text-xs"
+                    className="text-xs font-mono"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => addManualRecipient()}
-                    disabled={!manualNumberInput.trim()}
+                    onClick={addManualRecipient}
+                    disabled={!manualInput.trim()}
                     className="gap-1 text-xs shrink-0"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Can be any personal mobile phone, SIM card, or WhatsApp phone worldwide.
-                </p>
               </div>
 
               {/* Sender number picker */}
               {nums.length > 1 && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Send from your Ringringa number:</Label>
+                  <Label className="text-xs">Send from Ringringa number:</Label>
                   <Select value={forwardFromNumber} onValueChange={setForwardFromNumber}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {nums.map((n) => (
-                        <SelectItem key={n.id} value={n.phone_number}>
+                        <SelectItem key={n.id} value={n.phone_number} className="text-xs font-mono">
                           {n.phone_number}
                         </SelectItem>
                       ))}
@@ -899,8 +1616,8 @@ export default function MessagesPage() {
               variant="outline"
               onClick={() => {
                 setForwardTargetMsg(null);
-                setManualForwardNumbers([]);
-                setManualNumberInput("");
+                setManualRecipients([]);
+                setManualInput("");
               }}
               disabled={forwarding}
             >
@@ -908,16 +1625,13 @@ export default function MessagesPage() {
             </Button>
             <Button
               onClick={onForward}
-              disabled={
-                forwarding ||
-                (manualForwardNumbers.length === 0 && !manualNumberInput.trim())
-              }
+              disabled={forwarding || (manualRecipients.length === 0 && !manualInput.trim())}
               className="gap-1.5"
             >
               <Forward className="h-4 w-4" />
               {forwarding
                 ? "Forwarding…"
-                : `Send Forward (${Math.max(1, manualForwardNumbers.length + (manualNumberInput.trim() ? 1 : 0))})`}
+                : `Send Forward (${Math.max(1, manualRecipients.length + (manualInput.trim() ? 1 : 0))})`}
             </Button>
           </DialogFooter>
         </DialogContent>

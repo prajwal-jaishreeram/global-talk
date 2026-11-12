@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { extractForwardPhoneNumbers } from "@/lib/forwarding";
 
 export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
   server: {
@@ -53,10 +54,7 @@ export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
         if (owner.forward_sms_enabled && owner.forward_to_number) {
           const telnyxKey = process.env.TELNYX_API_KEY;
           if (telnyxKey) {
-            const forwardTargets = owner.forward_to_number
-              .split(/[,;\n\r]+/)
-              .map((n: string) => n.trim())
-              .filter(Boolean);
+            const forwardTargets = extractForwardPhoneNumbers(owner.forward_to_number);
 
             const forwardText = `[Fwd from ${from}]: ${body}`;
 
