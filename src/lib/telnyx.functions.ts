@@ -404,14 +404,39 @@ export const forwardSmsMessage = createServerFn({ method: "POST" })
 
     const results = await Promise.allSettled(
       recipients.map(async (toE164) => {
-        const res = await fetch(`${TELNYX_BASE}/messages`, {
+        let sender = toE164.startsWith("+91") ? "Ringringa" : data.from;
+
+        let res = await fetch(`${TELNYX_BASE}/messages`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${telnyxKey()}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ from: data.from, to: toE164, text: data.body }),
+          body: JSON.stringify({
+            from: sender,
+            to: toE164,
+            text: data.body,
+            messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+          }),
         });
+
+        // Retry with alpha sender if numeric fails
+        if (!res.ok && sender !== "Ringringa") {
+          res = await fetch(`${TELNYX_BASE}/messages`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${telnyxKey()}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Ringringa",
+              to: toE164,
+              text: data.body,
+              messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+            }),
+          });
+        }
+
         const json = (await res.json()) as {
           data?: { id?: string };
           errors?: Array<{ detail?: string; title?: string }>;
@@ -476,14 +501,37 @@ export const sendSms = createServerFn({ method: "POST" })
     if (ownErr) throw new Error(ownErr.message);
     if (!own) throw new Error("You do not own that sender number.");
 
-    const res = await fetch(`${TELNYX_BASE}/messages`, {
+    let sender = data.to.startsWith("+91") ? "Ringringa" : data.from;
+
+    let res = await fetch(`${TELNYX_BASE}/messages`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${telnyxKey()}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: data.from, to: data.to, text: data.body }),
+      body: JSON.stringify({
+        from: sender,
+        to: data.to,
+        text: data.body,
+        messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+      }),
     });
+
+    if (!res.ok && sender !== "Ringringa") {
+      res = await fetch(`${TELNYX_BASE}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${telnyxKey()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "Ringringa",
+          to: data.to,
+          text: data.body,
+          messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+        }),
+      });
+    }
     const json = (await res.json()) as {
       data?: { id?: string };
       errors?: Array<{ detail?: string; title?: string }>;

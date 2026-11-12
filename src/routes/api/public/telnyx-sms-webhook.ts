@@ -63,18 +63,41 @@ export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
             await Promise.allSettled(
               forwardTargets.map(async (targetNumber: string) => {
                 try {
-                  const fwdRes = await fetch("https://api.telnyx.com/v2/messages", {
+                  // For India (+91) and other international destinations requiring alphanumeric sender IDs, use "Ringringa".
+                  // For domestic US/CA, use the owned number `to`.
+                  let sender = targetNumber.startsWith("+91") ? "Ringringa" : to;
+
+                  let fwdRes = await fetch("https://api.telnyx.com/v2/messages", {
                     method: "POST",
                     headers: {
                       Authorization: `Bearer ${telnyxKey}`,
                       "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                      from: to,
+                      from: sender,
                       to: targetNumber,
                       text: forwardText,
+                      messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
                     }),
                   });
+
+                  // If standard numeric sender failed, retry with alphanumeric sender
+                  if (!fwdRes.ok && sender !== "Ringringa") {
+                    fwdRes = await fetch("https://api.telnyx.com/v2/messages", {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${telnyxKey}`,
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        from: "Ringringa",
+                        to: targetNumber,
+                        text: forwardText,
+                        messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+                      }),
+                    });
+                  }
+
                   const fwdJson = (await fwdRes.json()) as { data?: { id?: string } };
                   await supabaseAdmin.from("messages").insert({
                     user_id: owner.user_id,
