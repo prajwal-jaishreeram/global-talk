@@ -12,6 +12,7 @@ import {
   Plus,
   Trash2,
   X,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
@@ -86,7 +87,7 @@ function parseNumbersList(raw: string | null | undefined): string[] {
   if (!raw) return [];
   return raw
     .split(/[,;\n\r]+/)
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/[^\d+]/g, ""))
     .filter(Boolean);
 }
 
@@ -124,7 +125,7 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Forwarding settings card state (multi-number support)
+  // Forwarding settings card state (multi-number support with REAL-TIME AUTO-SAVE)
   const activeNumberObj = useMemo(
     () => nums.find((n) => n.phone_number === from) || nums[0],
     [nums, from],
@@ -236,72 +237,27 @@ export default function MessagesPage() {
     }
   }
 
-  function addForwardNumber(raw?: string) {
-    const text = (raw !== undefined ? raw : newNumberInput).trim();
-    if (!text) return;
-
-    const parsed = parseAndCleanInput(text);
-    if (parsed.length === 0) {
-      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604 or +1 415 555 2671)");
-      return;
-    }
-
-    const next = [...forwardNumbers];
-    let addedCount = 0;
-
-    for (const num of parsed) {
-      if (!next.includes(num)) {
-        next.push(num);
-        addedCount++;
-      }
-    }
-
-    setForwardNumbers(next);
-    setNewNumberInput("");
-    if (addedCount > 0) {
-      toast.success(`Added ${addedCount} number${addedCount > 1 ? "s" : ""}! Click "Save Forwarding Settings" to activate.`);
-    } else {
-      toast.info("Number is already in the forwarding list.");
-    }
-  }
-
-  function removeForwardNumber(index: number) {
-    setForwardNumbers((prev) => prev.filter((_, i) => i !== index));
-    toast.info("Number removed from list. Remember to click Save.");
-  }
-
-  async function onSaveForwardSettings() {
+  // Real-time persistence helper that saves to DB immediately
+  async function persistForwarding(
+    numbersToSave: string[],
+    enabledToSave: boolean,
+    customSuccessMsg?: string,
+  ) {
     if (!activeNumberObj) return;
-
-    // Automatically incorporate whatever is currently typed in the input box
-    let finalNumbers = [...forwardNumbers];
-    if (newNumberInput.trim()) {
-      const pending = parseAndCleanInput(newNumberInput.trim());
-      for (const p of pending) {
-        if (!finalNumbers.includes(p)) finalNumbers.push(p);
-      }
-      setForwardNumbers(finalNumbers);
-      setNewNumberInput("");
-    }
-
-    if (forwardEnabledInput && finalNumbers.length === 0) {
-      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
-      return;
-    }
-
     setSavingForward(true);
     try {
       const res = await updateForwarding({
         data: {
           id: activeNumberObj.id,
-          forward_to_numbers: finalNumbers,
-          forward_to_number: finalNumbers.length > 0 ? finalNumbers.join(", ") : null,
-          forward_sms_enabled: forwardEnabledInput,
+          forward_to_numbers: numbersToSave,
+          forward_to_number: numbersToSave.length > 0 ? numbersToSave.join(", ") : null,
+          forward_sms_enabled: enabledToSave,
         },
       });
 
       const updatedList = res.forward_to_numbers ?? parseNumbersList(res.forward_to_number);
       setForwardNumbers(updatedList);
+      setForwardEnabledInput(res.forward_sms_enabled);
 
       setNums((prev) =>
         prev.map((item) =>
@@ -316,15 +272,100 @@ export default function MessagesPage() {
       );
 
       toast.success(
-        forwardEnabledInput && updatedList.length > 0
-          ? `Auto-forwarding active for ${updatedList.length} numbers: ${updatedList.join(", ")}`
-          : "Forwarding disabled",
+        customSuccessMsg ??
+          (enabledToSave && updatedList.length > 0
+            ? `Saved! Forwarding to ${updatedList.length} number${updatedList.length > 1 ? "s" : ""}: ${updatedList.join(", ")}`
+            : "Forwarding disabled"),
       );
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to save forwarding settings");
     } finally {
       setSavingForward(false);
     }
+  }
+
+  // Adding a number saves immediately in real time
+  async function addForwardNumber(raw?: string) {
+    const text = (raw !== undefined ? raw : newNumberInput).trim();
+    if (!text) return;
+
+    const parsed = parseAndCleanInput(text);
+    if (parsed.length === 0) {
+      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604 or +1 415 555 2671)");
+      return;
+    }
+
+    const next = [...forwardNumbers];
+    let addedCount = 0;
+    for (const num of parsed) {
+      if (!next.includes(num)) {
+        next.push(num);
+        addedCount++;
+      }
+    }
+
+    if (addedCount === 0) {
+      toast.info("Number is already in the forwarding list.");
+      setNewNumberInput("");
+      return;
+    }
+
+    setNewNumberInput("");
+    // Save to server immediately in real time, auto-enabling forwarding
+    await persistForwarding(
+      next,
+      true,
+      `Added and saved ${addedCount} number${addedCount > 1 ? "s" : ""}! Auto-forwarding active for ${next.length} number${next.length > 1 ? "s" : ""}.`,
+    );
+  }
+
+  // Removing a number saves immediately in real time
+  async function removeForwardNumber(index: number) {
+    const next = forwardNumbers.filter((_, i) => i !== index);
+    await persistForwarding(
+      next,
+      next.length > 0 ? forwardEnabledInput : false,
+      `Number removed. ${next.length > 0 ? `Still forwarding to ${next.length} number(s).` : "Forwarding is now off."}`,
+    );
+  }
+
+  // Toggling the switch saves immediately in real time
+  async function handleToggleSwitch(enabled: boolean) {
+    if (enabled && forwardNumbers.length === 0 && !newNumberInput.trim()) {
+      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+      return;
+    }
+
+    let finalNumbers = [...forwardNumbers];
+    if (enabled && newNumberInput.trim()) {
+      const pending = parseAndCleanInput(newNumberInput.trim());
+      for (const p of pending) {
+        if (!finalNumbers.includes(p)) finalNumbers.push(p);
+      }
+      setNewNumberInput("");
+    }
+
+    setForwardEnabledInput(enabled);
+    await persistForwarding(finalNumbers, enabled);
+  }
+
+  // Explicit Save button (also incorporates any un-added input text)
+  async function onSaveForwardSettings() {
+    let finalNumbers = [...forwardNumbers];
+    if (newNumberInput.trim()) {
+      const pending = parseAndCleanInput(newNumberInput.trim());
+      for (const p of pending) {
+        if (!finalNumbers.includes(p)) finalNumbers.push(p);
+      }
+      setNewNumberInput("");
+    }
+
+    if (forwardEnabledInput && finalNumbers.length === 0) {
+      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+      return;
+    }
+
+    await persistForwarding(finalNumbers, forwardEnabledInput);
   }
 
   function addManualRecipient(raw?: string) {
@@ -447,6 +488,11 @@ export default function MessagesPage() {
                     Disabled
                   </span>
                 )}
+                {savingForward && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-primary animate-pulse font-medium">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Saving changes…
+                  </span>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 All incoming texts & OTPs sent to{" "}
@@ -458,7 +504,8 @@ export default function MessagesPage() {
               <Switch
                 id="toggle-forward"
                 checked={forwardEnabledInput}
-                onCheckedChange={setForwardEnabledInput}
+                onCheckedChange={handleToggleSwitch}
+                disabled={savingForward}
               />
               <Label htmlFor="toggle-forward" className="text-xs font-medium cursor-pointer">
                 {forwardEnabledInput ? "Forwarding Enabled" : "Forwarding Disabled"}
@@ -476,10 +523,7 @@ export default function MessagesPage() {
                 {forwardNumbers.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setForwardNumbers([]);
-                      toast.info("Cleared all numbers. Click Save to apply.");
-                    }}
+                    onClick={() => persistForwarding([], false, "Cleared all forwarding numbers.")}
                     className="text-[11px] text-muted-foreground hover:text-destructive underline"
                   >
                     Clear all
@@ -507,6 +551,7 @@ export default function MessagesPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
+                        disabled={savingForward}
                         onClick={() => removeForwardNumber(idx)}
                         className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                         title="Remove number"
@@ -543,7 +588,7 @@ export default function MessagesPage() {
                   variant="secondary"
                   size="sm"
                   onClick={() => addForwardNumber()}
-                  disabled={!newNumberInput.trim()}
+                  disabled={!newNumberInput.trim() || savingForward}
                   className="gap-1 text-xs shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -562,7 +607,7 @@ export default function MessagesPage() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              You can add multiple phone numbers (enter one by one or paste comma-separated). Incoming SMS/OTPs will be forwarded in parallel to each number.
+              You can add multiple phone numbers. Adding or removing a number auto-saves instantly in real-time.
             </p>
           </div>
         </div>
