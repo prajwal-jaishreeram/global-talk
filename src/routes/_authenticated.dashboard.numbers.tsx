@@ -247,20 +247,36 @@ function NumbersPage() {
     }
   }
 
+  function parseAndCleanInput(raw: string): string[] {
+    const parts = raw.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    const result: string[] = [];
+    for (const p of parts) {
+      let digits = p.replace(/\D/g, "");
+      if (!digits) continue;
+      if (digits.length === 10 && /^[6-9]/.test(digits) && !p.startsWith("+1")) {
+        digits = `91${digits}`;
+      }
+      const formatted = `+${digits}`;
+      if (digits.length >= 7 && digits.length <= 16) {
+        if (!result.includes(formatted)) result.push(formatted);
+      }
+    }
+    return result;
+  }
+
   function addForwardTarget(nId: string, raw?: string) {
     const current = forwardInputs[nId] ?? { numbers: [], newNumber: "", enabled: false };
     const text = (raw !== undefined ? raw : current.newNumber).trim();
     if (!text) return;
 
-    const parts = text.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    const parsed = parseAndCleanInput(text);
+    if (parsed.length === 0) {
+      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604)");
+      return;
+    }
+
     const next = [...current.numbers];
-    for (let p of parts) {
-      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
-      const digitsOnly = p.replace(/\D/g, "");
-      if (digitsOnly.length < 7 || digitsOnly.length > 16) {
-        toast.error(`"${p}" is invalid. Please include country code.`);
-        continue;
-      }
+    for (const p of parsed) {
       if (!next.includes(p)) next.push(p);
     }
 
@@ -272,6 +288,7 @@ function NumbersPage() {
         newNumber: "",
       },
     }));
+    toast.success("Added number! Click Save Forwarding to activate.");
   }
 
   function removeForwardTarget(nId: string, index: number) {
@@ -290,10 +307,9 @@ function NumbersPage() {
     const current = forwardInputs[n.id] ?? { numbers: [], newNumber: "", enabled: false };
     let finalNumbers = [...current.numbers];
     if (current.newNumber.trim()) {
-      let p = current.newNumber.trim();
-      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
-      if (/^\+\d{7,16}$/.test(p) && !finalNumbers.includes(p)) {
-        finalNumbers.push(p);
+      const pending = parseAndCleanInput(current.newNumber.trim());
+      for (const p of pending) {
+        if (!finalNumbers.includes(p)) finalNumbers.push(p);
       }
     }
 
@@ -307,11 +323,13 @@ function NumbersPage() {
       const res = await updateForwarding({
         data: {
           id: n.id,
+          forward_to_numbers: finalNumbers,
           forward_to_number: finalNumbers.length > 0 ? finalNumbers.join(", ") : null,
           forward_sms_enabled: current.enabled,
         },
       });
 
+      const updated = res.forward_to_numbers ?? parseNumbersList(res.forward_to_number);
       setOwned((prev) =>
         prev.map((item) =>
           item.id === n.id
@@ -326,14 +344,14 @@ function NumbersPage() {
       setForwardInputs((prev) => ({
         ...prev,
         [n.id]: {
-          numbers: finalNumbers,
+          numbers: updated,
           newNumber: "",
           enabled: current.enabled,
         },
       }));
       toast.success(
-        current.enabled && finalNumbers.length > 0
-          ? `Forwarding saved for ${finalNumbers.length} number${finalNumbers.length > 1 ? "s" : ""}!`
+        current.enabled && updated.length > 0
+          ? `Forwarding saved for ${updated.length} number${updated.length > 1 ? "s" : ""}: ${updated.join(", ")}`
           : "SMS forwarding disabled",
       );
       setExpandedForwardId(null);
@@ -592,41 +610,56 @@ function NumbersPage() {
                             </Label>
                           </div>
 
-                          {/* Forwarding list chips */}
+                          {/* Forwarding list */}
                           {forwardState.numbers.length > 0 ? (
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs font-medium text-muted-foreground">Forwarding to:</span>
-                              {forwardState.numbers.map((targetNum, idx) => (
-                                <span
-                                  key={idx}
-                                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-medium text-foreground"
-                                >
-                                  <Phone className="h-3 w-3 text-primary" />
-                                  <span>{targetNum}</span>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                  Forwarding Recipients ({forwardState.numbers.length})
+                                </span>
+                                {forwardState.numbers.length > 1 && (
                                   <button
                                     type="button"
-                                    onClick={() => removeForwardTarget(n.id, idx)}
-                                    className="rounded-full hover:bg-destructive/20 hover:text-destructive p-0.5 text-muted-foreground transition-colors ml-0.5"
-                                    title="Remove"
+                                    onClick={() =>
+                                      setForwardInputs((prev) => ({
+                                        ...prev,
+                                        [n.id]: { ...forwardState, numbers: [] },
+                                      }))
+                                    }
+                                    className="text-[11px] text-muted-foreground hover:text-destructive underline"
                                   >
-                                    <X className="h-3 w-3" />
+                                    Clear all
                                   </button>
-                                </span>
-                              ))}
-                              {forwardState.numbers.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setForwardInputs((prev) => ({
-                                      ...prev,
-                                      [n.id]: { ...forwardState, numbers: [] },
-                                    }))
-                                  }
-                                  className="text-[11px] text-muted-foreground hover:text-destructive underline ml-1"
-                                >
-                                  Clear all
-                                </button>
-                              )}
+                                )}
+                              </div>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {forwardState.numbers.map((targetNum, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center justify-between gap-2 rounded-xl border border-border/80 bg-background/90 px-3.5 py-2.5 text-xs shadow-2xs"
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                                        {idx + 1}
+                                      </span>
+                                      <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                      <span className="font-mono font-medium text-foreground truncate">
+                                        {targetNum}
+                                      </span>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeForwardTarget(n.id, idx)}
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                      title="Remove"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           ) : (
                             <p className="text-xs italic text-muted-foreground">
@@ -658,14 +691,14 @@ function NumbersPage() {
                               />
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="secondary"
                                 size="sm"
                                 onClick={() => addForwardTarget(n.id)}
                                 disabled={!forwardState.newNumber.trim()}
                                 className="gap-1 text-xs shrink-0"
                               >
                                 <Plus className="h-3.5 w-3.5" />
-                                Add
+                                Add Number
                               </Button>
                             </div>
 

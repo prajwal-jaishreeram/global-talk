@@ -10,6 +10,7 @@ import {
   Forward,
   Check,
   Plus,
+  Trash2,
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,24 @@ function parseNumbersList(raw: string | null | undefined): string[] {
     .split(/[,;\n\r]+/)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+function parseAndCleanInput(raw: string): string[] {
+  const parts = raw.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+  const result: string[] = [];
+  for (const p of parts) {
+    let digits = p.replace(/\D/g, "");
+    if (!digits) continue;
+    // If 10 digits and starts with 6,7,8,9 without country code, assume India (+91)
+    if (digits.length === 10 && /^[6-9]/.test(digits) && !p.startsWith("+1")) {
+      digits = `91${digits}`;
+    }
+    const formatted = `+${digits}`;
+    if (digits.length >= 7 && digits.length <= 16) {
+      if (!result.includes(formatted)) result.push(formatted);
+    }
+  }
+  return result;
 }
 
 export default function MessagesPage() {
@@ -221,21 +240,18 @@ export default function MessagesPage() {
     const text = (raw !== undefined ? raw : newNumberInput).trim();
     if (!text) return;
 
-    const parts = text.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    const parsed = parseAndCleanInput(text);
+    if (parsed.length === 0) {
+      toast.error("Please enter a valid phone number with country code (e.g. +91 8605222604 or +1 415 555 2671)");
+      return;
+    }
+
     const next = [...forwardNumbers];
     let addedCount = 0;
 
-    for (let p of parts) {
-      if (!p.startsWith("+")) {
-        p = `+${p.replace(/\D/g, "")}`;
-      }
-      const digitsOnly = p.replace(/\D/g, "");
-      if (digitsOnly.length < 7 || digitsOnly.length > 16) {
-        toast.error(`"${p}" is invalid. Please include country code (e.g. +91 8605222604).`);
-        continue;
-      }
-      if (!next.includes(p)) {
-        next.push(p);
+    for (const num of parsed) {
+      if (!next.includes(num)) {
+        next.push(num);
         addedCount++;
       }
     }
@@ -243,27 +259,29 @@ export default function MessagesPage() {
     setForwardNumbers(next);
     setNewNumberInput("");
     if (addedCount > 0) {
-      toast.success(`Added ${addedCount} forwarding number${addedCount > 1 ? "s" : ""}`);
+      toast.success(`Added ${addedCount} number${addedCount > 1 ? "s" : ""}! Click "Save Forwarding Settings" to activate.`);
+    } else {
+      toast.info("Number is already in the forwarding list.");
     }
   }
 
   function removeForwardNumber(index: number) {
     setForwardNumbers((prev) => prev.filter((_, i) => i !== index));
+    toast.info("Number removed from list. Remember to click Save.");
   }
 
   async function onSaveForwardSettings() {
     if (!activeNumberObj) return;
 
-    // Check if user has an uncommitted number in the input box
+    // Automatically incorporate whatever is currently typed in the input box
     let finalNumbers = [...forwardNumbers];
     if (newNumberInput.trim()) {
-      let p = newNumberInput.trim();
-      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
-      if (/^\+\d{7,16}$/.test(p) && !finalNumbers.includes(p)) {
-        finalNumbers.push(p);
-        setForwardNumbers(finalNumbers);
-        setNewNumberInput("");
+      const pending = parseAndCleanInput(newNumberInput.trim());
+      for (const p of pending) {
+        if (!finalNumbers.includes(p)) finalNumbers.push(p);
       }
+      setForwardNumbers(finalNumbers);
+      setNewNumberInput("");
     }
 
     if (forwardEnabledInput && finalNumbers.length === 0) {
@@ -276,10 +294,14 @@ export default function MessagesPage() {
       const res = await updateForwarding({
         data: {
           id: activeNumberObj.id,
+          forward_to_numbers: finalNumbers,
           forward_to_number: finalNumbers.length > 0 ? finalNumbers.join(", ") : null,
           forward_sms_enabled: forwardEnabledInput,
         },
       });
+
+      const updatedList = res.forward_to_numbers ?? parseNumbersList(res.forward_to_number);
+      setForwardNumbers(updatedList);
 
       setNums((prev) =>
         prev.map((item) =>
@@ -294,8 +316,8 @@ export default function MessagesPage() {
       );
 
       toast.success(
-        forwardEnabledInput && finalNumbers.length > 0
-          ? `Auto-forwarding active for ${finalNumbers.length} number${finalNumbers.length > 1 ? "s" : ""}!`
+        forwardEnabledInput && updatedList.length > 0
+          ? `Auto-forwarding active for ${updatedList.length} numbers: ${updatedList.join(", ")}`
           : "Forwarding disabled",
       );
     } catch (err: any) {
@@ -309,17 +331,14 @@ export default function MessagesPage() {
     const text = (raw !== undefined ? raw : manualNumberInput).trim();
     if (!text) return;
 
-    const parts = text.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    const parsed = parseAndCleanInput(text);
+    if (parsed.length === 0) {
+      toast.error("Please enter a valid phone number with country code.");
+      return;
+    }
+
     const next = [...manualForwardNumbers];
-    for (let p of parts) {
-      if (!p.startsWith("+")) {
-        p = `+${p.replace(/\D/g, "")}`;
-      }
-      const digitsOnly = p.replace(/\D/g, "");
-      if (digitsOnly.length < 7 || digitsOnly.length > 16) {
-        toast.error(`"${p}" is invalid. Please include country code.`);
-        continue;
-      }
+    for (const p of parsed) {
       if (!next.includes(p)) next.push(p);
     }
     setManualForwardNumbers(next);
@@ -331,10 +350,9 @@ export default function MessagesPage() {
 
     let recipients = [...manualForwardNumbers];
     if (manualNumberInput.trim()) {
-      let p = manualNumberInput.trim();
-      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
-      if (/^\+\d{7,16}$/.test(p) && !recipients.includes(p)) {
-        recipients.push(p);
+      const pending = parseAndCleanInput(manualNumberInput.trim());
+      for (const p of pending) {
+        if (!recipients.includes(p)) recipients.push(p);
       }
     }
 
@@ -420,9 +438,9 @@ export default function MessagesPage() {
                 <Forward className="h-4 w-4 text-primary" />
                 <h2 className="text-sm font-semibold">SMS & OTP Auto-Forwarding</h2>
                 {activeNumberObj?.forward_sms_enabled && forwardNumbers.length > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active → {forwardNumbers.length} recipient{forwardNumbers.length > 1 ? "s" : ""}
+                    Active → Forwarding to {forwardNumbers.length} number{forwardNumbers.length > 1 ? "s" : ""}
                   </span>
                 ) : (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
@@ -431,8 +449,8 @@ export default function MessagesPage() {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Automatically forward any incoming SMS or OTP received on{" "}
-                <span className="font-semibold text-foreground">{from || nums[0]?.phone_number}</span> to one or multiple personal mobile phones worldwide.
+                All incoming texts & OTPs sent to{" "}
+                <span className="font-semibold text-foreground">{from || nums[0]?.phone_number}</span> will be auto-forwarded in real-time to all numbers listed below.
               </p>
             </div>
 
@@ -448,49 +466,68 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
-            {/* Added numbers list / tags */}
-            {forwardNumbers.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Forwarding to:</span>
-                {forwardNumbers.map((num, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-foreground transition-all hover:bg-primary/15"
-                  >
-                    <Phone className="h-3 w-3 text-primary" />
-                    <span>{num}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeForwardNumber(idx)}
-                      className="rounded-full hover:bg-destructive/20 hover:text-destructive p-0.5 text-muted-foreground transition-colors ml-0.5"
-                      title="Remove number"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
+          <div className="mt-5 space-y-4">
+            {/* List of configured forwarding numbers */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Forwarding Recipients ({forwardNumbers.length})
+                </Label>
                 {forwardNumbers.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => setForwardNumbers([])}
-                    className="text-[11px] text-muted-foreground hover:text-destructive underline ml-1"
+                    onClick={() => {
+                      setForwardNumbers([]);
+                      toast.info("Cleared all numbers. Click Save to apply.");
+                    }}
+                    className="text-[11px] text-muted-foreground hover:text-destructive underline"
                   >
                     Clear all
                   </button>
                 )}
               </div>
-            ) : (
-              <p className="text-xs italic text-muted-foreground">
-                No forwarding numbers added yet. Add your mobile number(s) below to begin forwarding.
-              </p>
-            )}
+
+              {forwardNumbers.length > 0 ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {forwardNumbers.map((num, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border/80 bg-background/90 px-3.5 py-2.5 text-xs shadow-2xs transition-colors hover:border-primary/40"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                          {idx + 1}
+                        </span>
+                        <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="font-mono font-medium text-foreground truncate">
+                          {num}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeForwardNumber(idx)}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                        title="Remove number"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                  No forwarding numbers added yet. Add your personal mobile number(s) below.
+                </div>
+              )}
+            </div>
 
             {/* Input row to add new number and save */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="flex flex-1 items-center gap-2 max-w-lg">
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
+              <div className="flex flex-1 items-center gap-2 max-w-md">
                 <Input
-                  placeholder="Enter phone number (e.g. +91 8605222604 or +1 415 555 2671)"
+                  placeholder="Enter phone number (e.g. +91 8605222604, +1 415 555 2671)"
                   value={newNumberInput}
                   onChange={(e) => setNewNumberInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -503,23 +540,20 @@ export default function MessagesPage() {
                 />
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => addForwardNumber()}
                   disabled={!newNumberInput.trim()}
                   className="gap-1 text-xs shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Add
+                  Add Number
                 </Button>
               </div>
 
               <Button
                 size="sm"
-                disabled={
-                  savingForward ||
-                  (forwardEnabledInput && forwardNumbers.length === 0 && !newNumberInput.trim())
-                }
+                disabled={savingForward}
                 onClick={onSaveForwardSettings}
                 className="gap-1.5 text-xs sm:ml-auto"
               >
@@ -528,7 +562,7 @@ export default function MessagesPage() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Tip: You can add multiple forwarding numbers (separated by commas or by clicking Add). Any country or carrier supported worldwide (e.g. Jio, Airtel, Vi, AT&T, Verizon, Vodafone).
+              You can add multiple phone numbers (enter one by one or paste comma-separated). Incoming SMS/OTPs will be forwarded in parallel to each number.
             </p>
           </div>
         </div>
