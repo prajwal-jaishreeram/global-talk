@@ -9,51 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as RefundRouteImport } from './routes/refund'
-import { Route as RatesRouteImport } from './routes/rates'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthSignupRouteImport } from './routes/auth.signup'
-import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RatesRouteImport } from './routes/rates'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated.dashboard.index'
-import { Route as ApiPublicTelnyxSmsWebhookRouteImport } from './routes/api/public/telnyx-sms-webhook'
-import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar-webhook'
-import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
-import { Route as AuthenticatedDashboardRatesRouteImport } from './routes/_authenticated.dashboard.rates'
-import { Route as AuthenticatedDashboardNumbersRouteImport } from './routes/_authenticated.dashboard.numbers'
-import { Route as AuthenticatedDashboardMessagesRouteImport } from './routes/_authenticated.dashboard.messages'
-import { Route as AuthenticatedDashboardHistoryRouteImport } from './routes/_authenticated.dashboard.history'
-import { Route as AuthenticatedDashboardCreditsRouteImport } from './routes/_authenticated.dashboard.credits'
 import { Route as AuthenticatedDashboardContactsRouteImport } from './routes/_authenticated.dashboard.contacts'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as AuthenticatedDashboardCreditsRouteImport } from './routes/_authenticated.dashboard.credits'
+import { Route as AuthenticatedDashboardHistoryRouteImport } from './routes/_authenticated.dashboard.history'
+import { Route as AuthenticatedDashboardMessagesRouteImport } from './routes/_authenticated.dashboard.messages'
+import { Route as AuthenticatedDashboardNumbersRouteImport } from './routes/_authenticated.dashboard.numbers'
+import { Route as AuthenticatedDashboardRatesRouteImport } from './routes/_authenticated.dashboard.rates'
+import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated.dashboard.settings'
+import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar-webhook'
+import { Route as ApiPublicTelnyxSmsWebhookRouteImport } from './routes/api/public/telnyx-sms-webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
-import { Route as ApiPublicPaymentsRazorpayVerifyRouteImport } from './routes/api/public/payments/razorpay/verify'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsRazorpayCreateOrderRouteImport } from './routes/api/public/payments/razorpay/create-order'
+import { Route as ApiPublicPaymentsRazorpayVerifyRouteImport } from './routes/api/public/payments/razorpay/verify'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RefundRoute = RefundRouteImport.update({
-  id: '/refund',
-  path: '/refund',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RatesRoute = RatesRouteImport.update({
-  id: '/rates',
-  path: '/rates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -61,23 +50,24 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const RatesRoute = RatesRouteImport.update({
+  id: '/rates',
+  path: '/rates',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -85,57 +75,20 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const ApiPublicTelnyxSmsWebhookRoute =
-  ApiPublicTelnyxSmsWebhookRouteImport.update({
-    id: '/api/public/telnyx-sms-webhook',
-    path: '/api/public/telnyx-sms-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicPolarWebhookRoute = ApiPublicPolarWebhookRouteImport.update({
-  id: '/api/public/polar-webhook',
-  path: '/api/public/polar-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedDashboardSettingsRoute =
-  AuthenticatedDashboardSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardRatesRoute =
-  AuthenticatedDashboardRatesRouteImport.update({
-    id: '/rates',
-    path: '/rates',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardNumbersRoute =
-  AuthenticatedDashboardNumbersRouteImport.update({
-    id: '/numbers',
-    path: '/numbers',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardMessagesRoute =
-  AuthenticatedDashboardMessagesRouteImport.update({
-    id: '/messages',
-    path: '/messages',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardHistoryRoute =
-  AuthenticatedDashboardHistoryRouteImport.update({
-    id: '/history',
-    path: '/history',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
-const AuthenticatedDashboardCreditsRoute =
-  AuthenticatedDashboardCreditsRouteImport.update({
-    id: '/credits',
-    path: '/credits',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardContactsRoute =
@@ -144,38 +97,85 @@ const AuthenticatedDashboardContactsRoute =
     path: '/contacts',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
+const AuthenticatedDashboardCreditsRoute =
+  AuthenticatedDashboardCreditsRouteImport.update({
+    id: '/credits',
+    path: '/credits',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardHistoryRoute =
+  AuthenticatedDashboardHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardMessagesRoute =
+  AuthenticatedDashboardMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardNumbersRoute =
+  AuthenticatedDashboardNumbersRouteImport.update({
+    id: '/numbers',
+    path: '/numbers',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardRatesRoute =
+  AuthenticatedDashboardRatesRouteImport.update({
+    id: '/rates',
+    path: '/rates',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardSettingsRoute =
+  AuthenticatedDashboardSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const ApiPublicPolarWebhookRoute = ApiPublicPolarWebhookRouteImport.update({
+  id: '/api/public/polar-webhook',
+  path: '/api/public/polar-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTelnyxSmsWebhookRoute =
+  ApiPublicTelnyxSmsWebhookRouteImport.update({
+    id: '/api/public/telnyx-sms-webhook',
+    path: '/api/public/telnyx-sms-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicPaymentsRazorpayVerifyRoute =
-  ApiPublicPaymentsRazorpayVerifyRouteImport.update({
-    id: '/api/public/payments/razorpay/verify',
-    path: '/api/public/payments/razorpay/verify',
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsRazorpayCreateOrderRoute =
   ApiPublicPaymentsRazorpayCreateOrderRouteImport.update({
     id: '/api/public/payments/razorpay/create-order',
     path: '/api/public/payments/razorpay/create-order',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPaymentsRazorpayVerifyRoute =
+  ApiPublicPaymentsRazorpayVerifyRouteImport.update({
+    id: '/api/public/payments/razorpay/verify',
+    path: '/api/public/payments/razorpay/verify',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -367,39 +367,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/refund': {
-      id: '/refund'
-      path: '/refund'
-      fullPath: '/refund'
-      preLoaderRoute: typeof RefundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rates': {
-      id: '/rates'
-      path: '/rates'
-      fullPath: '/rates'
-      preLoaderRoute: typeof RatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -409,25 +381,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
+    '/rates': {
+      id: '/rates'
+      path: '/rates'
+      fullPath: '/rates'
+      preLoaderRoute: typeof RatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -437,67 +423,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/api/public/telnyx-sms-webhook': {
-      id: '/api/public/telnyx-sms-webhook'
-      path: '/api/public/telnyx-sms-webhook'
-      fullPath: '/api/public/telnyx-sms-webhook'
-      preLoaderRoute: typeof ApiPublicTelnyxSmsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/polar-webhook': {
-      id: '/api/public/polar-webhook'
-      path: '/api/public/polar-webhook'
-      fullPath: '/api/public/polar-webhook'
-      preLoaderRoute: typeof ApiPublicPolarWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/dashboard/settings': {
-      id: '/_authenticated/dashboard/settings'
-      path: '/settings'
-      fullPath: '/dashboard/settings'
-      preLoaderRoute: typeof AuthenticatedDashboardSettingsRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/rates': {
-      id: '/_authenticated/dashboard/rates'
-      path: '/rates'
-      fullPath: '/dashboard/rates'
-      preLoaderRoute: typeof AuthenticatedDashboardRatesRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/numbers': {
-      id: '/_authenticated/dashboard/numbers'
-      path: '/numbers'
-      fullPath: '/dashboard/numbers'
-      preLoaderRoute: typeof AuthenticatedDashboardNumbersRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/messages': {
-      id: '/_authenticated/dashboard/messages'
-      path: '/messages'
-      fullPath: '/dashboard/messages'
-      preLoaderRoute: typeof AuthenticatedDashboardMessagesRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/history': {
-      id: '/_authenticated/dashboard/history'
-      path: '/history'
-      fullPath: '/dashboard/history'
-      preLoaderRoute: typeof AuthenticatedDashboardHistoryRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
-    '/_authenticated/dashboard/credits': {
-      id: '/_authenticated/dashboard/credits'
-      path: '/credits'
-      fullPath: '/dashboard/credits'
-      preLoaderRoute: typeof AuthenticatedDashboardCreditsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/contacts': {
@@ -507,25 +451,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardContactsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/_authenticated/dashboard/credits': {
+      id: '/_authenticated/dashboard/credits'
+      path: '/credits'
+      fullPath: '/dashboard/credits'
+      preLoaderRoute: typeof AuthenticatedDashboardCreditsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/history': {
+      id: '/_authenticated/dashboard/history'
+      path: '/history'
+      fullPath: '/dashboard/history'
+      preLoaderRoute: typeof AuthenticatedDashboardHistoryRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/messages': {
+      id: '/_authenticated/dashboard/messages'
+      path: '/messages'
+      fullPath: '/dashboard/messages'
+      preLoaderRoute: typeof AuthenticatedDashboardMessagesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/numbers': {
+      id: '/_authenticated/dashboard/numbers'
+      path: '/numbers'
+      fullPath: '/dashboard/numbers'
+      preLoaderRoute: typeof AuthenticatedDashboardNumbersRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/rates': {
+      id: '/_authenticated/dashboard/rates'
+      path: '/rates'
+      fullPath: '/dashboard/rates'
+      preLoaderRoute: typeof AuthenticatedDashboardRatesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/settings': {
+      id: '/_authenticated/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof AuthenticatedDashboardSettingsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/api/public/polar-webhook': {
+      id: '/api/public/polar-webhook'
+      path: '/api/public/polar-webhook'
+      fullPath: '/api/public/polar-webhook'
+      preLoaderRoute: typeof ApiPublicPolarWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+    '/api/public/telnyx-sms-webhook': {
+      id: '/api/public/telnyx-sms-webhook'
+      path: '/api/public/telnyx-sms-webhook'
+      fullPath: '/api/public/telnyx-sms-webhook'
+      preLoaderRoute: typeof ApiPublicTelnyxSmsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -535,11 +514,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/payments/razorpay/verify': {
-      id: '/api/public/payments/razorpay/verify'
-      path: '/api/public/payments/razorpay/verify'
-      fullPath: '/api/public/payments/razorpay/verify'
-      preLoaderRoute: typeof ApiPublicPaymentsRazorpayVerifyRouteImport
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/razorpay/create-order': {
@@ -547,6 +540,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/payments/razorpay/create-order'
       fullPath: '/api/public/payments/razorpay/create-order'
       preLoaderRoute: typeof ApiPublicPaymentsRazorpayCreateOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/razorpay/verify': {
+      id: '/api/public/payments/razorpay/verify'
+      path: '/api/public/payments/razorpay/verify'
+      fullPath: '/api/public/payments/razorpay/verify'
+      preLoaderRoute: typeof ApiPublicPaymentsRazorpayVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
