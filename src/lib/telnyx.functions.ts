@@ -271,23 +271,83 @@ export const listMyPhoneNumbers = createServerFn({ method: "POST" })
     return { numbers: data ?? [] };
   });
 
+export function normalizeE164(phone: string): string {
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("+")) return `+${trimmed.slice(1).replace(/\D/g, "")}`;
+  return `+${trimmed.replace(/\D/g, "")}`;
+}
+
+export function parseAndNormalizePhoneList(input: unknown): string[] {
+  if (!input) return [];
+  const rawList: string[] = Array.isArray(input)
+    ? input.map(String)
+    : String(input).split(/[,;\n\r]+/);
+
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const raw of rawList) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+    const e164 = normalizeE164(trimmed);
+    if (/^\+\d{7,16}$/.test(e164)) {
+      if (!seen.has(e164)) {
+        seen.add(e164);
+        result.push(e164);
+      }
+    }
+  }
+  return result;
+}
+
 export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { id: string; forward_to_number: string | null; forward_sms_enabled: boolean }) =>
-      input,
+    (input: {
+      id: string;
+      forward_to_number?: string | null;
+      forward_to_numbers?: string[];
+      forward_sms_enabled: boolean;
+    }) => input,
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    let normalizedForwardTo: string | null = null;
-    if (data.forward_to_number && data.forward_to_number.trim()) {
-      normalizedForwardTo = normalizeE164(data.forward_to_number.trim());
+
+    let numbersList: string[] = [];
+    if (Array.isArray(data.forward_to_numbers)) {
+      numbersList = data.forward_to_numbers;
+    } else if (data.forward_to_number && data.forward_to_number.trim()) {
+      numbersList = data.forward_to_number.split(/[,;\n\r]+/);
     }
+
+    const normalizedList: string[] = [];
+    const seen = new Set<string>();
+
+    for (const item of numbersList) {
+      const trimmed = item.trim();
+      if (!trimmed) continue;
+      const normalized = normalizeE164(trimmed);
+      if (!/^\+\d{7,16}$/.test(normalized)) {
+        throw new Error(
+          `Invalid phone number format "${trimmed}". Please include country code, e.g. +91 8605222604 or +1 415 555 2671.`,
+        );
+      }
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        normalizedList.push(normalized);
+      }
+    }
+
+    if (data.forward_sms_enabled && normalizedList.length === 0) {
+      throw new Error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+    }
+
+    const forwardToString = normalizedList.length > 0 ? normalizedList.join(", ") : null;
 
     const { error } = await supabase
       .from("phone_numbers")
       .update({
-        forward_to_number: normalizedForwardTo,
+        forward_to_number: forwardToString,
         forward_sms_enabled: data.forward_sms_enabled,
         updated_at: new Date().toISOString(),
       })
@@ -297,17 +357,17 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return {
       ok: true,
-      forward_to_number: normalizedForwardTo,
+      forward_to_number: forwardToString,
+      forward_to_numbers: normalizedList,
       forward_sms_enabled: data.forward_sms_enabled,
     };
   });
 
 export const forwardSmsMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { from: string; to: string; body: string }) => input)
+  .inputValidator((input: { from: string; to: string | string[]; body: string }) => input)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const toE164 = normalizeE164(data.to);
 
     // Verify ownership of sender number
     const { data: own, error: ownErr } = await supabase
@@ -319,35 +379,72 @@ export const forwardSmsMessage = createServerFn({ method: "POST" })
     if (ownErr) throw new Error(ownErr.message);
     if (!own) throw new Error("You do not own that sender number.");
 
-    const res = await fetch(`${TELNYX_BASE}/messages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${telnyxKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: data.from, to: toE164, text: data.body }),
-    });
-    const json = (await res.json()) as {
-      data?: { id?: string };
-      errors?: Array<{ detail?: string; title?: string }>;
-    };
-    if (!res.ok) {
-      const detail =
-        json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Voice provider ${res.status}`;
-      throw new Error(detail);
+    const rawRecipients = Array.isArray(data.to)
+      ? data.to
+      : String(data.to).split(/[,;\n\r]+/);
+    const recipients: string[] = [];
+    const seen = new Set<string>();
+
+    for (const r of rawRecipients) {
+      const trimmed = r.trim();
+      if (!trimmed) continue;
+      const normalized = normalizeE164(trimmed);
+      if (!/^\+\d{7,16}$/.test(normalized)) {
+        throw new Error(`Invalid recipient phone number "${trimmed}". Use international format with country code.`);
+      }
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        recipients.push(normalized);
+      }
     }
 
-    await supabase.from("messages").insert({
-      user_id: userId,
-      from_number: data.from,
-      to_number: toE164,
-      body: data.body,
-      direction: "outbound",
-      status: "forwarded",
-      telnyx_message_id: json.data?.id ?? null,
-    });
+    if (recipients.length === 0) {
+      throw new Error("Please specify at least one recipient phone number.");
+    }
 
-    return { ok: true };
+    const results = await Promise.allSettled(
+      recipients.map(async (toE164) => {
+        const res = await fetch(`${TELNYX_BASE}/messages`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${telnyxKey()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ from: data.from, to: toE164, text: data.body }),
+        });
+        const json = (await res.json()) as {
+          data?: { id?: string };
+          errors?: Array<{ detail?: string; title?: string }>;
+        };
+        if (!res.ok) {
+          const detail =
+            json.errors?.[0]?.detail ?? json.errors?.[0]?.title ?? `Voice provider ${res.status}`;
+          throw new Error(detail);
+        }
+
+        await supabase.from("messages").insert({
+          user_id: userId,
+          from_number: data.from,
+          to_number: toE164,
+          body: data.body,
+          direction: "outbound",
+          status: "forwarded",
+          telnyx_message_id: json.data?.id ?? null,
+        });
+
+        return toE164;
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected");
+
+    if (succeeded === 0 && failed.length > 0) {
+      const firstError = (failed[0] as PromiseRejectedResult).reason;
+      throw new Error(firstError?.message ?? "Failed to forward message.");
+    }
+
+    return { ok: true, succeeded, total: recipients.length };
   });
 
 export const listMyMessages = createServerFn({ method: "POST" })
@@ -413,12 +510,6 @@ export const sendSms = createServerFn({ method: "POST" })
 // ────────────────────────────────────────────────────────────────────────────
 // Verified Caller IDs (Telnyx "Verified Numbers" API)
 // ────────────────────────────────────────────────────────────────────────────
-
-function normalizeE164(phone: string): string {
-  const trimmed = phone.trim();
-  if (trimmed.startsWith("+")) return `+${trimmed.slice(1).replace(/\D/g, "")}`;
-  return `+${trimmed.replace(/\D/g, "")}`;
-}
 
 export const initiateCallerIdVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

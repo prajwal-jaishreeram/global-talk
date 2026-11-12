@@ -12,6 +12,8 @@ import {
   Settings2,
   ChevronDown,
   ChevronUp,
+  Plus,
+  X,
 } from "lucide-react";
 import {
   searchAvailableNumbers,
@@ -96,12 +98,20 @@ function NumbersPage() {
   const [owned, setOwned] = useState<Owned[]>([]);
   const [loadingOwned, setLoadingOwned] = useState(true);
 
-  // SMS Forwarding configuration state
+  // SMS Forwarding configuration state (multi-number support)
   const [expandedForwardId, setExpandedForwardId] = useState<string | null>(null);
   const [forwardInputs, setForwardInputs] = useState<
-    Record<string, { number: string; enabled: boolean }>
+    Record<string, { numbers: string[]; newNumber: string; enabled: boolean }>
   >({});
   const [savingForwardId, setSavingForwardId] = useState<string | null>(null);
+
+  function parseNumbersList(raw: string | null | undefined): string[] {
+    if (!raw) return [];
+    return raw
+      .split(/[,;\n\r]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
 
   async function refreshOwned() {
     setLoadingOwned(true);
@@ -111,10 +121,14 @@ function NumbersPage() {
       setOwned(numbers);
 
       // Seed local forward inputs
-      const inputs: Record<string, { number: string; enabled: boolean }> = {};
+      const inputs: Record<
+        string,
+        { numbers: string[]; newNumber: string; enabled: boolean }
+      > = {};
       for (const n of numbers) {
         inputs[n.id] = {
-          number: n.forward_to_number ?? "",
+          numbers: parseNumbersList(n.forward_to_number),
+          newNumber: "",
           enabled: Boolean(n.forward_sms_enabled),
         };
       }
@@ -233,14 +247,67 @@ function NumbersPage() {
     }
   }
 
+  function addForwardTarget(nId: string, raw?: string) {
+    const current = forwardInputs[nId] ?? { numbers: [], newNumber: "", enabled: false };
+    const text = (raw !== undefined ? raw : current.newNumber).trim();
+    if (!text) return;
+
+    const parts = text.split(/[,;\n\r]+/).map((s) => s.trim()).filter(Boolean);
+    const next = [...current.numbers];
+    for (let p of parts) {
+      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
+      const digitsOnly = p.replace(/\D/g, "");
+      if (digitsOnly.length < 7 || digitsOnly.length > 16) {
+        toast.error(`"${p}" is invalid. Please include country code.`);
+        continue;
+      }
+      if (!next.includes(p)) next.push(p);
+    }
+
+    setForwardInputs((prev) => ({
+      ...prev,
+      [nId]: {
+        ...current,
+        numbers: next,
+        newNumber: "",
+      },
+    }));
+  }
+
+  function removeForwardTarget(nId: string, index: number) {
+    const current = forwardInputs[nId] ?? { numbers: [], newNumber: "", enabled: false };
+    setForwardInputs((prev) => ({
+      ...prev,
+      [nId]: {
+        ...current,
+        numbers: current.numbers.filter((_, i) => i !== index),
+      },
+    }));
+  }
+
   async function saveForwarding(n: Owned) {
     setSavingForwardId(n.id);
-    const current = forwardInputs[n.id] ?? { number: "", enabled: false };
+    const current = forwardInputs[n.id] ?? { numbers: [], newNumber: "", enabled: false };
+    let finalNumbers = [...current.numbers];
+    if (current.newNumber.trim()) {
+      let p = current.newNumber.trim();
+      if (!p.startsWith("+")) p = `+${p.replace(/\D/g, "")}`;
+      if (/^\+\d{7,16}$/.test(p) && !finalNumbers.includes(p)) {
+        finalNumbers.push(p);
+      }
+    }
+
+    if (current.enabled && finalNumbers.length === 0) {
+      toast.error("Please add at least one forwarding phone number before enabling auto-forwarding.");
+      setSavingForwardId(null);
+      return;
+    }
+
     try {
       const res = await updateForwarding({
         data: {
           id: n.id,
-          forward_to_number: current.number.trim() || null,
+          forward_to_number: finalNumbers.length > 0 ? finalNumbers.join(", ") : null,
           forward_sms_enabled: current.enabled,
         },
       });
@@ -256,7 +323,19 @@ function NumbersPage() {
             : item,
         ),
       );
-      toast.success("SMS forwarding settings saved!");
+      setForwardInputs((prev) => ({
+        ...prev,
+        [n.id]: {
+          numbers: finalNumbers,
+          newNumber: "",
+          enabled: current.enabled,
+        },
+      }));
+      toast.success(
+        current.enabled && finalNumbers.length > 0
+          ? `Forwarding saved for ${finalNumbers.length} number${finalNumbers.length > 1 ? "s" : ""}!`
+          : "SMS forwarding disabled",
+      );
       setExpandedForwardId(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to update forwarding");
@@ -403,9 +482,11 @@ function NumbersPage() {
               {owned.map((n) => {
                 const isExpanded = expandedForwardId === n.id;
                 const forwardState = forwardInputs[n.id] ?? {
-                  number: n.forward_to_number ?? "",
+                  numbers: parseNumbersList(n.forward_to_number),
+                  newNumber: "",
                   enabled: Boolean(n.forward_sms_enabled),
                 };
+                const displayNumbers = parseNumbersList(n.forward_to_number);
 
                 return (
                   <li key={n.id} className="flex flex-col px-5 py-4 transition-colors">
@@ -417,10 +498,12 @@ function NumbersPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{formatNumber(n.phone_number)}</span>
-                            {n.forward_sms_enabled && n.forward_to_number ? (
+                            {n.forward_sms_enabled && displayNumbers.length > 0 ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                Forwarding to {n.forward_to_number}
+                                {displayNumbers.length === 1
+                                  ? `Forwarding to ${displayNumbers[0]}`
+                                  : `Forwarding to ${displayNumbers.length} numbers`}
                               </span>
                             ) : (
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
@@ -482,81 +565,138 @@ function NumbersPage() {
                               <span className="font-semibold text-foreground">
                                 {formatNumber(n.phone_number)}
                               </span>{" "}
-                              directly to any external phone number in the world.
+                              directly to one or multiple external mobile numbers in the world.
                             </p>
                           </div>
                         </div>
 
-                        <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <Switch
-                                id={`switch-${n.id}`}
-                                checked={forwardState.enabled}
-                                onCheckedChange={(val) =>
-                                  setForwardInputs((prev) => ({
-                                    ...prev,
-                                    [n.id]: {
-                                      ...forwardState,
-                                      enabled: val,
-                                    },
-                                  }))
-                                }
-                              />
-                              <Label htmlFor={`switch-${n.id}`} className="text-xs font-medium cursor-pointer">
-                                {forwardState.enabled
-                                  ? "Auto-Forwarding is Active"
-                                  : "Auto-Forwarding is Disabled"}
-                              </Label>
-                            </div>
+                        <div className="mt-4 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              id={`switch-${n.id}`}
+                              checked={forwardState.enabled}
+                              onCheckedChange={(val) =>
+                                setForwardInputs((prev) => ({
+                                  ...prev,
+                                  [n.id]: {
+                                    ...forwardState,
+                                    enabled: val,
+                                  },
+                                }))
+                              }
+                            />
+                            <Label htmlFor={`switch-${n.id}`} className="text-xs font-medium cursor-pointer">
+                              {forwardState.enabled
+                                ? "Auto-Forwarding is Active"
+                                : "Auto-Forwarding is Disabled"}
+                            </Label>
+                          </div>
 
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Forward destination mobile phone (with country code):
-                              </Label>
+                          {/* Forwarding list chips */}
+                          {forwardState.numbers.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-medium text-muted-foreground">Forwarding to:</span>
+                              {forwardState.numbers.map((targetNum, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-medium text-foreground"
+                                >
+                                  <Phone className="h-3 w-3 text-primary" />
+                                  <span>{targetNum}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeForwardTarget(n.id, idx)}
+                                    className="rounded-full hover:bg-destructive/20 hover:text-destructive p-0.5 text-muted-foreground transition-colors ml-0.5"
+                                    title="Remove"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </span>
+                              ))}
+                              {forwardState.numbers.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setForwardInputs((prev) => ({
+                                      ...prev,
+                                      [n.id]: { ...forwardState, numbers: [] },
+                                    }))
+                                  }
+                                  className="text-[11px] text-muted-foreground hover:text-destructive underline ml-1"
+                                >
+                                  Clear all
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs italic text-muted-foreground">
+                              No forwarding numbers added yet. Add below.
+                            </p>
+                          )}
+
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="flex flex-1 items-center gap-2 max-w-md">
                               <Input
-                                value={forwardState.number}
+                                value={forwardState.newNumber}
                                 onChange={(e) =>
                                   setForwardInputs((prev) => ({
                                     ...prev,
                                     [n.id]: {
                                       ...forwardState,
-                                      number: e.target.value,
+                                      newNumber: e.target.value,
                                     },
                                   }))
                                 }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    addForwardTarget(n.id);
+                                  }
+                                }}
                                 placeholder="e.g. +91 8605222604 or +1 415 555 2671"
-                                className="max-w-md bg-background"
+                                className="text-xs bg-background"
                               />
-                              <p className="text-[11px] text-muted-foreground">
-                                Can be any personal mobile phone, SIM card, or WhatsApp number across any carrier worldwide.
-                              </p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addForwardTarget(n.id)}
+                                disabled={!forwardState.newNumber.trim()}
+                                className="gap-1 text-xs shrink-0"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Add
+                              </Button>
+                            </div>
+
+                            <div className="flex gap-2 sm:ml-auto">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setExpandedForwardId(null)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                disabled={savingForwardId === n.id}
+                                onClick={() => saveForwarding(n)}
+                              >
+                                {savingForwardId === n.id ? (
+                                  "Saving…"
+                                ) : (
+                                  <>
+                                    <Check className="mr-1.5 h-3.5 w-3.5" />
+                                    Save Forwarding
+                                  </>
+                                )}
+                              </Button>
                             </div>
                           </div>
 
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setExpandedForwardId(null)}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              disabled={savingForwardId === n.id}
-                              onClick={() => saveForwarding(n)}
-                            >
-                              {savingForwardId === n.id ? (
-                                "Saving…"
-                              ) : (
-                                <>
-                                  <Check className="mr-1.5 h-3.5 w-3.5" />
-                                  Save Forwarding
-                                </>
-                              )}
-                            </Button>
-                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            You can add multiple phone numbers. Incoming SMS/OTPs will be forwarded simultaneously to all of them.
+                          </p>
                         </div>
                       </div>
                     )}
