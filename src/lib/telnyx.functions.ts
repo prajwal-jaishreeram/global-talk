@@ -611,6 +611,35 @@ export const listMyMessages = createServerFn({ method: "POST" })
     return { messages: data ?? [] };
   });
 
+export const deleteMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { messageId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("id", data.messageId)
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true, messageId: data.messageId };
+  });
+
+export const deleteConversation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { peerNumber: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const peer = data.peerNumber;
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("user_id", userId)
+      .or(`from_number.eq.${peer},to_number.eq.${peer}`);
+    if (error) throw new Error(error.message);
+    return { ok: true, peerNumber: peer };
+  });
+
 export const sendSms = createServerFn({ method: "POST" })
   .inputValidator((data: { from: string; to: string; body: string }) => data)
   .middleware([requireSupabaseAuth])

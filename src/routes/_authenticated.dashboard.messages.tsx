@@ -35,6 +35,8 @@ import {
   forwardSmsMessage,
   updatePhoneNumberForwarding,
   sendTestForwardingSms,
+  deleteMessage,
+  deleteConversation,
   type ForwardRecipient,
   type ForwardMode,
   type RecipientMessageType,
@@ -135,6 +137,8 @@ export default function MessagesPage() {
   const forwardFn = useServerFn(forwardSmsMessage);
   const updateForwarding = useServerFn(updatePhoneNumberForwarding);
   const sendTestSmsFn = useServerFn(sendTestForwardingSms);
+  const deleteMsgFn = useServerFn(deleteMessage);
+  const deleteConvFn = useServerFn(deleteConversation);
 
   // Top-level navigation tabs: "inbox" | "forwarding"
   const [activeTab, setActiveTab] = useState<"inbox" | "forwarding">("inbox");
@@ -258,7 +262,7 @@ export default function MessagesPage() {
     });
   }
 
-  // Realtime: new messages for this user
+  // Realtime: new and deleted messages for this user
   useEffect(() => {
     if (!user) return;
     const ch = supabase
@@ -270,11 +274,45 @@ export default function MessagesPage() {
           setMsgs((prev) => [payload.new as Msg, ...prev]);
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const deletedId = (payload.old as any)?.id;
+          if (deletedId) setMsgs((prev) => prev.filter((m) => m.id !== deletedId));
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
   }, [user]);
+
+  async function onDeleteMessage(messageId: string) {
+    setMsgs((prev) => prev.filter((m) => m.id !== messageId));
+    try {
+      await deleteMsgFn({ data: { messageId } });
+      toast.success("Message deleted");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to delete message");
+      refresh();
+    }
+  }
+
+  async function onDeleteConversation(peerNumber: string) {
+    if (!confirm(`Are you sure you want to delete all messages with ${formatPhoneDisplay(peerNumber)}?`)) {
+      return;
+    }
+    setMsgs((prev) => prev.filter((m) => peer(m) !== peerNumber));
+    if (active === peerNumber) setActive(null);
+    try {
+      await deleteConvFn({ data: { peerNumber } });
+      toast.success("Conversation deleted");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to delete conversation");
+      refresh();
+    }
+  }
 
   // Filtered threads list
   const threads = useMemo(() => {
@@ -1232,7 +1270,7 @@ export default function MessagesPage() {
                                 handleSenderChange(t.mine);
                               }}
                               className={cn(
-                                "flex w-full flex-col gap-1.5 p-3.5 text-left text-xs transition-colors",
+                                "group flex w-full flex-col gap-1.5 p-3.5 text-left text-xs transition-colors",
                                 isSelected
                                   ? "bg-primary text-primary-foreground"
                                   : "hover:bg-accent/50 text-foreground",
@@ -1247,14 +1285,29 @@ export default function MessagesPage() {
                                 >
                                   {formatPhoneDisplay(t.peer)}
                                 </span>
-                                <span
-                                  className={cn(
-                                    "text-[10px]",
-                                    isSelected ? "text-white/80" : "text-muted-foreground",
-                                  )}
-                                >
-                                  {fmtTimeOnly(t.last.created_at)}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className={cn(
+                                      "text-[10px]",
+                                      isSelected ? "text-white/80" : "text-muted-foreground",
+                                    )}
+                                  >
+                                    {fmtTimeOnly(t.last.created_at)}
+                                  </span>
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDeleteConversation(t.peer);
+                                    }}
+                                    className={cn(
+                                      "opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity hover:text-destructive cursor-pointer",
+                                      isSelected ? "text-white/80" : "text-muted-foreground",
+                                    )}
+                                    title="Delete conversation"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </span>
+                                </div>
                               </div>
 
                               <div className="flex items-center gap-1.5">
@@ -1354,23 +1407,36 @@ export default function MessagesPage() {
                           </div>
                         </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const lastMsg = conversation[conversation.length - 1];
-                            if (lastMsg) {
-                              setForwardTargetMsg(lastMsg);
-                              setForwardFromNumber(mine(lastMsg) || from);
-                              setManualRecipients([]);
-                              setManualInput("");
-                            }
-                          }}
-                          className="h-8 gap-1.5 text-xs"
-                        >
-                          <Forward className="h-3.5 w-3.5" />
-                          <span>Forward Message</span>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const lastMsg = conversation[conversation.length - 1];
+                              if (lastMsg) {
+                                setForwardTargetMsg(lastMsg);
+                                setForwardFromNumber(mine(lastMsg) || from);
+                                setManualRecipients([]);
+                                setManualInput("");
+                              }
+                            }}
+                            className="h-8 gap-1.5 text-xs"
+                          >
+                            <Forward className="h-3.5 w-3.5" />
+                            <span>Forward</span>
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDeleteConversation(active)}
+                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title="Delete entire conversation thread"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Delete Thread</span>
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Chat Messages Feed with Sleek Scrollbar */}
@@ -1387,21 +1453,31 @@ export default function MessagesPage() {
                                 m.direction === "outbound" ? "justify-end" : "justify-start",
                               )}
                             >
-                              {/* Left forward action for outbound messages */}
+                              {/* Left actions for outbound messages */}
                               {m.direction === "outbound" && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setForwardTargetMsg(m);
-                                    setForwardFromNumber(mine(m) || from);
-                                    setManualRecipients([]);
-                                    setManualInput("");
-                                  }}
-                                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-foreground transition-opacity"
-                                  title="Forward message"
-                                >
-                                  <Forward className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setForwardTargetMsg(m);
+                                      setForwardFromNumber(mine(m) || from);
+                                      setManualRecipients([]);
+                                      setManualInput("");
+                                    }}
+                                    className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                                    title="Forward message"
+                                  >
+                                    <Forward className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onDeleteMessage(m.id)}
+                                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                                    title="Delete message"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               )}
 
                               <div
@@ -1466,21 +1542,31 @@ export default function MessagesPage() {
                                 </div>
                               </div>
 
-                              {/* Right forward action for inbound messages */}
+                              {/* Right actions for inbound messages */}
                               {m.direction === "inbound" && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setForwardTargetMsg(m);
-                                    setForwardFromNumber(mine(m) || from);
-                                    setManualRecipients([]);
-                                    setManualInput("");
-                                  }}
-                                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-foreground transition-opacity"
-                                  title="Forward message"
-                                >
-                                  <Forward className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setForwardTargetMsg(m);
+                                      setForwardFromNumber(mine(m) || from);
+                                      setManualRecipients([]);
+                                      setManualInput("");
+                                    }}
+                                    className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                                    title="Forward message"
+                                  >
+                                    <Forward className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onDeleteMessage(m.id)}
+                                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                                    title="Delete message"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               )}
                             </div>
                           );
