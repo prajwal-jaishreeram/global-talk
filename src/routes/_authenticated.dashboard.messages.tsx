@@ -22,7 +22,9 @@ import {
   Smartphone,
   Edit2,
   RefreshCw,
-  SlidersHorizontal,
+  Users,
+  Filter,
+  Tag,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
@@ -35,12 +37,13 @@ import {
   sendTestForwardingSms,
   type ForwardRecipient,
   type ForwardMode,
+  type RecipientMessageType,
 } from "@/lib/telnyx.functions";
 import {
   parseForwardConfig,
-  parseForwardRecipients,
   extractOtpCode,
   normalizeE164,
+  DEFAULT_GROUPS,
 } from "@/lib/forwarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +120,13 @@ function formatPhoneDisplay(num: string) {
   return num;
 }
 
+const MESSAGE_TYPE_LABELS: Record<RecipientMessageType, string> = {
+  all: "All (Send & Receive)",
+  inbound: "Inbound & OTPs Only",
+  outbound: "Sent Copies Only",
+  otp_only: "OTPs & Codes Only",
+};
+
 export default function MessagesPage() {
   const { user } = useAuthState();
   const fetchMsgs = useServerFn(listMyMessages);
@@ -162,12 +172,22 @@ export default function MessagesPage() {
   );
 
   const [recipients, setRecipients] = useState<ForwardRecipient[]>([]);
+  const [groups, setGroups] = useState<string[]>([...DEFAULT_GROUPS]);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
   const [forwardMode, setForwardMode] = useState<ForwardMode>("both");
-  const [newNumberPhone, setNewNumberPhone] = useState("");
-  const [newNumberName, setNewNumberName] = useState("");
   const [forwardEnabledInput, setForwardEnabledInput] = useState(false);
   const [savingForward, setSavingForward] = useState(false);
   const [testingForward, setTestingForward] = useState(false);
+
+  // Form state to add new recipient
+  const [newNumberPhone, setNewNumberPhone] = useState("");
+  const [newNumberName, setNewNumberName] = useState("");
+  const [newNumberGroup, setNewNumberGroup] = useState("Personal");
+  const [newNumberMessageType, setNewNumberMessageType] = useState<RecipientMessageType>("all");
+
+  // Create custom group modal
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [newGroupNameInput, setNewGroupNameInput] = useState("");
 
   // Inline recipient rename state
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -198,6 +218,7 @@ export default function MessagesPage() {
       if (currentNum) {
         const config = parseForwardConfig(currentNum.forward_to_number);
         setRecipients(config.recipients);
+        setGroups(config.groups);
         setForwardMode(config.mode);
         setForwardEnabledInput(Boolean(currentNum.forward_sms_enabled));
       }
@@ -219,6 +240,7 @@ export default function MessagesPage() {
     if (selected) {
       const config = parseForwardConfig(selected.forward_to_number);
       setRecipients(config.recipients);
+      setGroups(config.groups);
       setForwardMode(config.mode);
       setForwardEnabledInput(Boolean(selected.forward_sms_enabled));
       setNewNumberPhone("");
@@ -258,13 +280,11 @@ export default function MessagesPage() {
   const threads = useMemo(() => {
     const map = new Map<string, { peer: string; mine: string; last: Msg; unread: number; count: number }>();
     for (const m of msgs) {
-      // Filter tab checks
       if (conversationFilter === "inbound" && m.direction !== "inbound") continue;
       if (conversationFilter === "forwarded" && m.status !== "forwarded") continue;
 
       const p = peer(m);
 
-      // Search query check
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesPeer = p.toLowerCase().includes(q);
@@ -309,6 +329,12 @@ export default function MessagesPage() {
     return msgs.filter((m) => m.status === "forwarded").length;
   }, [msgs]);
 
+  // Filtered recipients by group
+  const filteredRecipients = useMemo(() => {
+    if (selectedGroupFilter === "all") return recipients;
+    return recipients.filter((r) => (r.group || "Personal") === selectedGroupFilter);
+  }, [recipients, selectedGroupFilter]);
+
   async function onSend() {
     if (!draft.trim() || !active || !from) return;
     setSending(true);
@@ -351,11 +377,12 @@ export default function MessagesPage() {
     }
   }
 
-  // Real-time persistence helper that saves recipients + mode + enabled status immediately
+  // Real-time persistence helper that saves recipients + groups + mode immediately
   async function persistForwarding(
     recipientsToSave: ForwardRecipient[],
     enabledToSave: boolean,
     modeToSave: ForwardMode = forwardMode,
+    groupsToSave: string[] = groups,
     customSuccessMsg?: string,
   ) {
     if (!activeNumberObj) return;
@@ -365,6 +392,7 @@ export default function MessagesPage() {
         data: {
           id: activeNumberObj.id,
           recipients: recipientsToSave,
+          groups: groupsToSave,
           mode: modeToSave,
           forward_sms_enabled: enabledToSave,
         },
@@ -372,6 +400,7 @@ export default function MessagesPage() {
 
       const updatedConfig = parseForwardConfig(res.forward_to_number);
       setRecipients(updatedConfig.recipients);
+      setGroups(updatedConfig.groups);
       setForwardMode(updatedConfig.mode);
       setForwardEnabledInput(res.forward_sms_enabled);
 
@@ -387,12 +416,7 @@ export default function MessagesPage() {
         ),
       );
 
-      toast.success(
-        customSuccessMsg ??
-          (enabledToSave && updatedConfig.recipients.length > 0
-            ? `Saved! Forwarding active for ${updatedConfig.recipients.length} number${updatedConfig.recipients.length > 1 ? "s" : ""} (${modeToSave === "both" ? "Send & Receive" : "Receive Only"}).`
-            : "Forwarding disabled"),
-      );
+      if (customSuccessMsg) toast.success(customSuccessMsg);
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to save forwarding settings");
     } finally {
@@ -424,6 +448,9 @@ export default function MessagesPage() {
       {
         number: normalized,
         name: newNumberName.trim(),
+        group: newNumberGroup || "Personal",
+        messageType: newNumberMessageType,
+        enabled: true,
       },
     ];
 
@@ -434,11 +461,12 @@ export default function MessagesPage() {
       nextRecipients,
       true,
       forwardMode,
-      `Added and saved ${normalized}${newNumberName.trim() ? ` (${newNumberName.trim()})` : ""}! Auto-forwarding active.`,
+      groups,
+      `Added and saved ${normalized}! Auto-forwarding active.`,
     );
   }
 
-  // Remove recipient saves immediately
+  // Remove recipient saves immediately without error
   async function removeRecipient(index: number) {
     const target = recipients[index];
     const nextRecipients = recipients.filter((_, i) => i !== index);
@@ -446,7 +474,50 @@ export default function MessagesPage() {
       nextRecipients,
       nextRecipients.length > 0 ? forwardEnabledInput : false,
       forwardMode,
+      groups,
       `Removed ${target?.name ? `${target.name} (${target.number})` : target?.number}.`,
+    );
+  }
+
+  // Toggle recipient enabled/disabled individually
+  async function toggleRecipientEnabled(index: number, newEnabled: boolean) {
+    const nextRecipients = recipients.map((r, i) =>
+      i === index ? { ...r, enabled: newEnabled } : r,
+    );
+    await persistForwarding(
+      nextRecipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `Recipient ${newEnabled ? "enabled" : "paused"}.`,
+    );
+  }
+
+  // Update recipient messageType rule (all | inbound | outbound | otp_only)
+  async function updateRecipientMessageType(index: number, newType: RecipientMessageType) {
+    const nextRecipients = recipients.map((r, i) =>
+      i === index ? { ...r, messageType: newType } : r,
+    );
+    await persistForwarding(
+      nextRecipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `Routing rule set to "${MESSAGE_TYPE_LABELS[newType]}".`,
+    );
+  }
+
+  // Update recipient group
+  async function updateRecipientGroup(index: number, newGroup: string) {
+    const nextRecipients = recipients.map((r, i) =>
+      i === index ? { ...r, group: newGroup } : r,
+    );
+    await persistForwarding(
+      nextRecipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `Moved to group "${newGroup}".`,
     );
   }
 
@@ -458,7 +529,7 @@ export default function MessagesPage() {
     );
     setEditingIndex(null);
     setEditingNameValue("");
-    await persistForwarding(nextRecipients, forwardEnabledInput, forwardMode, "Recipient name updated!");
+    await persistForwarding(nextRecipients, forwardEnabledInput, forwardMode, groups, "Recipient name updated!");
   }
 
   // Toggle master switch saves immediately
@@ -475,6 +546,9 @@ export default function MessagesPage() {
         nextRecipients.push({
           number: normalized,
           name: newNumberName.trim(),
+          group: newNumberGroup || "Personal",
+          messageType: newNumberMessageType,
+          enabled: true,
         });
         setNewNumberPhone("");
         setNewNumberName("");
@@ -482,13 +556,48 @@ export default function MessagesPage() {
     }
 
     setForwardEnabledInput(enabled);
-    await persistForwarding(nextRecipients, enabled, forwardMode);
+    await persistForwarding(nextRecipients, enabled, forwardMode, groups);
   }
 
   // Toggle forwarding mode (both vs receive)
   async function handleModeChange(newMode: ForwardMode) {
     setForwardMode(newMode);
-    await persistForwarding(recipients, forwardEnabledInput, newMode, `Forwarding scope updated to: ${newMode === "both" ? "Send & Receive" : "Receive Only"}`);
+    await persistForwarding(
+      recipients,
+      forwardEnabledInput,
+      newMode,
+      groups,
+      `Forwarding scope: ${newMode === "both" ? "Send & Receive" : "Receive Only"}`,
+    );
+  }
+
+  // Add a new custom group
+  async function addCustomGroup() {
+    const name = newGroupNameInput.trim();
+    if (!name) return;
+    if (groups.includes(name)) {
+      toast.info("Group already exists.");
+      return;
+    }
+    const nextGroups = [...groups, name];
+    setGroups(nextGroups);
+    setNewGroupNameInput("");
+    setIsCreateGroupOpen(false);
+    await persistForwarding(recipients, forwardEnabledInput, forwardMode, nextGroups, `Group "${name}" created!`);
+  }
+
+  // Toggle all numbers in a specific group
+  async function toggleGroupAll(groupName: string, enable: boolean) {
+    const nextRecipients = recipients.map((r) =>
+      (r.group || "Personal") === groupName ? { ...r, enabled: enable } : r,
+    );
+    await persistForwarding(
+      nextRecipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `All numbers in group "${groupName}" ${enable ? "enabled" : "paused"}.`,
+    );
   }
 
   // 1-Click Send Live Carrier Test SMS
@@ -585,7 +694,7 @@ export default function MessagesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Messages</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">Messages</h1>
             {activeNumberObj?.forward_sms_enabled && recipients.length > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -594,7 +703,7 @@ export default function MessagesPage() {
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Two-way SMS messaging, instant OTP copy, and real-time mobile forwarding.
+            Two-way SMS messaging, instant OTP copy, and real-time mobile forwarding with custom routing rules.
           </p>
         </div>
 
@@ -607,7 +716,7 @@ export default function MessagesPage() {
                   Active Virtual Number
                 </span>
                 <Select value={from} onValueChange={handleSenderChange}>
-                  <SelectTrigger className="h-7 border-0 p-0 font-mono text-xs font-semibold focus:ring-0 shadow-none">
+                  <SelectTrigger className="h-7 border-0 p-0 font-mono text-xs font-semibold focus:ring-0 shadow-none text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -627,7 +736,7 @@ export default function MessagesPage() {
       {nums.length === 0 && !loading && (
         <div className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center">
           <Phone className="mx-auto mb-3 h-10 w-10 text-muted-foreground/60" />
-          <h3 className="text-lg font-semibold">No Phone Number Purchased Yet</h3>
+          <h3 className="text-lg font-semibold text-foreground">No Phone Number Purchased Yet</h3>
           <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
             You need a virtual phone number to receive verification SMS, OTPs, and route automated forwarding to your personal mobile.
           </p>
@@ -673,7 +782,7 @@ export default function MessagesPage() {
                 )}
               >
                 <ArrowRightLeft className="h-4 w-4" />
-                <span>Auto-Forwarding Hub</span>
+                <span>Auto-Forwarding & Groups Hub</span>
                 {recipients.length > 0 && (
                   <span
                     className={cn(
@@ -689,7 +798,7 @@ export default function MessagesPage() {
               </button>
             </div>
 
-            {/* Clean Test button in top bar */}
+            {/* Test button in top bar */}
             {recipients.length > 0 && (
               <Button
                 variant="outline"
@@ -784,7 +893,7 @@ export default function MessagesPage() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Forward className="h-4 w-4 text-primary" />
-                          <h2 className="text-sm font-semibold">SMS & OTP Auto-Forwarding</h2>
+                          <h2 className="text-sm font-semibold text-foreground">SMS & OTP Auto-Forwarding</h2>
                           {forwardEnabledInput && recipients.length > 0 ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -814,7 +923,7 @@ export default function MessagesPage() {
                             onCheckedChange={handleToggleSwitch}
                             disabled={savingForward}
                           />
-                          <Label htmlFor="banner-toggle" className="text-xs font-medium cursor-pointer">
+                          <Label htmlFor="banner-toggle" className="text-xs font-medium cursor-pointer text-foreground">
                             {forwardEnabledInput ? "Enabled" : "Disabled"}
                           </Label>
                         </div>
@@ -831,7 +940,7 @@ export default function MessagesPage() {
                       </div>
                     </div>
 
-                    {/* Mode Toggle: Send & Receive vs Receive Only */}
+                    {/* Scope Selector: Both Send & Receive vs Receive Only */}
                     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/30 p-2.5 px-3 border border-border/50 text-xs">
                       <span className="font-medium text-foreground">
                         Forwarding Scope:
@@ -864,23 +973,49 @@ export default function MessagesPage() {
                       </div>
                     </div>
 
-                    {/* List of configured recipient chips */}
+                    {/* List of configured recipient chips with individual toggle */}
                     {recipients.length > 0 && (
                       <div className="space-y-1.5">
                         <span className="text-[11px] uppercase font-semibold text-muted-foreground tracking-wider block">
-                          Current Forwarding Recipients ({recipients.length})
+                          Current Recipients ({recipients.length})
                         </span>
                         <div className="flex flex-wrap items-center gap-2">
                           {recipients.map((r, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs shadow-2xs"
-                            >
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              {r.name && (
-                                <span className="font-medium text-foreground">{r.name}:</span>
+                              className={cn(
+                                "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs shadow-2xs transition-colors",
+                                r.enabled !== false
+                                  ? "bg-background border-border text-foreground"
+                                  : "bg-muted/40 border-dashed border-border/60 text-muted-foreground opacity-60",
                               )}
-                              <span className="font-mono text-foreground/90">{r.number}</span>
+                            >
+                              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+                              <div className="flex items-center gap-1 min-w-0">
+                                {r.name && (
+                                  <span className="font-semibold text-foreground truncate max-w-[100px]">{r.name}</span>
+                                )}
+                                <span className="font-mono text-foreground/90">{formatPhoneDisplay(r.number)}</span>
+                              </div>
+
+                              {/* Rule tag */}
+                              <span className="rounded bg-muted px-1.5 py-0.2 text-[10px] text-muted-foreground">
+                                {r.messageType === "otp_only"
+                                  ? "OTPs"
+                                  : r.messageType === "outbound"
+                                    ? "Sent"
+                                    : r.messageType === "inbound"
+                                      ? "Inbound"
+                                      : "All"}
+                              </span>
+
+                              {/* Group badge */}
+                              {r.group && (
+                                <span className="rounded bg-primary/10 px-1.5 py-0.2 text-[10px] text-primary font-medium">
+                                  {r.group}
+                                </span>
+                              )}
+
                               <button
                                 type="button"
                                 onClick={() => removeRecipient(idx)}
@@ -921,7 +1056,7 @@ export default function MessagesPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <Input
                           placeholder="Phone number (e.g. +91 8605222604)"
                           value={newNumberPhone}
@@ -932,10 +1067,10 @@ export default function MessagesPage() {
                               addRecipient();
                             }
                           }}
-                          className="text-xs font-mono flex-1"
+                          className="text-xs font-mono sm:col-span-1"
                         />
                         <Input
-                          placeholder="Name / Label (e.g. Personal)"
+                          placeholder="Name (e.g. Personal)"
                           value={newNumberName}
                           onChange={(e) => setNewNumberName(e.target.value)}
                           onKeyDown={(e) => {
@@ -944,18 +1079,48 @@ export default function MessagesPage() {
                               addRecipient();
                             }
                           }}
-                          className="text-xs sm:w-44"
+                          className="text-xs sm:col-span-1"
                         />
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={addRecipient}
-                          disabled={!newNumberPhone.trim() || savingForward}
-                          className="text-xs gap-1 shrink-0"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          <span>Add Number</span>
-                        </Button>
+                        <Select value={newNumberGroup} onValueChange={setNewNumberGroup}>
+                          <SelectTrigger className="text-xs h-9">
+                            <SelectValue placeholder="Group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {groups.map((g) => (
+                              <SelectItem key={g} value={g} className="text-xs">
+                                Group: {g}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <div className="flex gap-2">
+                          <Select
+                            value={newNumberMessageType}
+                            onValueChange={(val: any) => setNewNumberMessageType(val)}
+                          >
+                            <SelectTrigger className="text-xs h-9 flex-1">
+                              <SelectValue placeholder="Forward Rule" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all" className="text-xs">All Messages (Both)</SelectItem>
+                              <SelectItem value="inbound" className="text-xs">Inbound & OTPs Only</SelectItem>
+                              <SelectItem value="outbound" className="text-xs">Sent Messages Only</SelectItem>
+                              <SelectItem value="otp_only" className="text-xs">OTPs Only</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={addRecipient}
+                            disabled={!newNumberPhone.trim() || savingForward}
+                            className="text-xs gap-1 shrink-0 h-9 px-3"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            <span>Add</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1050,7 +1215,7 @@ export default function MessagesPage() {
                       <Inbox className="mx-auto mb-2 h-7 w-7 opacity-40" />
                       <p className="font-medium text-xs text-foreground">No conversations found</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {searchQuery ? "Try another search term" : "Click '+ New Message' to start an SMS conversation."}
+                        {searchQuery ? "Try another search term" : "Click '+ New Message' to start texting."}
                       </p>
                     </div>
                   ) : (
@@ -1098,7 +1263,7 @@ export default function MessagesPage() {
                                     "line-clamp-1 flex-1 font-normal",
                                     isSelected
                                       ? "text-white/95"
-                                      : "text-foreground/80 dark:text-neutral-200",
+                                      : "text-foreground/85 dark:text-neutral-200",
                                   )}
                                 >
                                   {t.last.direction === "outbound" ? (
@@ -1353,10 +1518,10 @@ export default function MessagesPage() {
             </div>
           )}
 
-          {/* TAB 2: AUTO-FORWARDING HUB */}
+          {/* TAB 2: AUTO-FORWARDING & GROUPS HUB */}
           {activeTab === "forwarding" && (
             <div className="space-y-6">
-              {/* Master Status Card */}
+              {/* Master Status Hero Card */}
               <div className="rounded-2xl border border-border bg-card p-6 shadow-xs">
                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                   <div className="space-y-2 max-w-2xl">
@@ -1365,7 +1530,7 @@ export default function MessagesPage() {
                         <ArrowRightLeft className="h-4 w-4" />
                       </div>
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
-                        Auto-Forwarding Hub
+                        Auto-Forwarding & Groups Hub
                       </h2>
                       {forwardEnabledInput && recipients.length > 0 ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -1374,14 +1539,12 @@ export default function MessagesPage() {
                         </span>
                       ) : (
                         <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                          Disabled
+                          Forwarding Disabled
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Automatically route all verification codes, OTPs, and SMS messages arriving on your Ringringa number (
-                      <span className="font-mono font-semibold text-foreground">{from}</span>
-                      ) to your mobile devices worldwide.
+                      Create groups, configure custom routing rules per recipient, and decide exactly which phone numbers receive incoming OTPs, incoming SMS, or outgoing sent copies.
                     </p>
                   </div>
 
@@ -1394,7 +1557,7 @@ export default function MessagesPage() {
                         onCheckedChange={handleToggleSwitch}
                         disabled={savingForward}
                       />
-                      <Label htmlFor="hub-master-switch" className="text-xs font-semibold cursor-pointer">
+                      <Label htmlFor="hub-master-switch" className="text-xs font-semibold cursor-pointer text-foreground">
                         {forwardEnabledInput ? "Forwarding ON" : "Forwarding OFF"}
                       </Label>
                     </div>
@@ -1419,9 +1582,9 @@ export default function MessagesPage() {
                 {/* Scope selector: Both Send & Receive vs Receive Only */}
                 <div className="mt-5 border-t border-border/60 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div>
-                    <span className="font-semibold text-foreground">Forwarding Scope:</span>
+                    <span className="font-semibold text-foreground">Master Forwarding Scope:</span>
                     <p className="text-muted-foreground text-[11px]">
-                      Choose whether to forward both sent & received SMS, or only received inbound OTPs.
+                      Global setting for this virtual number. Individual recipient rules apply underneath.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1465,8 +1628,8 @@ export default function MessagesPage() {
                   <div className="flex items-center gap-3 rounded-xl bg-background/60 p-3 border border-border/40">
                     <ShieldCheck className="h-5 w-5 text-emerald-500" />
                     <div>
-                      <span className="text-[10px] uppercase font-semibold text-muted-foreground">Carrier Routing</span>
-                      <p className="text-xs font-semibold text-foreground">Direct Carrier Delivery</p>
+                      <span className="text-[10px] uppercase font-semibold text-muted-foreground">Routing Precision</span>
+                      <p className="text-xs font-semibold text-foreground">Custom Per-Recipient Filters</p>
                     </div>
                   </div>
 
@@ -1480,36 +1643,128 @@ export default function MessagesPage() {
                 </div>
               </div>
 
+              {/* Groups Management Bar */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Filter by Group</h3>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCreateGroupOpen(true)}
+                    className="h-8 text-xs gap-1"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Create New Group</span>
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGroupFilter("all")}
+                    className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors border",
+                      selectedGroupFilter === "all"
+                        ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
+                        : "bg-background text-muted-foreground border-border hover:text-foreground",
+                    )}
+                  >
+                    All Groups ({recipients.length})
+                  </button>
+
+                  {groups.map((g) => {
+                    const count = recipients.filter((r) => (r.group || "Personal") === g).length;
+                    const isSelected = selectedGroupFilter === g;
+
+                    return (
+                      <div key={g} className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedGroupFilter(g)}
+                          className={cn(
+                            "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors border",
+                            isSelected
+                              ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
+                              : "bg-background text-muted-foreground border-border hover:text-foreground",
+                          )}
+                        >
+                          {g} ({count})
+                        </button>
+
+                        {isSelected && count > 0 && (
+                          <div className="flex items-center gap-1 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleGroupAll(g, true)}
+                              className="text-[10px] bg-muted px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+                              title="Enable all numbers in this group"
+                            >
+                              Enable All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleGroupAll(g, false)}
+                              className="text-[10px] bg-muted px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+                              title="Pause all numbers in this group"
+                            >
+                              Pause All
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Forwarding Recipients Management */}
               <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
                   <div>
-                    <h3 className="text-base font-semibold text-foreground">Configured Recipient Numbers</h3>
+                    <h3 className="text-base font-semibold text-foreground">
+                      {selectedGroupFilter === "all"
+                        ? `Configured Recipients (${recipients.length})`
+                        : `Group "${selectedGroupFilter}" (${filteredRecipients.length})`}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
-                      Add friendly names (e.g. "Personal Phone", "Rahul SIM") and numbers. Changes save instantly in real-time.
+                      Customize what messages each phone receives: All, Inbound OTPs, or Sent copies.
                     </p>
                   </div>
                   <span className="text-xs font-medium text-muted-foreground">
-                    {recipients.length} {recipients.length === 1 ? "Recipient" : "Recipients"}
+                    {filteredRecipients.length} {filteredRecipients.length === 1 ? "Recipient" : "Recipients"}
                   </span>
                 </div>
 
                 {/* Recipients List Cards */}
-                {recipients.length === 0 ? (
+                {filteredRecipients.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
                     <Phone className="mx-auto mb-2 h-7 w-7 text-muted-foreground/40" />
-                    <p className="font-semibold text-foreground">No forwarding numbers added yet</p>
-                    <p className="mt-0.5">Add your mobile number below to start receiving auto-forwarded SMS & OTPs.</p>
+                    <p className="font-semibold text-foreground">No recipients found</p>
+                    <p className="mt-0.5">
+                      {selectedGroupFilter === "all"
+                        ? "Add your mobile numbers below to configure automated forwarding."
+                        : `No numbers in group "${selectedGroupFilter}". Add one below.`}
+                    </p>
                   </div>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {recipients.map((r, idx) => {
+                  <div className="grid gap-3.5 sm:grid-cols-2">
+                    {filteredRecipients.map((r) => {
+                      const idx = recipients.findIndex((item) => item.number === r.number);
                       const isEditing = editingIndex === idx;
 
                       return (
                         <div
-                          key={idx}
-                          className="flex flex-col justify-between gap-3 rounded-xl border border-border/80 bg-background p-4 shadow-2xs hover:border-primary/40 transition-colors"
+                          key={r.number}
+                          className={cn(
+                            "flex flex-col justify-between gap-3.5 rounded-xl border p-4 shadow-2xs transition-all",
+                            r.enabled !== false
+                              ? "border-border/80 bg-background hover:border-primary/40"
+                              : "border-border/50 bg-muted/20 opacity-70",
+                          )}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -1523,7 +1778,7 @@ export default function MessagesPage() {
                                     <Input
                                       value={editingNameValue}
                                       onChange={(e) => setEditingNameValue(e.target.value)}
-                                      placeholder="Nickname (e.g. Personal)"
+                                      placeholder="Nickname"
                                       className="h-7 text-xs w-36"
                                       autoFocus
                                       onKeyDown={(e) => {
@@ -1573,24 +1828,84 @@ export default function MessagesPage() {
                               </div>
                             </div>
 
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={savingForward}
-                              onClick={() => removeRecipient(idx)}
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                              title="Remove recipient"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              {/* Individual Enable / Pause switch */}
+                              <div className="flex items-center gap-1.5" title={r.enabled !== false ? "Pause this number" : "Enable this number"}>
+                                <Switch
+                                  checked={r.enabled !== false}
+                                  onCheckedChange={(val) => toggleRecipientEnabled(idx, val)}
+                                  disabled={savingForward}
+                                  className="scale-75"
+                                />
+                              </div>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={savingForward}
+                                onClick={() => removeRecipient(idx)}
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                title="Remove recipient"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                          {/* Granular Routing & Group Controls */}
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50 text-xs">
+                            <div className="space-y-1">
+                              <span className="text-[10px] uppercase font-semibold text-muted-foreground block">
+                                Forward Rule
+                              </span>
+                              <Select
+                                value={r.messageType || "all"}
+                                onValueChange={(val: any) => updateRecipientMessageType(idx, val)}
+                                disabled={savingForward}
+                              >
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all" className="text-xs">All Messages (Both)</SelectItem>
+                                  <SelectItem value="inbound" className="text-xs">Inbound & OTPs Only</SelectItem>
+                                  <SelectItem value="outbound" className="text-xs">Sent Messages Only</SelectItem>
+                                  <SelectItem value="otp_only" className="text-xs">OTPs Only</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <span className="text-[10px] uppercase font-semibold text-muted-foreground block">
+                                Group
+                              </span>
+                              <Select
+                                value={r.group || "Personal"}
+                                onValueChange={(val) => updateRecipientGroup(idx, val)}
+                                disabled={savingForward}
+                              >
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {groups.map((g) => (
+                                    <SelectItem key={g} value={g} className="text-xs">
+                                      {g}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/30">
                             <span>
                               {r.number.startsWith("+91") ? "India (+91)" : r.number.startsWith("+1") ? "North America (+1)" : "International"}
                             </span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Ready</span>
+                            <span className={r.enabled !== false ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-muted-foreground"}>
+                              {r.enabled !== false ? "Active" : "Paused"}
+                            </span>
                           </div>
                         </div>
                       );
@@ -1625,27 +1940,14 @@ export default function MessagesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div className="space-y-1">
-                      <Label htmlFor="recipient-name" className="text-[11px] text-muted-foreground">
-                        Label / Nickname (Optional)
+                      <Label htmlFor="hub-recipient-phone" className="text-[11px] text-muted-foreground">
+                        Phone Number *
                       </Label>
                       <Input
-                        id="recipient-name"
-                        placeholder="e.g. Personal Mobile, Rahul SIM, Work WhatsApp"
-                        value={newNumberName}
-                        onChange={(e) => setNewNumberName(e.target.value)}
-                        className="text-xs"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="recipient-phone" className="text-[11px] text-muted-foreground">
-                        Mobile Phone Number *
-                      </Label>
-                      <Input
-                        id="recipient-phone"
-                        placeholder="e.g. +91 8605222604 or +1 415 555 2671"
+                        id="hub-recipient-phone"
+                        placeholder="e.g. +91 8605222604"
                         value={newNumberPhone}
                         onChange={(e) => setNewNumberPhone(e.target.value)}
                         onKeyDown={(e) => {
@@ -1657,11 +1959,68 @@ export default function MessagesPage() {
                         className="text-xs font-mono"
                       />
                     </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="hub-recipient-name" className="text-[11px] text-muted-foreground">
+                        Name / Label (Optional)
+                      </Label>
+                      <Input
+                        id="hub-recipient-name"
+                        placeholder="e.g. Personal Mobile"
+                        value={newNumberName}
+                        onChange={(e) => setNewNumberName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addRecipient();
+                          }
+                        }}
+                        className="text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">
+                        Assign to Group
+                      </Label>
+                      <Select value={newNumberGroup} onValueChange={setNewNumberGroup}>
+                        <SelectTrigger className="text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {groups.map((g) => (
+                            <SelectItem key={g} value={g} className="text-xs">
+                              {g}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">
+                        Messages to Forward
+                      </Label>
+                      <Select
+                        value={newNumberMessageType}
+                        onValueChange={(val: any) => setNewNumberMessageType(val)}
+                      >
+                        <SelectTrigger className="text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-xs">All Messages (Both)</SelectItem>
+                          <SelectItem value="inbound" className="text-xs">Inbound & OTPs Only</SelectItem>
+                          <SelectItem value="outbound" className="text-xs">Sent Messages Only</SelectItem>
+                          <SelectItem value="otp_only" className="text-xs">OTPs Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-[11px] text-muted-foreground">
-                      Saving adds the recipient and enables auto-forwarding for it immediately.
+                      Saving adds the recipient and immediately enables routing according to your chosen rule.
                     </p>
                     <Button
                       type="button"
@@ -1732,11 +2091,56 @@ export default function MessagesPage() {
         </div>
       )}
 
+      {/* Create New Group Modal */}
+      <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <Users className="h-5 w-5 text-primary" />
+              Create New Group
+            </DialogTitle>
+            <DialogDescription>
+              Create a named group (e.g. "Dev Team", "Accounting", "Emergency Alert SIMs") to organize your forwarding numbers.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="group-name-input" className="text-xs">
+                Group Name:
+              </Label>
+              <Input
+                id="group-name-input"
+                placeholder="e.g. Core Team or Banking OTPs"
+                value={newGroupNameInput}
+                onChange={(e) => setNewGroupNameInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomGroup();
+                  }
+                }}
+                className="text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsCreateGroupOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={addCustomGroup} disabled={!newGroupNameInput.trim()}>
+              Create Group
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Compose New Message Modal */}
       <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
               <MessageSquare className="h-5 w-5 text-primary" />
               New SMS Message
             </DialogTitle>
@@ -1748,7 +2152,7 @@ export default function MessagesPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs">From Virtual Number:</Label>
-              <div className="rounded-lg border border-border bg-muted/40 p-2.5 font-mono text-xs font-semibold">
+              <div className="rounded-lg border border-border bg-muted/40 p-2.5 font-mono text-xs font-semibold text-foreground">
                 {from}
               </div>
             </div>
@@ -1776,7 +2180,7 @@ export default function MessagesPage() {
                 placeholder="Type your SMS message here…"
                 value={composeBody}
                 onChange={(e) => setComposeBody(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
               />
             </div>
           </div>
@@ -1818,7 +2222,7 @@ export default function MessagesPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
               <Forward className="h-5 w-5 text-primary" />
               Forward Message
             </DialogTitle>

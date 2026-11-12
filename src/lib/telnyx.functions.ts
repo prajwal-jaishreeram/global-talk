@@ -1,10 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  type ForwardRecipient,
+  normalizeE164,
   parseForwardRecipients,
+  parseForwardConfig,
   serializeForwardRecipients,
   extractForwardPhoneNumbers,
+  getRecipientsForEvent,
+  type ForwardRecipient,
+  type ForwardConfig,
+  type ForwardMode,
+  type RecipientMessageType,
+  DEFAULT_GROUPS,
 } from "@/lib/forwarding";
 
 export const getTelnyxWebrtcCredentials = createServerFn({ method: "POST" })
@@ -283,10 +290,13 @@ export {
   parseForwardConfig,
   serializeForwardRecipients,
   extractForwardPhoneNumbers,
+  getRecipientsForEvent,
   type ForwardRecipient,
   type ForwardConfig,
   type ForwardMode,
-} from "@/lib/forwarding";
+  type RecipientMessageType,
+  DEFAULT_GROUPS,
+};
 
 export function parseAndNormalizePhoneList(input: unknown): string[] {
   return extractForwardPhoneNumbers(input as string);
@@ -299,7 +309,14 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       id: string;
       forward_to_number?: string | null;
       forward_to_numbers?: string[];
-      recipients?: Array<{ number: string; name?: string }>;
+      recipients?: Array<{
+        number: string;
+        name?: string;
+        group?: string;
+        messageType?: RecipientMessageType;
+        enabled?: boolean;
+      }>;
+      groups?: string[];
       mode?: "both" | "receive";
       forward_sms_enabled: boolean;
     }) => input,
@@ -313,11 +330,17 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       targetRecipients = data.recipients.map((r) => ({
         number: normalizeE164(r.number),
         name: (r.name || "").trim(),
+        group: (r.group || "Personal").trim(),
+        messageType: r.messageType ?? "all",
+        enabled: r.enabled !== false,
       }));
     } else if (Array.isArray(data.forward_to_numbers)) {
       targetRecipients = data.forward_to_numbers.map((n) => ({
         number: normalizeE164(n),
         name: "",
+        group: "Personal",
+        messageType: "all",
+        enabled: true,
       }));
     } else if (data.forward_to_number && data.forward_to_number.trim()) {
       targetRecipients = parseForwardRecipients(data.forward_to_number);
@@ -345,7 +368,7 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
     }
 
     const forwardMode = data.mode ?? "both";
-    const serialized = serializeForwardRecipients(normalizedRecipients, forwardMode);
+    const serialized = serializeForwardRecipients(normalizedRecipients, forwardMode, data.groups);
 
     const { error } = await supabase
       .from("phone_numbers")
@@ -358,11 +381,15 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       .eq("user_id", userId);
 
     if (error) throw new Error(error.message);
+
+    const parsedConfig = parseForwardConfig(serialized);
+
     return {
       ok: true,
       forward_to_number: serialized,
-      recipients: normalizedRecipients,
-      forward_to_numbers: normalizedRecipients.map((r) => r.number),
+      recipients: parsedConfig.recipients,
+      groups: parsedConfig.groups,
+      forward_to_numbers: parsedConfig.recipients.map((r) => r.number),
       mode: forwardMode,
       forward_sms_enabled: data.forward_sms_enabled,
     };
@@ -650,56 +677,58 @@ export const sendSms = createServerFn({ method: "POST" })
       telnyx_message_id: json.data?.id ?? null,
     });
 
-    // If auto-forwarding is enabled and configured for "both" send & receive, forward outgoing copy
+    // If auto-forwarding is enabled, forward outgoing copy to recipients configured for outbound/all
     if (own.forward_sms_enabled && own.forward_to_number) {
       try {
         const config = parseForwardConfig(own.forward_to_number);
-        if (config.mode === "both" && config.recipients.length > 0) {
-          const fwdText = `[Sent to ${data.to}]: ${data.body}`;
-          await Promise.allSettled(
-            config.recipients.map(async (r) => {
-              const target = r.number;
-              const fwdSender = target.startsWith("+91") ? "Ringringa" : data.from;
-              let fwdRes = await fetch(`${TELNYX_BASE}/messages`, {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${telnyxKey()}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  from: fwdSender,
-                  to: target,
-                  text: fwdText,
-                  messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
-                }),
-              });
-              if (!fwdRes.ok && fwdSender !== "Ringringa") {
-                fwdRes = await fetch(`${TELNYX_BASE}/messages`, {
+        if (config.mode === "both") {
+          const targets = getRecipientsForEvent(own.forward_to_number, "outbound", false);
+          if (targets.length > 0) {
+            const fwdText = `[Sent to ${data.to}]: ${data.body}`;
+            await Promise.allSettled(
+              targets.map(async (target) => {
+                const fwdSender = target.startsWith("+91") ? "Ringringa" : data.from;
+                let fwdRes = await fetch(`${TELNYX_BASE}/messages`, {
                   method: "POST",
                   headers: {
                     Authorization: `Bearer ${telnyxKey()}`,
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    from: "Ringringa",
+                    from: fwdSender,
                     to: target,
                     text: fwdText,
                     messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
                   }),
                 });
-              }
-              const fwdJson = (await fwdRes.json()) as { data?: { id?: string } };
-              await supabase.from("messages").insert({
-                user_id: userId,
-                from_number: data.from,
-                to_number: target,
-                body: fwdText,
-                direction: "outbound",
-                status: "forwarded",
-                telnyx_message_id: fwdJson?.data?.id ?? null,
-              });
-            }),
-          );
+                if (!fwdRes.ok && fwdSender !== "Ringringa") {
+                  fwdRes = await fetch(`${TELNYX_BASE}/messages`, {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${telnyxKey()}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      from: "Ringringa",
+                      to: target,
+                      text: fwdText,
+                      messaging_profile_id: "4001a146-07f5-42a5-886b-50ca50fe578b",
+                    }),
+                  });
+                }
+                const fwdJson = (await fwdRes.json()) as { data?: { id?: string } };
+                await supabase.from("messages").insert({
+                  user_id: userId,
+                  from_number: data.from,
+                  to_number: target,
+                  body: fwdText,
+                  direction: "outbound",
+                  status: "forwarded",
+                  telnyx_message_id: fwdJson?.data?.id ?? null,
+                });
+              }),
+            );
+          }
         }
       } catch (fwdErr) {
         console.error("Failed to forward outgoing SMS copy:", fwdErr);

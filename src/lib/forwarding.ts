@@ -1,22 +1,32 @@
+export type RecipientMessageType = "all" | "inbound" | "outbound" | "otp_only";
+
 export type ForwardRecipient = {
   number: string;
   name?: string;
+  group?: string; // e.g. "Personal", "Core Team", "OTP Alerts"
+  messageType?: RecipientMessageType; // "all" (default) | "inbound" | "outbound" | "otp_only"
+  enabled?: boolean; // true by default
 };
 
 export type ForwardMode = "both" | "receive";
 
 export type ForwardConfig = {
   recipients: ForwardRecipient[];
-  mode: ForwardMode; // "both" = Send and Receive SMS, "receive" = Receive SMS only
+  groups: string[];
+  mode: ForwardMode;
 };
+
+export const DEFAULT_GROUPS = ["Personal", "Team", "Alerts"];
 
 /**
  * Normalizes phone numbers to standard E.164 (+1234567890).
  * Handles Indian numbers (10 digits starting with 6-9) and US/Canada numbers automatically.
  */
 export function normalizeE164(input: string): string {
-  const trimmed = input.trim();
+  if (!input) return "";
+  const trimmed = String(input).trim();
   const digits = trimmed.replace(/\D/g, "");
+  if (!digits) return "";
   if (trimmed.startsWith("+")) return `+${digits}`;
   // 10 digits starting with 6,7,8,9 (India) without +
   if (digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`;
@@ -28,21 +38,19 @@ export function normalizeE164(input: string): string {
 
 /**
  * Parses a forward_to_number database field into a structured list of ForwardRecipient.
- * Supports:
- * - JSON config object: `{"recipients":[{"number":"+91...","name":"Personal"}],"mode":"both"}`
- * - JSON array: `[{"number":"+91...","name":"Personal"}]`
- * - Legacy comma-separated strings: `+918605222604, +918905020697`
  */
 export function parseForwardRecipients(raw: string | null | undefined): ForwardRecipient[] {
   if (!raw || !raw.trim()) return [];
   const trimmed = raw.trim();
 
-  // Try JSON object format { recipients: [...], mode: "both" }
+  // Try JSON object format { recipients: [...], groups: [...], mode: "both" }
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
     try {
       const obj = JSON.parse(trimmed);
       if (Array.isArray(obj.recipients)) {
-        return parseForwardRecipients(JSON.stringify(obj.recipients));
+        return obj.recipients
+          .map(normalizeRawRecipient)
+          .filter((item: ForwardRecipient | null): item is ForwardRecipient => Boolean(item && /^\+\d{7,16}$/.test(item.number)));
       }
     } catch {}
   }
@@ -53,21 +61,10 @@ export function parseForwardRecipients(raw: string | null | undefined): ForwardR
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
         return parsed
-          .filter((item) => item && (typeof item === "string" || typeof item.number === "string"))
-          .map((item) => {
-            if (typeof item === "string") {
-              return { number: normalizeE164(item), name: "" };
-            }
-            return {
-              number: normalizeE164(String(item.number || "")),
-              name: String(item.name || "").trim(),
-            };
-          })
-          .filter((item) => /^\+\d{7,16}$/.test(item.number));
+          .map(normalizeRawRecipient)
+          .filter((item: ForwardRecipient | null): item is ForwardRecipient => Boolean(item && /^\+\d{7,16}$/.test(item.number)));
       }
-    } catch {
-      // Fallback below
-    }
+    } catch {}
   }
 
   // Fallback to comma/semicolon/newline-separated strings
@@ -78,55 +75,126 @@ export function parseForwardRecipients(raw: string | null | undefined): ForwardR
     .map((num) => ({
       number: normalizeE164(num),
       name: "",
+      group: "Personal",
+      messageType: "all" as RecipientMessageType,
+      enabled: true,
     }))
     .filter((item) => /^\+\d{7,16}$/.test(item.number));
 }
 
+function normalizeRawRecipient(item: any): ForwardRecipient | null {
+  if (!item) return null;
+  if (typeof item === "string") {
+    const num = normalizeE164(item);
+    return num ? { number: num, name: "", group: "Personal", messageType: "all", enabled: true } : null;
+  }
+  const num = normalizeE164(String(item.number || ""));
+  if (!num) return null;
+  return {
+    number: num,
+    name: String(item.name || "").trim(),
+    group: String(item.group || "Personal").trim(),
+    messageType: (["all", "inbound", "outbound", "otp_only"].includes(item.messageType)
+      ? item.messageType
+      : "all") as RecipientMessageType,
+    enabled: item.enabled !== false,
+  };
+}
+
 /**
- * Parses full forwarding config including forward mode ("both" vs "receive").
+ * Parses full forwarding config including forward mode and custom groups.
  */
 export function parseForwardConfig(raw: string | null | undefined): ForwardConfig {
   if (!raw || !raw.trim()) {
-    return { recipients: [], mode: "both" };
+    return { recipients: [], groups: [...DEFAULT_GROUPS], mode: "both" };
   }
   const trimmed = raw.trim();
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
     try {
       const obj = JSON.parse(trimmed);
+      const parsedRecipients = parseForwardRecipients(JSON.stringify(obj.recipients || []));
+      const extractedGroups = Array.isArray(obj.groups) ? obj.groups.filter(Boolean) : [];
+      // Combine with groups found on recipients
+      const allGroups = Array.from(
+        new Set([...DEFAULT_GROUPS, ...extractedGroups, ...parsedRecipients.map((r) => r.group).filter(Boolean)]),
+      );
       return {
-        recipients: parseForwardRecipients(JSON.stringify(obj.recipients || [])),
+        recipients: parsedRecipients,
+        groups: allGroups as string[],
         mode: obj.mode === "receive" ? "receive" : "both",
       };
     } catch {}
   }
+
+  const recs = parseForwardRecipients(raw);
   return {
-    recipients: parseForwardRecipients(raw),
+    recipients: recs,
+    groups: [...DEFAULT_GROUPS],
     mode: "both",
   };
 }
 
 /**
- * Serializes ForwardRecipient array into a JSON string for storage in phone_numbers.forward_to_number.
+ * Serializes ForwardRecipient array and groups into a JSON string for storage in phone_numbers.forward_to_number.
  */
 export function serializeForwardRecipients(
   recipients: ForwardRecipient[],
   mode: ForwardMode = "both",
+  groups?: string[],
 ): string | null {
   if (!recipients || recipients.length === 0) return null;
+  const groupsList = groups && groups.length > 0 ? groups : Array.from(new Set(recipients.map((r) => r.group || "Personal")));
   return JSON.stringify({
     recipients: recipients.map((r) => ({
       number: normalizeE164(r.number),
       name: (r.name || "").trim(),
+      group: (r.group || "Personal").trim(),
+      messageType: r.messageType ?? "all",
+      enabled: r.enabled !== false,
     })),
+    groups: groupsList,
     mode,
   });
 }
 
 /**
- * Extracts pure phone number array for Telnyx SMS dispatching.
+ * Determines whether a specific recipient should receive a message based on their granular rule.
+ */
+export function shouldRecipientReceive(
+  recipient: ForwardRecipient,
+  direction: "inbound" | "outbound",
+  isOtp: boolean,
+): boolean {
+  if (recipient.enabled === false) return false;
+  const type = recipient.messageType ?? "all";
+  if (type === "all") return true;
+  if (type === "otp_only") return direction === "inbound" && isOtp;
+  if (type === "inbound") return direction === "inbound";
+  if (type === "outbound") return direction === "outbound";
+  return true;
+}
+
+/**
+ * Extracts phone numbers of active recipients that match the event (inbound/outbound/otp).
+ */
+export function getRecipientsForEvent(
+  raw: string | null | undefined,
+  direction: "inbound" | "outbound",
+  isOtp: boolean,
+): string[] {
+  const config = parseForwardConfig(raw);
+  return config.recipients
+    .filter((r) => shouldRecipientReceive(r, direction, isOtp))
+    .map((r) => r.number);
+}
+
+/**
+ * Extracts pure phone number array for Telnyx SMS dispatching (all enabled recipients).
  */
 export function extractForwardPhoneNumbers(raw: string | null | undefined): string[] {
-  return parseForwardRecipients(raw).map((r) => r.number);
+  return parseForwardRecipients(raw)
+    .filter((r) => r.enabled !== false)
+    .map((r) => r.number);
 }
 
 /**
