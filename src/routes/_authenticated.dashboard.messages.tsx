@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquare, Send, Inbox, Phone, ArrowLeft, Forward } from "lucide-react";
+import { MessageSquare, Send, Inbox, Phone, ArrowLeft, Forward, Check, Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/lib/auth-client";
 import {
@@ -9,10 +9,12 @@ import {
   listMyPhoneNumbers,
   sendSms,
   forwardSmsMessage,
+  updatePhoneNumberForwarding,
 } from "@/lib/telnyx.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -47,7 +49,12 @@ type Msg = {
   read_at: string | null;
 };
 
-type Owned = { id: string; phone_number: string };
+type Owned = {
+  id: string;
+  phone_number: string;
+  forward_to_number?: string | null;
+  forward_sms_enabled?: boolean;
+};
 
 function fmt(ts: string) {
   const d = new Date(ts);
@@ -68,6 +75,7 @@ export default function MessagesPage() {
   const fetchNums = useServerFn(listMyPhoneNumbers);
   const send = useServerFn(sendSms);
   const forwardFn = useServerFn(forwardSmsMessage);
+  const updateForwarding = useServerFn(updatePhoneNumberForwarding);
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [nums, setNums] = useState<Owned[]>([]);
@@ -77,7 +85,16 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Forwarding dialog state
+  // Forwarding settings card state
+  const activeNumberObj = useMemo(
+    () => nums.find((n) => n.phone_number === from) || nums[0],
+    [nums, from],
+  );
+  const [forwardNumberInput, setForwardNumberInput] = useState("");
+  const [forwardEnabledInput, setForwardEnabledInput] = useState(false);
+  const [savingForward, setSavingForward] = useState(false);
+
+  // Manual forwarding modal state
   const [forwardTargetMsg, setForwardTargetMsg] = useState<Msg | null>(null);
   const [forwardToNumber, setForwardToNumber] = useState("");
   const [forwardFromNumber, setForwardFromNumber] = useState("");
@@ -88,8 +105,17 @@ export default function MessagesPage() {
     try {
       const [m, n] = await Promise.all([fetchMsgs(), fetchNums()]);
       setMsgs(m.messages as Msg[]);
-      setNums((n.numbers as any[]).map((x) => ({ id: x.id, phone_number: x.phone_number })));
-      if (!from && n.numbers?.[0]) setFrom(n.numbers[0].phone_number);
+      const loadedNums = (n.numbers as any[]) ?? [];
+      setNums(loadedNums);
+
+      const defaultSender = from || loadedNums[0]?.phone_number || "";
+      if (!from && loadedNums[0]) setFrom(loadedNums[0].phone_number);
+
+      const currentNum = loadedNums.find((x: any) => x.phone_number === defaultSender);
+      if (currentNum) {
+        setForwardNumberInput(currentNum.forward_to_number ?? "");
+        setForwardEnabledInput(Boolean(currentNum.forward_sms_enabled));
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to load messages");
     } finally {
@@ -101,6 +127,15 @@ export default function MessagesPage() {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function handleSenderChange(newFrom: string) {
+    setFrom(newFrom);
+    const selected = nums.find((x) => x.phone_number === newFrom);
+    if (selected) {
+      setForwardNumberInput(selected.forward_to_number ?? "");
+      setForwardEnabledInput(Boolean(selected.forward_sms_enabled));
+    }
+  }
 
   // Realtime: new messages for this user
   useEffect(() => {
@@ -159,6 +194,40 @@ export default function MessagesPage() {
     }
   }
 
+  async function onSaveForwardSettings() {
+    if (!activeNumberObj) return;
+    setSavingForward(true);
+    try {
+      const res = await updateForwarding({
+        data: {
+          id: activeNumberObj.id,
+          forward_to_number: forwardNumberInput.trim() || null,
+          forward_sms_enabled: forwardEnabledInput,
+        },
+      });
+      setNums((prev) =>
+        prev.map((item) =>
+          item.id === activeNumberObj.id
+            ? {
+                ...item,
+                forward_to_number: res.forward_to_number,
+                forward_sms_enabled: res.forward_sms_enabled,
+              }
+            : item,
+        ),
+      );
+      toast.success(
+        forwardEnabledInput && res.forward_to_number
+          ? `SMS will now be forwarded to ${res.forward_to_number}`
+          : "Forwarding disabled",
+      );
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to save forwarding settings");
+    } finally {
+      setSavingForward(false);
+    }
+  }
+
   async function onForward() {
     if (!forwardTargetMsg || !forwardToNumber.trim() || !forwardFromNumber) return;
     setForwarding(true);
@@ -184,7 +253,7 @@ export default function MessagesPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Messages</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -193,8 +262,8 @@ export default function MessagesPage() {
         </div>
         {nums.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Default sender:</span>
-            <Select value={from} onValueChange={setFrom}>
+            <span className="text-xs text-muted-foreground">Active Number:</span>
+            <Select value={from} onValueChange={handleSenderChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
@@ -226,6 +295,68 @@ export default function MessagesPage() {
         </div>
       )}
 
+      {/* Prominent SMS Auto-Forwarding Configuration Card */}
+      {nums.length > 0 && (
+        <div className="mt-6 rounded-2xl border border-primary/20 bg-card p-5 shadow-xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Forward className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-semibold">SMS & OTP Auto-Forwarding</h2>
+                {activeNumberObj?.forward_sms_enabled && activeNumberObj?.forward_to_number ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Active → {activeNumberObj.forward_to_number}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    Disabled
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Automatically forward any incoming SMS or OTP received on{" "}
+                <span className="font-semibold text-foreground">{from || nums[0]?.phone_number}</span> directly to your personal mobile phone.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch
+                id="toggle-forward"
+                checked={forwardEnabledInput}
+                onCheckedChange={setForwardEnabledInput}
+              />
+              <Label htmlFor="toggle-forward" className="text-xs font-medium cursor-pointer">
+                {forwardEnabledInput ? "Forwarding Enabled" : "Forwarding Disabled"}
+              </Label>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative flex-1 max-w-md">
+              <Input
+                placeholder="Forward to phone (e.g. +91 8605222604 or +1 415 555 2671)"
+                value={forwardNumberInput}
+                onChange={(e) => setForwardNumberInput(e.target.value)}
+                className="text-xs"
+              />
+            </div>
+            <Button
+              size="sm"
+              disabled={savingForward || (forwardEnabledInput && !forwardNumberInput.trim())}
+              onClick={onSaveForwardSettings}
+              className="gap-1.5 text-xs"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {savingForward ? "Saving…" : "Save Forward Number"}
+            </Button>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Any country or mobile carrier supported (e.g. Airtel, Jio, Vi, AT&T, Verizon, Vodafone).
+          </p>
+        </div>
+      )}
+
       {nums.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
           {/* Threads list */}
@@ -245,7 +376,7 @@ export default function MessagesPage() {
                     <button
                       onClick={() => {
                         setActive(t.peer);
-                        setFrom(t.mine);
+                        handleSenderChange(t.mine);
                       }}
                       className={cn(
                         "flex w-full flex-col gap-1 border-b border-border/60 px-4 py-3 text-left text-sm hover:bg-accent/40",
