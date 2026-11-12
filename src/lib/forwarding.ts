@@ -3,6 +3,13 @@ export type ForwardRecipient = {
   name?: string;
 };
 
+export type ForwardMode = "both" | "receive";
+
+export type ForwardConfig = {
+  recipients: ForwardRecipient[];
+  mode: ForwardMode; // "both" = Send and Receive SMS, "receive" = Receive SMS only
+};
+
 /**
  * Normalizes phone numbers to standard E.164 (+1234567890).
  * Handles Indian numbers (10 digits starting with 6-9) and US/Canada numbers automatically.
@@ -21,14 +28,26 @@ export function normalizeE164(input: string): string {
 
 /**
  * Parses a forward_to_number database field into a structured list of ForwardRecipient.
- * Supports both JSON array strings `[{"number":"+91...","name":"Personal"}]` and legacy
- * comma-separated strings `+918605222604, +918905020697`.
+ * Supports:
+ * - JSON config object: `{"recipients":[{"number":"+91...","name":"Personal"}],"mode":"both"}`
+ * - JSON array: `[{"number":"+91...","name":"Personal"}]`
+ * - Legacy comma-separated strings: `+918605222604, +918905020697`
  */
 export function parseForwardRecipients(raw: string | null | undefined): ForwardRecipient[] {
   if (!raw || !raw.trim()) return [];
   const trimmed = raw.trim();
 
-  // Try JSON format
+  // Try JSON object format { recipients: [...], mode: "both" }
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      if (Array.isArray(obj.recipients)) {
+        return parseForwardRecipients(JSON.stringify(obj.recipients));
+      }
+    } catch {}
+  }
+
+  // Try JSON array format
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     try {
       const parsed = JSON.parse(trimmed);
@@ -64,16 +83,43 @@ export function parseForwardRecipients(raw: string | null | undefined): ForwardR
 }
 
 /**
+ * Parses full forwarding config including forward mode ("both" vs "receive").
+ */
+export function parseForwardConfig(raw: string | null | undefined): ForwardConfig {
+  if (!raw || !raw.trim()) {
+    return { recipients: [], mode: "both" };
+  }
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      return {
+        recipients: parseForwardRecipients(JSON.stringify(obj.recipients || [])),
+        mode: obj.mode === "receive" ? "receive" : "both",
+      };
+    } catch {}
+  }
+  return {
+    recipients: parseForwardRecipients(raw),
+    mode: "both",
+  };
+}
+
+/**
  * Serializes ForwardRecipient array into a JSON string for storage in phone_numbers.forward_to_number.
  */
-export function serializeForwardRecipients(recipients: ForwardRecipient[]): string | null {
+export function serializeForwardRecipients(
+  recipients: ForwardRecipient[],
+  mode: ForwardMode = "both",
+): string | null {
   if (!recipients || recipients.length === 0) return null;
-  return JSON.stringify(
-    recipients.map((r) => ({
+  return JSON.stringify({
+    recipients: recipients.map((r) => ({
       number: normalizeE164(r.number),
       name: (r.name || "").trim(),
     })),
-  );
+    mode,
+  });
 }
 
 /**
