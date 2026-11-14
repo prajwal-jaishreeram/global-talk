@@ -40,6 +40,7 @@ import {
   type ForwardRecipient,
   type ForwardMode,
   type RecipientMessageType,
+  type SenderRule,
 } from "@/lib/telnyx.functions";
 import {
   parseForwardConfig,
@@ -176,6 +177,7 @@ export default function MessagesPage() {
   );
 
   const [recipients, setRecipients] = useState<ForwardRecipient[]>([]);
+  const [senderRules, setSenderRules] = useState<SenderRule[]>([]);
   const [groups, setGroups] = useState<string[]>([...DEFAULT_GROUPS]);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
   const [forwardMode, setForwardMode] = useState<ForwardMode>("both");
@@ -188,6 +190,11 @@ export default function MessagesPage() {
   const [newNumberName, setNewNumberName] = useState("");
   const [newNumberGroup, setNewNumberGroup] = useState("Personal");
   const [newNumberMessageType, setNewNumberMessageType] = useState<RecipientMessageType>("all");
+
+  // Form state for Sender-Specific Rule
+  const [ruleFromNumber, setRuleFromNumber] = useState("");
+  const [ruleForwardTo, setRuleForwardTo] = useState("");
+  const [ruleLabel, setRuleLabel] = useState("");
 
   // Create custom group modal
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
@@ -222,6 +229,7 @@ export default function MessagesPage() {
       if (currentNum) {
         const config = parseForwardConfig(currentNum.forward_to_number);
         setRecipients(config.recipients);
+        setSenderRules(config.senderRules || []);
         setGroups(config.groups);
         setForwardMode(config.mode);
         setForwardEnabledInput(Boolean(currentNum.forward_sms_enabled));
@@ -244,6 +252,7 @@ export default function MessagesPage() {
     if (selected) {
       const config = parseForwardConfig(selected.forward_to_number);
       setRecipients(config.recipients);
+      setSenderRules(config.senderRules || []);
       setGroups(config.groups);
       setForwardMode(config.mode);
       setForwardEnabledInput(Boolean(selected.forward_sms_enabled));
@@ -415,13 +424,14 @@ export default function MessagesPage() {
     }
   }
 
-  // Real-time persistence helper that saves recipients + groups + mode immediately
+  // Real-time persistence helper that saves recipients + groups + mode + senderRules immediately
   async function persistForwarding(
     recipientsToSave: ForwardRecipient[],
     enabledToSave: boolean,
     modeToSave: ForwardMode = forwardMode,
     groupsToSave: string[] = groups,
     customSuccessMsg?: string,
+    senderRulesToSave: SenderRule[] = senderRules,
   ) {
     if (!activeNumberObj) return;
     setSavingForward(true);
@@ -430,6 +440,7 @@ export default function MessagesPage() {
         data: {
           id: activeNumberObj.id,
           recipients: recipientsToSave,
+          senderRules: senderRulesToSave,
           groups: groupsToSave,
           mode: modeToSave,
           forward_sms_enabled: enabledToSave,
@@ -438,6 +449,7 @@ export default function MessagesPage() {
 
       const updatedConfig = parseForwardConfig(res.forward_to_number);
       setRecipients(updatedConfig.recipients);
+      setSenderRules(updatedConfig.senderRules || []);
       setGroups(updatedConfig.groups);
       setForwardMode(updatedConfig.mode);
       setForwardEnabledInput(res.forward_sms_enabled);
@@ -635,6 +647,76 @@ export default function MessagesPage() {
       forwardMode,
       groups,
       `All numbers in group "${groupName}" ${enable ? "enabled" : "paused"}.`,
+    );
+  }
+
+  // --- Sender-Specific Routing Rules Handlers ---
+  async function addSenderRule() {
+    const rawFrom = ruleFromNumber.trim();
+    const rawTo = ruleForwardTo.trim();
+
+    if (!rawFrom || !rawTo) {
+      toast.error("Please enter both the sender phone number and the destination phone number.");
+      return;
+    }
+
+    const normFrom = normalizeE164(rawFrom);
+    const normTo = normalizeE164(rawTo);
+
+    if (!/^\+\d{7,16}$/.test(normFrom)) {
+      toast.error("Invalid sender phone number. Please include country code, e.g. +12025550199");
+      return;
+    }
+    if (!/^\+\d{7,16}$/.test(normTo)) {
+      toast.error("Invalid destination phone number. Please include country code, e.g. +12015662232");
+      return;
+    }
+
+    const newRule: SenderRule = {
+      id: `sr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      fromNumber: normFrom,
+      forwardToNumber: normTo,
+      label: ruleLabel.trim(),
+      enabled: true,
+    };
+
+    const nextRules = [...senderRules, newRule];
+    setRuleFromNumber("");
+    setRuleForwardTo("");
+    setRuleLabel("");
+
+    await persistForwarding(
+      recipients,
+      true,
+      forwardMode,
+      groups,
+      `Sender rule added: When ${normFrom} texts, forward to ${normTo}!`,
+      nextRules,
+    );
+  }
+
+  async function removeSenderRule(ruleId: string) {
+    const target = senderRules.find((r) => r.id === ruleId);
+    const nextRules = senderRules.filter((r) => r.id !== ruleId);
+    await persistForwarding(
+      recipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `Rule for ${target?.fromNumber || "sender"} removed.`,
+      nextRules,
+    );
+  }
+
+  async function toggleSenderRule(ruleId: string, enabled: boolean) {
+    const nextRules = senderRules.map((r) => (r.id === ruleId ? { ...r, enabled } : r));
+    await persistForwarding(
+      recipients,
+      forwardEnabledInput,
+      forwardMode,
+      groups,
+      `Sender rule ${enabled ? "activated" : "paused"}.`,
+      nextRules,
     );
   }
 
@@ -2117,6 +2199,163 @@ export default function MessagesPage() {
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add & Save Recipient</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sender-Specific Conditional Routing Card (David's Requested Feature) */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Filter className="h-3.5 w-3.5" />
+                      </div>
+                      <h3 className="text-base font-semibold text-foreground">
+                        Specific Sender Routing Rules
+                      </h3>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        VIP / Conditional
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Forward texts from one specific phone number (e.g. client, bank, VIP contact) directly to a dedicated mobile recipient.
+                    </p>
+                  </div>
+
+                  <span className="text-xs text-muted-foreground">
+                    {senderRules.length} {senderRules.length === 1 ? "rule" : "rules"} active
+                  </span>
+                </div>
+
+                {/* List of Active Sender Rules */}
+                {senderRules.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/80 p-6 text-center text-xs text-muted-foreground">
+                    <p className="font-medium text-foreground">No specific sender rules yet</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Use the builder below to say: <em>"Whenever Number X texts, forward only to Number Y"</em>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {senderRules.map((rule) => (
+                      <div
+                        key={rule.id}
+                        className={cn(
+                          "flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3.5 transition-colors",
+                          rule.enabled !== false
+                            ? "border-border bg-background shadow-2xs"
+                            : "border-border/40 bg-muted/20 opacity-60",
+                        )}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {rule.label && (
+                              <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                                {rule.label}
+                              </span>
+                            )}
+                            <span className="text-xs font-semibold text-foreground">
+                              When <span className="font-mono text-primary font-bold">{formatPhoneDisplay(rule.fromNumber)}</span> texts
+                            </span>
+                            <span className="text-muted-foreground text-xs">➔</span>
+                            <span className="text-xs font-semibold text-foreground">
+                              Forward to <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{formatPhoneDisplay(rule.forwardToNumber)}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5" title={rule.enabled !== false ? "Pause this rule" : "Activate rule"}>
+                            <Switch
+                              checked={rule.enabled !== false}
+                              onCheckedChange={(val) => toggleSenderRule(rule.id, val)}
+                              disabled={savingForward}
+                              className="scale-75"
+                            />
+                            <span className="text-[10px] text-muted-foreground">
+                              {rule.enabled !== false ? "Active" : "Paused"}
+                            </span>
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={savingForward}
+                            onClick={() => removeSenderRule(rule.id)}
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title="Delete rule"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Specific Sender Rule Builder */}
+                <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 space-y-3">
+                  <Label className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                    Create New Sender Rule
+                  </Label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="rule-from-number" className="text-[11px] text-muted-foreground">
+                        When Message is FROM (Sender) *
+                      </Label>
+                      <Input
+                        id="rule-from-number"
+                        placeholder="e.g. +1 202 555 0199"
+                        value={ruleFromNumber}
+                        onChange={(e) => setRuleFromNumber(e.target.value)}
+                        className="text-xs font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="rule-forward-to" className="text-[11px] text-muted-foreground">
+                        Forward DIRECTLY TO (Recipient) *
+                      </Label>
+                      <Input
+                        id="rule-forward-to"
+                        placeholder="e.g. +1 201 566 2232"
+                        value={ruleForwardTo}
+                        onChange={(e) => setRuleForwardTo(e.target.value)}
+                        className="text-xs font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="rule-label" className="text-[11px] text-muted-foreground">
+                        Label / Contact Name (Optional)
+                      </Label>
+                      <Input
+                        id="rule-label"
+                        placeholder="e.g. VIP Client / Chase Bank"
+                        value={ruleLabel}
+                        onChange={(e) => setRuleLabel(e.target.value)}
+                        className="text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-[11px] text-muted-foreground">
+                      Any text arriving from this designated sender will route immediately to your chosen destination.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addSenderRule}
+                      disabled={!ruleFromNumber.trim() || !ruleForwardTo.trim() || savingForward}
+                      className="gap-1.5 text-xs shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Add Sender Rule</span>
                     </Button>
                   </div>
                 </div>

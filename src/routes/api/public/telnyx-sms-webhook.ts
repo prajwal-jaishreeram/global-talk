@@ -55,7 +55,8 @@ export const Route = createFileRoute("/api/public/telnyx-sms-webhook")({
           const telnyxKey = process.env.TELNYX_API_KEY;
           if (telnyxKey) {
             const isOtp = Boolean(extractOtpCode(body));
-            const forwardTargets = getRecipientsForEvent(owner.forward_to_number, "inbound", isOtp);
+            // Pass `from` so sender-specific routing rules are checked
+            const forwardTargets = getRecipientsForEvent(owner.forward_to_number, "inbound", isOtp, from);
 
             const forwardText = `[Fwd from ${from}]: ${body}`;
 

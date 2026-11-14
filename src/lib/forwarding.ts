@@ -8,10 +8,19 @@ export type ForwardRecipient = {
   enabled?: boolean; // true by default
 };
 
+export type SenderRule = {
+  id: string;
+  fromNumber: string; // Specific sender phone number (e.g. +12025550199)
+  forwardToNumber: string; // Destination number to forward their texts to (e.g. +12015662232)
+  label?: string; // e.g. "VIP Client John", "Chase Bank", "Boss"
+  enabled?: boolean;
+};
+
 export type ForwardMode = "both" | "receive";
 
 export type ForwardConfig = {
   recipients: ForwardRecipient[];
+  senderRules: SenderRule[];
   groups: string[];
   mode: ForwardMode;
 };
@@ -101,12 +110,26 @@ function normalizeRawRecipient(item: any): ForwardRecipient | null {
   };
 }
 
+function normalizeRawSenderRule(item: any): SenderRule | null {
+  if (!item) return null;
+  const fromNum = normalizeE164(String(item.fromNumber || item.from || ""));
+  const toNum = normalizeE164(String(item.forwardToNumber || item.to || ""));
+  if (!fromNum || !toNum) return null;
+  return {
+    id: String(item.id || `sr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`),
+    fromNumber: fromNum,
+    forwardToNumber: toNum,
+    label: String(item.label || "").trim(),
+    enabled: item.enabled !== false,
+  };
+}
+
 /**
- * Parses full forwarding config including forward mode and custom groups.
+ * Parses full forwarding config including forward mode, custom groups, and sender-specific routing rules.
  */
 export function parseForwardConfig(raw: string | null | undefined): ForwardConfig {
   if (!raw || !raw.trim()) {
-    return { recipients: [], groups: [...DEFAULT_GROUPS], mode: "both" };
+    return { recipients: [], senderRules: [], groups: [...DEFAULT_GROUPS], mode: "both" };
   }
   const trimmed = raw.trim();
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
@@ -114,12 +137,17 @@ export function parseForwardConfig(raw: string | null | undefined): ForwardConfi
       const obj = JSON.parse(trimmed);
       const parsedRecipients = parseForwardRecipients(JSON.stringify(obj.recipients || []));
       const extractedGroups = Array.isArray(obj.groups) ? obj.groups.filter(Boolean) : [];
+      const parsedSenderRules = Array.isArray(obj.senderRules)
+        ? obj.senderRules.map(normalizeRawSenderRule).filter((r): r is SenderRule => Boolean(r))
+        : [];
+
       // Combine with groups found on recipients
       const allGroups = Array.from(
         new Set([...DEFAULT_GROUPS, ...extractedGroups, ...parsedRecipients.map((r) => r.group).filter(Boolean)]),
       );
       return {
         recipients: parsedRecipients,
+        senderRules: parsedSenderRules,
         groups: allGroups as string[],
         mode: obj.mode === "receive" ? "receive" : "both",
       };
@@ -129,29 +157,36 @@ export function parseForwardConfig(raw: string | null | undefined): ForwardConfi
   const recs = parseForwardRecipients(raw);
   return {
     recipients: recs,
+    senderRules: [],
     groups: [...DEFAULT_GROUPS],
     mode: "both",
   };
 }
 
 /**
- * Serializes ForwardRecipient array and groups into a JSON string for storage in phone_numbers.forward_to_number.
+ * Serializes ForwardRecipient array, sender-specific rules, and groups into a JSON string.
  */
 export function serializeForwardRecipients(
   recipients: ForwardRecipient[],
   mode: ForwardMode = "both",
   groups?: string[],
+  senderRules?: SenderRule[],
 ): string | null {
-  if (!recipients || recipients.length === 0) return null;
+  if ((!recipients || recipients.length === 0) && (!senderRules || senderRules.length === 0)) return null;
   const groupsList = groups && groups.length > 0 ? groups : Array.from(new Set(recipients.map((r) => r.group || "Personal")));
+  const validSenderRules = (senderRules || [])
+    .map(normalizeRawSenderRule)
+    .filter((r): r is SenderRule => Boolean(r));
+
   return JSON.stringify({
-    recipients: recipients.map((r) => ({
+    recipients: (recipients || []).map((r) => ({
       number: normalizeE164(r.number),
       name: (r.name || "").trim(),
       group: (r.group || "Personal").trim(),
       messageType: r.messageType ?? "all",
       enabled: r.enabled !== false,
     })),
+    senderRules: validSenderRules,
     groups: groupsList,
     mode,
   });
@@ -176,13 +211,32 @@ export function shouldRecipientReceive(
 
 /**
  * Extracts phone numbers of active recipients that match the event (inbound/outbound/otp).
+ * Supports sender-specific routing override: If sender matches a specific SenderRule,
+ * that designated destination receives the message (exclusively or additionally).
  */
 export function getRecipientsForEvent(
   raw: string | null | undefined,
   direction: "inbound" | "outbound",
   isOtp: boolean,
+  fromSender?: string | null,
 ): string[] {
   const config = parseForwardConfig(raw);
+
+  // Check sender-specific rules first for inbound messages
+  if (direction === "inbound" && fromSender && Array.isArray(config.senderRules) && config.senderRules.length > 0) {
+    const normalizedSender = normalizeE164(fromSender);
+    const matchingRules = config.senderRules.filter(
+      (rule) => rule.enabled !== false && normalizeE164(rule.fromNumber) === normalizedSender,
+    );
+
+    if (matchingRules.length > 0) {
+      // Prioritize designated recipient(s) for this specific sender
+      const designatedRecipients = matchingRules.map((r) => normalizeE164(r.forwardToNumber));
+      return Array.from(new Set(designatedRecipients));
+    }
+  }
+
+  // Fallback to standard broadcast recipients
   return config.recipients
     .filter((r) => shouldRecipientReceive(r, direction, isOtp))
     .map((r) => r.number);

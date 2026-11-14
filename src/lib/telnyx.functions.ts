@@ -11,6 +11,7 @@ import {
   type ForwardConfig,
   type ForwardMode,
   type RecipientMessageType,
+  type SenderRule,
   DEFAULT_GROUPS,
 } from "@/lib/forwarding";
 
@@ -316,6 +317,13 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
         messageType?: RecipientMessageType;
         enabled?: boolean;
       }>;
+      senderRules?: Array<{
+        id: string;
+        fromNumber: string;
+        forwardToNumber: string;
+        label?: string;
+        enabled?: boolean;
+      }>;
       groups?: string[];
       mode?: "both" | "receive";
       forward_sms_enabled: boolean;
@@ -361,14 +369,37 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       }
     }
 
-    if (data.forward_sms_enabled && normalizedRecipients.length === 0) {
+    // Normalize sender-specific rules
+    const normalizedSenderRules: SenderRule[] = [];
+    if (Array.isArray(data.senderRules)) {
+      for (const rule of data.senderRules) {
+        const fromNum = normalizeE164(rule.fromNumber);
+        const toNum = normalizeE164(rule.forwardToNumber);
+        if (fromNum && toNum) {
+          normalizedSenderRules.push({
+            id: rule.id || `sr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            fromNumber: fromNum,
+            forwardToNumber: toNum,
+            label: (rule.label || "").trim(),
+            enabled: rule.enabled !== false,
+          });
+        }
+      }
+    }
+
+    if (data.forward_sms_enabled && normalizedRecipients.length === 0 && normalizedSenderRules.length === 0) {
       throw new Error(
-        "Please add at least one forwarding phone number before enabling auto-forwarding.",
+        "Please add at least one forwarding phone number or sender rule before enabling auto-forwarding.",
       );
     }
 
     const forwardMode = data.mode ?? "both";
-    const serialized = serializeForwardRecipients(normalizedRecipients, forwardMode, data.groups);
+    const serialized = serializeForwardRecipients(
+      normalizedRecipients,
+      forwardMode,
+      data.groups,
+      normalizedSenderRules,
+    );
 
     const { error } = await supabase
       .from("phone_numbers")
@@ -388,6 +419,7 @@ export const updatePhoneNumberForwarding = createServerFn({ method: "POST" })
       ok: true,
       forward_to_number: serialized,
       recipients: parsedConfig.recipients,
+      senderRules: parsedConfig.senderRules,
       groups: parsedConfig.groups,
       forward_to_numbers: parsedConfig.recipients.map((r) => r.number),
       mode: forwardMode,
