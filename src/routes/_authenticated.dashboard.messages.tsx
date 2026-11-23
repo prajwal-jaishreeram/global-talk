@@ -1250,9 +1250,9 @@ export default function MessagesPage() {
               {/* 2-Column Messaging Workspace */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-[320px_1fr]">
                 {/* Left Column: Conversations List with Search, Filter & New Message Button */}
-                <div className="flex flex-col rounded-2xl border border-border bg-card overflow-hidden shadow-2xs">
+                <div className="flex flex-col rounded-2xl border border-border bg-card overflow-hidden h-[68vh] shadow-2xs">
                   {/* Top Header with Compose New Message button */}
-                  <div className="border-b border-border/80 p-3 space-y-2.5">
+                  <div className="border-b border-border/80 p-3 space-y-2.5 shrink-0">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-foreground">
                         Conversations ({threads.length})
@@ -1331,7 +1331,7 @@ export default function MessagesPage() {
 
                   {/* Threads List with High Contrast Legible Colors */}
                   {threads.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-muted-foreground">
+                    <div className="p-8 text-center text-sm text-muted-foreground m-auto">
                       <Inbox className="mx-auto mb-2 h-7 w-7 opacity-40" />
                       <p className="font-medium text-xs text-foreground">No conversations found</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -1339,7 +1339,7 @@ export default function MessagesPage() {
                       </p>
                     </div>
                   ) : (
-                    <ul className="max-h-[65vh] overflow-y-auto divide-y divide-border/40 [scrollbar-width:thin] [scrollbar-color:rgba(150,160,180,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/25 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+                    <ul className="flex-1 overflow-y-auto divide-y divide-border/40 [scrollbar-width:thin] [scrollbar-color:rgba(150,160,180,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/25 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                       {threads.map((t) => {
                         const otpCode = extractOtpCode(t.last.body);
                         const isSelected = active === t.peer;
@@ -1453,7 +1453,7 @@ export default function MessagesPage() {
                 {/* Right Column: Chat Viewer & Quick Reply */}
                 <div
                   className={cn(
-                    "flex flex-col rounded-2xl border border-border bg-card overflow-hidden min-h-[65vh] shadow-2xs",
+                    "flex flex-col rounded-2xl border border-border bg-card overflow-hidden h-[68vh] shadow-2xs",
                     !active && "hidden md:flex",
                   )}
                 >
@@ -1470,7 +1470,7 @@ export default function MessagesPage() {
                   ) : (
                     <>
                       {/* Active Chat Header */}
-                      <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/20">
+                      <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/20 shrink-0">
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => setActive(null)}
@@ -1661,7 +1661,7 @@ export default function MessagesPage() {
                           e.preventDefault();
                           onSend();
                         }}
-                        className="flex gap-2 border-t border-border p-3.5 bg-muted/10"
+                        className="flex gap-2 border-t border-border p-3.5 bg-muted/10 shrink-0"
                       >
                         <Input
                           value={draft}
